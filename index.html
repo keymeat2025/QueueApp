@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QueueApp - Smart Queue Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+<!-- NAVBAR -->
+<nav class="bg-white shadow-md py-4 fixed w-full top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center px-4">
+        <h1 class="text-2xl font-bold text-orange-600">QueueApp</h1>
+        <div class="flex gap-6 text-lg">
+            <a href="#home" class="hover:text-orange-600">Home</a>
+            <a href="#pricing" class="hover:text-orange-600 font-semibold">Pricing</a>
+            <a href="#login" class="hover:text-orange-600">Login</a>
+            <a href="#signup" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+                Start Free Trial
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- HOME / HERO -->
+<section id="home" class="container mx-auto px-4 pt-32 pb-20 text-center">
+    <h2 class="text-5xl font-bold text-gray-900 mb-6">Smart Queue Management for Restaurants</h2>
+    <p class="text-xl text-gray-600 mb-10">
+        Reduce waiting time, improve guest experience, and manage queues effortlessly.
+    </p>
+
+    <div class="flex gap-4 justify-center">
+        <a href="#signup"
+            class="bg-orange-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-orange-700">
+            Start Free Trial
+        </a>
+        <a href="#pricing"
+            class="border-2 border-orange-600 text-orange-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-orange-50">
+            View Pricing
+        </a>
+    </div>
+
+    <img 
+        src="https://dummyimage.com/1200x600/eeeeee/000000&text=Queue+Management+UI"
+        class="mx-auto mt-16 rounded-3xl shadow-xl"
+    />
+</section>
+
+<!-- FEATURES -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto text-center px-4">
+        <h3 class="text-4xl font-bold mb-10">Why Choose QueueApp?</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+            <div class="p-8 bg-orange-50 rounded-2xl shadow">
+                <h4 class="text-2xl font-bold mb-4">Smart Queue Control</h4>
+                <p class="text-gray-600">Track wait times, seat customers faster, and minimize delays.</p>
+            </div>
+
+            <div class="p-8 bg-orange-50 rounded-2xl shadow">
+                <h4 class="text-2xl font-bold mb-4">Customer Notifications</h4>
+                <p class="text-gray-600">Send SMS or WhatsApp alerts when tables are ready.</p>
+            </div>
+
+            <div class="p-8 bg-orange-50 rounded-2xl shadow">
+                <h4 class="text-2xl font-bold mb-4">Analytics Dashboard</h4>
+                <p class="text-gray-600">Get real-time insights on customer flow & peak hours.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- PRICING SECTION -->
+<section id="pricing" class="py-24 bg-gray-100">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-5xl font-bold mb-6">Simple & Transparent Pricing</h2>
+        <p class="text-xl text-gray-600 mb-16">
+            Choose the plan that fits your restaurant's growth.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+            <!-- BASIC PLAN -->
+            <div class="bg-white p-10 rounded-3xl shadow-xl border-t-4 border-orange-500">
+                <h3 class="text-3xl font-bold mb-4">Basic</h3>
+                <p class="text-5xl font-extrabold mb-4">₹799<span class="text-lg">/month</span></p>
+                <p class="text-gray-600 mb-6">Best for small restaurants.</p>
+
+                <ul class="text-left text-gray-700 space-y-3">
+                    <li>✔ Queue Management</li>
+                    <li>✔ Customer Notifications</li>
+                    <li>✔ Basic Analytics</li>
+                </ul>
+
+                <a class="block mt-8 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 cursor-pointer">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- STANDARD PLAN -->
+            <div class="bg-white p-10 rounded-3xl shadow-xl border-t-4 border-orange-700 scale-105">
+                <h3 class="text-3xl font-bold mb-4 text-orange-600">Standard</h3>
+                <p class="text-5xl font-extrabold mb-4">₹1499<span class="text-lg">/month</span></p>
+                <p class="text-gray-600 mb-6">Perfect for growing restaurants.</p>
+
+                <ul class="text-left text-gray-700 space-y-3">
+                    <li>✔ Everything in Basic</li>
+                    <li>✔ Multi-Outlet Support</li>
+                    <li>✔ Advanced Analytics</li>
+                </ul>
+
+                <a class="block mt-8 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 cursor-pointer">
+                    Choose Standard
+                </a>
+            </div>
+
+            <!-- PREMIUM PLAN -->
+            <div class="bg-white p-10 rounded-3xl shadow-xl border-t-4 border-orange-900">
+                <h3 class="text-3xl font-bold mb-4">Premium</h3>
+                <p class="text-5xl font-extrabold mb-4">₹2499<span class="text-lg">/month</span></p>
+                <p class="text-gray-600 mb-6">For high-volume restaurants.</p>
+
+                <ul class="text-left text-gray-700 space-y-3">
+                    <li>✔ All Standard Features</li>
+                    <li>✔ Priority Support</li>
+                    <li>✔ Custom Integrations</li>
+                </ul>
+
+                <a class="block mt-8 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 cursor-pointer">
+                    Choose Premium
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- LOGIN -->
+<section id="login" class="py-24 bg-white">
+    <div class="container mx-auto px-4 max-w-md text-center">
+        <h2 class="text-4xl font-bold mb-8">Login</h2>
+        <input class="w-full p-4 mb-4 border rounded-xl" placeholder="Email" />
+        <input class="w-full p-4 mb-4 border rounded-xl" type="password" placeholder="Password" />
+
+        <button class="w-full bg-orange-600 text-white py-4 rounded-xl font-bold hover:bg-orange-700">
+            Login
+        </button>
+    </div>
+</section>
+
+<!-- SIGNUP -->
+<section id="signup" class="py-24 bg-gray-100">
+    <div class="container mx-auto px-4 max-w-md text-center">
+        <h2 class="text-4xl font-bold mb-8">Create Your Account</h2>
+
+        <input class="w-full p-4 mb-4 border rounded-xl" placeholder="Restaurant Name" />
+        <input class="w-full p-4 mb-4 border rounded-xl" placeholder="Email" />
+        <input class="w-full p-4 mb-4 border rounded-xl" type="password" placeholder="Password" />
+
+        <button class="w-full bg-orange-600 text-white py-4 rounded-xl font-bold hover:bg-orange-700">
+            Start Free Trial
+        </button>
+    </div>
+</section>
+
+</body>
+</html>
