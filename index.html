@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueApp - Complete System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="app"></div>
+    <script>
+        const DB = {
+            restaurants: JSON.parse(localStorage.getItem('restaurants') || '{}'),
+            
+            save() { 
+                // Debug: Log before save
+                console.log('💾 Saving to localStorage:', JSON.stringify(this.restaurants, null, 2));
+                localStorage.setItem('restaurants', JSON.stringify(this.restaurants)); 
+            },
+            
+            addRestaurant(id, data) { 
+                this.restaurants[id] = { 
+                    ...data, 
+                    queue: [], 
+                    tables: [], 
+                    createdAt: Date.now(), 
+                    plan: 'free'  // ✅ Always FREE on signup
+                }; 
+                console.log(`✅ Restaurant ${id} created with FREE plan`);
+                this.save(); 
+                return id; 
+            },
+            
+            addToQueue(restaurantId, customer) { 
+                const restaurant = this.restaurants[restaurantId]; 
+                if (!restaurant) {
+                    console.error(`❌ Restaurant ${restaurantId} not found`);
+                    return null;
+                }
+                
+                // Store original plan
+                const originalPlan = restaurant.plan;
+                
+                const queueNumber = `A-${Math.floor(Math.random() * 900) + 100}`; 
+                
+                restaurant.queue.push({ 
+                    ...customer, 
+                    queueNumber, 
+                    status: 'waiting', 
+                    joinedAt: Date.now() 
+                }); 
+                
+                // ✅ CRITICAL FIX: Ensure plan doesn't change
+                restaurant.plan = originalPlan || 'free';
+                
+                console.log(`✅ Customer added. Plan: ${restaurant.plan}`);
+                this.save(); 
+                return queueNumber; 
+            },
+            
+            allocateTable(restaurantId, queueNumber, tableNo) { 
+                const restaurant = this.restaurants[restaurantId]; 
+                if (!restaurant) return false;
+                
+                const queueItem = restaurant.queue.find(q => q.queueNumber === queueNumber); 
+                if (queueItem) { 
+                    queueItem.status = 'allocated'; 
+                    queueItem.tableNo = tableNo; 
+                    this.save(); 
+                    return true; 
+                } 
+                return false; 
+            },
+            
+            login(restaurantId, phone) { 
+                const restaurant = this.restaurants[restaurantId]; 
+                return restaurant && restaurant.phone === phone; 
+            },
+            
+            upgradePlan(restaurantId, plan) { 
+                const restaurant = this.restaurants[restaurantId]; 
+                if (restaurant) { 
+                    restaurant.plan = plan; 
+                    console.log(`✅ Plan upgraded to: ${plan} for ${restaurantId}`);
+                    this.save(); 
+                    return true; 
+                } 
+                return false; 
+            }
+        };
+        
+        function getLoggedInRestaurant() {
+            const allRestaurants = Object.keys(DB.restaurants);
+            for (let id of allRestaurants) {
+                if (sessionStorage.getItem(`loggedIn_${id}`)) {
+                    return { id, data: DB.restaurants[id] };
+                }
+            }
+            return null;
+        }
+        
+        function render(html) { document.getElementById('app').innerHTML = html; }
+        function navigate(path) { window.location.hash = path; }
+        function handleRoute() {
+            const hash = window.location.hash.slice(1) || '/';
+            const parts = hash.split('/').filter(Boolean);
+            if (hash === '/' || hash === '') showHome();
+            else if (hash === '/pricing') showPricing();
+            else if (hash === '/terms') showTerms();
+            else if (hash === '/privacy') showPrivacy();
+            else if (hash === '/signup') showSignup();
+            else if (hash === '/login') showLogin();
+            else if (hash === '/admin') {
+                if (sessionStorage.getItem('adminAuth') === 'yes') {
+                    showPlatformAdmin();
+                } else {
+                    showAdminPasswordPrompt();
+                }
+            }
+            else if (parts[0] === 'r' && parts[2] === 'join') showJoinQueue(parts[1]);
+            else if (parts[0] === 'r' && parts[2] === 'display') showDisplay(parts[1]);
+            else if (parts[0] === 'r' && parts[2] === 'admin') { 
+                const loggedIn = sessionStorage.getItem(`loggedIn_${parts[1]}`); 
+                if (loggedIn) {
+                    // Debug: Check plan before showing admin
+                    const restaurant = DB.restaurants[parts[1]];
+                    console.log(`🔍 Loading admin for ${parts[1]}, Plan: ${restaurant?.plan}`);
+                    showRestaurantAdmin(parts[1]); 
+                } else {
+                    showRestaurantLogin(parts[1]); 
+                }
+            }
+            else render(`<div class="p-8 text-center"><h1 class="text-4xl">404 - Page Not Found</h1><button onclick="navigate('/')" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg">Go Home</button></div>`);
+        }
+        window.onhashchange = handleRoute;
+        
+        function showHome() {
+            render(`<div class="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto flex justify-between items-center"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigate('/')">QueueApp</h1><div class="space-x-4"><button onclick="navigate('/pricing')" class="text-gray-700 hover:text-orange-600 font-semibold">Pricing</button><button onclick="navigate('/login')" class="text-gray-700 hover:text-orange-600 font-semibold">Login</button><button onclick="navigate('/signup')" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700">Sign Up</button></div></div></nav><main class="container mx-auto px-4 py-16 text-center"><h1 class="text-6xl font-bold text-gray-900 mb-6">Smart Queue Management</h1><p class="text-2xl text-gray-600 mb-12">No more crowded entrances. Happy customers.</p><div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12"><div class="bg-white p-8 rounded-2xl shadow-lg"><div class="text-4xl mb-4">📱</div><h3 class="text-xl font-bold mb-2">Digital Queue</h3><p class="text-gray-600">Customers join via QR code</p></div><div class="bg-white p-8 rounded-2xl shadow-lg"><div class="text-4xl mb-4">📺</div><h3 class="text-xl font-bold mb-2">Live Display</h3><p class="text-gray-600">Real-time queue on TV</p></div><div class="bg-white p-8 rounded-2xl shadow-lg"><div class="text-4xl mb-4">💬</div><h3 class="text-xl font-bold mb-2">WhatsApp Updates</h3><p class="text-gray-600">Auto notifications</p></div></div><button onclick="navigate('/signup')" class="bg-gradient-to-r from-orange-500 to-pink-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:shadow-xl">Start Free Forever</button><p class="mt-4 text-gray-600">No credit card required • 500 customers/month free</p></main><footer class="bg-white border-t border-gray-200 py-8 mt-16"><div class="container mx-auto px-4 text-center"><div class="flex justify-center gap-8 mb-4"><button onclick="navigate('/terms')" class="text-gray-600 hover:text-orange-600">Terms of Service</button><button onclick="navigate('/privacy')" class="text-gray-600 hover:text-orange-600">Privacy Policy</button><a href="mailto:support@queueapp.com" class="text-gray-600 hover:text-orange-600">Contact Support</a></div><p class="text-gray-500 text-sm">© 2024 QueueApp. All rights reserved.</p></div></footer></div>`);
+        }
+
+        function showTerms() {
+            render(`<div class="min-h-screen bg-gray-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto flex justify-between items-center"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigate('/')">QueueApp</h1><button onclick="navigate('/')" class="text-gray-700 hover:text-orange-600">← Back to Home</button></div></nav><div class="container mx-auto px-4 py-12 max-w-4xl"><h1 class="text-4xl font-bold text-gray-900 mb-4">Terms of Service</h1><p class="text-gray-600 mb-8">Last Updated: November 23, 2024</p><div class="bg-white rounded-xl shadow-lg p-8 space-y-6"><section><h2 class="text-2xl font-bold text-gray-900 mb-3">1. Acceptance of Terms</h2><p class="text-gray-700">By accessing or using QueueApp ("the Service"), you agree to be bound by these Terms of Service.</p></section><section><h2 class="text-2xl font-bold text-gray-900 mb-3">2. Subscription Plans</h2><p class="text-gray-700"><strong>Free Plan:</strong> ₹0/month - 500 customers/month, 1 location, basic features</p><p class="text-gray-700"><strong>Premium Plan:</strong> ₹2,999/month per location - Unlimited customers, all features</p></section></div><div class="mt-8 text-center"><button onclick="navigate('/')" class="bg-orange-600 text-white px-8 py-3 rounded-xl hover:bg-orange-700">Back to Home</button></div></div></div>`);
+        }
+
+        function showPrivacy() {
+            render(`<div class="min-h-screen bg-gray-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto flex justify-between items-center"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigate('/')">QueueApp</h1><button onclick="navigate('/')" class="text-gray-700 hover:text-orange-600">← Back to Home</button></div></nav><div class="container mx-auto px-4 py-12 max-w-4xl"><h1 class="text-4xl font-bold text-gray-900 mb-4">Privacy Policy</h1><p class="text-gray-600 mb-8">Last Updated: November 23, 2024</p><div class="bg-white rounded-xl shadow-lg p-8 space-y-6"><section><h2 class="text-2xl font-bold text-gray-900 mb-3">1. Introduction</h2><p class="text-gray-700">QueueApp is committed to protecting your privacy.</p></section></div><div class="mt-8 text-center"><button onclick="navigate('/')" class="bg-orange-600 text-white px-8 py-3 rounded-xl hover:bg-orange-700">Back to Home</button></div></div></div>`);
+        }
+
+        function showPricing() {
+            const loggedIn = getLoggedInRestaurant();
+            const isLoggedIn = !!loggedIn;
+            const restaurant = loggedIn?.data;
+            const restaurantId = loggedIn?.id;
+            const currentPlan = restaurant?.plan || 'free';
+            
+            // Debug log
+            if (isLoggedIn) {
+                console.log(`🔍 Pricing page - Restaurant: ${restaurantId}, Plan: ${currentPlan}`);
+            }
+            
+            const navButtons = isLoggedIn 
+                ? `<div class="flex items-center gap-4">
+                     <span class="text-sm font-semibold text-gray-700">${restaurant.name}</span>
+                     <span class="px-3 py-1 rounded-full text-xs font-bold ${currentPlan === 'premium' ? 'bg-orange-500 text-white' : 'bg-gray-400 text-white'}">${currentPlan.toUpperCase()}</span>
+                     <button onclick="navigate('/r/${restaurantId}/admin')" class="text-gray-700 hover:text-orange-600 font-semibold">Dashboard</button>
+                     <button onclick="logout('${restaurantId}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button>
+                   </div>`
+                : `<div class="space-x-4">
+                     <button onclick="navigate('/login')" class="text-gray-700 hover:text-orange-600 font-semibold">Login</button>
+                     <button onclick="navigate('/signup')" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700">Sign Up</button>
+                   </div>`;
+            
+            const freeCTA = isLoggedIn && currentPlan === 'free'
+                ? `<button class="w-full bg-green-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed" disabled>✓ Current Plan</button>`
+                : isLoggedIn && currentPlan === 'premium'
+                ? `<button onclick="confirmDowngrade('${restaurantId}')" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg transition-colors">Downgrade to Free</button>`
+                : `<button onclick="navigate('/signup')" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg transition-colors">Start Free</button>`;
+            
+            const premiumCTA = isLoggedIn && currentPlan === 'premium'
+                ? `<button class="w-full bg-green-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed" disabled>✓ Current Plan</button>`
+                : isLoggedIn && currentPlan === 'free'
+                ? `<button onclick="handleUpgrade('${restaurantId}')" class="w-full bg-white hover:bg-gray-100 text-orange-600 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg">Upgrade Now</button>`
+                : `<button onclick="navigate('/signup')" class="w-full bg-white hover:bg-gray-100 text-orange-600 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg">Get Started</button>`;
+
+            render(`<div class="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto flex justify-between items-center"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigate('/')">QueueApp</h1>${navButtons}</div></nav><div class="container mx-auto px-4 py-16"><div class="text-center mb-16"><h1 class="text-5xl font-bold text-gray-900 mb-4">Simple, Honest Pricing</h1><p class="text-2xl text-gray-600 mb-6">Start free forever. Upgrade when you need more.</p>${isLoggedIn ? `<div class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-6 py-3 rounded-full font-semibold mb-4"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>Logged in as ${restaurant.name} • Plan: ${currentPlan.toUpperCase()}</div>` : ''}<div class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-6 py-3 rounded-full font-semibold"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>No Credit Card • No Setup Fees • Cancel Anytime</div></div><div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16"><div class="bg-white rounded-3xl shadow-xl p-8 border-2 ${currentPlan === 'free' && isLoggedIn ? 'border-green-500 relative' : 'border-gray-200'} hover:shadow-2xl transition-all">${currentPlan === 'free' && isLoggedIn ? '<div class="absolute -top-3 left-1/2 transform -translate-x-1/2"><span class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold">YOUR PLAN</span></div>' : ''}<div class="text-center mb-6"><div class="inline-block bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm font-semibold mb-3">FREE FOREVER</div><h3 class="text-3xl font-bold text-gray-900 mb-2">Free</h3><p class="text-gray-600 mb-4">Perfect for getting started</p><div class="mb-6"><span class="text-6xl font-bold text-gray-900">₹0</span><span class="text-gray-600">/month</span></div></div><div class="mb-8"><p class="text-center text-sm font-semibold text-gray-700 mb-4">Up to 500 customers/month</p></div><ul class="space-y-4 mb-8"><li class="flex items-start gap-3"><svg class="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-gray-700">1 location</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-gray-700">Digital queue management</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-gray-700">QR code entry</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-gray-700">Live display screen</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-gray-700">Basic analytics</span></li></ul>${freeCTA}<p class="text-center text-sm text-gray-500 mt-4">Perfect for small cafes • ~17 customers/day</p></div><div class="bg-gradient-to-br from-orange-500 to-pink-600 rounded-3xl shadow-2xl p-8 transform md:scale-105 relative">${currentPlan === 'premium' && isLoggedIn ? '<div class="absolute -top-3 left-1/2 transform -translate-x-1/2"><span class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold">YOUR PLAN</span></div>' : '<div class="absolute -top-4 left-1/2 transform -translate-x-1/2"><span class="bg-yellow-400 text-yellow-900 px-6 py-2 rounded-full font-bold text-sm shadow-lg">⭐ MOST POPULAR</span></div>'}<div class="text-center mb-6"><div class="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm font-semibold mb-3">ALL FEATURES</div><h3 class="text-3xl font-bold text-white mb-2">Premium</h3><p class="text-orange-100 mb-4">For serious restaurants</p><div class="mb-6"><span class="text-6xl font-bold text-white">₹2,999</span><span class="text-orange-100">/month</span></div></div><div class="mb-8"><p class="text-center text-sm font-semibold text-white mb-4">Unlimited customers • Per location</p></div><ul class="space-y-4 mb-8"><li class="flex items-start gap-3"><svg class="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-white font-semibold">Everything in Free, PLUS:</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-white"><strong>Unlimited customers</strong></span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-white">WhatsApp notifications</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-white">Advanced analytics</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-white">Custom branding</span></li><li class="flex items-start gap-3"><svg class="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span class="text-white">Priority support</span></li></ul>${premiumCTA}<p class="text-center text-sm text-orange-100 mt-4">Instant activation • Cancel anytime</p></div></div><div class="max-w-3xl mx-auto mb-16"><h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Frequently Asked Questions</h2><div class="space-y-4"><details class="bg-white rounded-xl p-6 shadow-md"><summary class="font-bold text-gray-900 cursor-pointer">Is the free plan really free forever?</summary><p class="mt-4 text-gray-600">Yes! The free plan is 100% free forever. No credit card required.</p></details></div></div></div></div>`);
+        }
+        
+        function handleUpgrade(restaurantId) {
+            alert('Payment integration coming soon!\n\nContact: sales@queueapp.com\n\nFor now, your plan will be upgraded to Premium.');
+            DB.upgradePlan(restaurantId, 'premium');
+            navigate('/pricing');
+        }
+        
+        function confirmDowngrade(restaurantId) {
+            if (confirm('Are you sure you want to downgrade to Free plan?\n\nYou will lose Premium features.')) {
+                DB.upgradePlan(restaurantId, 'free');
+                alert('✅ Downgraded to Free plan successfully!');
+                navigate('/pricing');
+            }
+        }
+        
+        function showAdminPasswordPrompt() {
+            render(`<div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">🔐 Platform Admin</h1><div class="space-y-4"><input type="password" id="adminPass" placeholder="Enter Master Password" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><button onclick="checkAdminPassword()" class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg">Login</button></div></div></div>`);
+        }
+        function checkAdminPassword() {
+            const pass = document.getElementById('adminPass').value;
+            if (pass === 'SuperAdmin2024!@#') {
+                sessionStorage.setItem('adminAuth', 'yes');
+                navigate('/admin');
+            } else {
+                alert('❌ Wrong password');
+            }
+        }
+        function showLogin() {
+            render(`<div class="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Restaurant Login</h1><div class="space-y-4"><input type="text" id="loginRestaurantId" placeholder="Restaurant ID" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="tel" id="loginPhone" placeholder="Phone Number" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><button onclick="handleLogin()" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg">Login</button><p class="text-center text-gray-600 text-sm">Don't have an account? <button onclick="navigate('/signup')" class="text-blue-600 font-semibold">Sign Up</button></p></div></div></div>`);
+        }
+        function handleLogin() {
+            const restaurantId = document.getElementById('loginRestaurantId').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            if (!restaurantId || !phone) { alert('Please enter Restaurant ID and Phone'); return; }
+            if (DB.login(restaurantId, phone)) { sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); alert('✅ Login successful!'); navigate(`/r/${restaurantId}/admin`); } else { alert('❌ Invalid Restaurant ID or Phone Number'); }
+        }
+        function showRestaurantLogin(restaurantId) {
+            render(`<div class="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Login Required</h1><p class="text-gray-600 text-center mb-6">Please login to access admin panel</p><div class="space-y-4"><input type="tel" id="restaurantLoginPhone" placeholder="Phone Number" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><button onclick="handleRestaurantLogin('${restaurantId}')" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg">Login</button></div></div></div>`);
+        }
+        function handleRestaurantLogin(restaurantId) {
+            const phone = document.getElementById('restaurantLoginPhone').value.trim();
+            if (!phone) { alert('Please enter phone number'); return; }
+            if (DB.login(restaurantId, phone)) { sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); handleRoute(); } else { alert('❌ Invalid phone number'); }
+        }
+        function showSignup() {
+            render(`<div class="min-h-screen bg-gradient-to-br from-orange-500 to-pink-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Register Your Restaurant</h1><div class="space-y-4"><input type="text" id="restaurantName" placeholder="Restaurant Name" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="text" id="ownerName" placeholder="Owner Name" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="email" id="email" placeholder="Email" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="tel" id="phone" placeholder="Phone (10 digits)" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="text" id="city" placeholder="City" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><div class="flex items-start gap-3"><input type="checkbox" id="agreeTerms" class="mt-1"><label for="agreeTerms" class="text-sm text-gray-600">I agree to the <button onclick="navigate('/terms')" class="text-orange-600 font-semibold">Terms of Service</button> and <button onclick="navigate('/privacy')" class="text-orange-600 font-semibold">Privacy Policy</button></label></div><button onclick="handleSignup()" class="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white py-4 rounded-xl font-bold text-lg">Register</button><p class="text-center text-gray-600 text-sm">Already registered? <button onclick="navigate('/login')" class="text-orange-600 font-semibold">Login</button></p></div></div></div>`);
+        }
+        function handleSignup() {
+            const name = document.getElementById('restaurantName').value;
+            const owner = document.getElementById('ownerName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const city = document.getElementById('city').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            if (!name || !owner || !email || !phone || !city) { alert('Please fill all fields'); return; }
+            if (!agreeTerms) { alert('⚠️ Please agree to Terms of Service and Privacy Policy'); return; }
+            const restaurantId = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') + Math.floor(Math.random() * 1000);
+            DB.addRestaurant(restaurantId, { name, owner, email, phone, city });
+            sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
+            alert(`✅ Success! Your Restaurant ID: ${restaurantId}\n\n📱 Customer Entry: #/r/${restaurantId}/join\n📺 Display Screen: #/r/${restaurantId}/display\n⚙️ Admin Panel: #/r/${restaurantId}/admin\n\n🔑 Login with ID: ${restaurantId} and Phone: ${phone}\n\n🎉 You're on the FREE plan (500 customers/month)`);
+            navigate(`/r/${restaurantId}/admin`);
+        }
+        function showJoinQueue(restaurantId) {
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) { render(`<div class="p-8 text-center"><h1 class="text-2xl text-red-600">Restaurant not found</h1><button onclick="navigate('/')" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg">Go Home</button></div>`); return; }
+            render(`<div class="min-h-screen bg-gradient-to-br from-orange-500 to-pink-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-2 text-center">Join Queue</h1><p class="text-gray-600 text-center mb-6">${restaurant.name}</p><div class="space-y-6"><input type="text" id="customerName" placeholder="Your Name" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="tel" id="customerPhone" placeholder="Mobile (10 digits)" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><div><label class="block text-sm font-semibold mb-2">Number of Guests</label><div class="grid grid-cols-4 gap-2">${[1,2,3,4,5,6,7,8].map(n => `<button onclick="selectGuests(${n})" id="guest-${n}" class="py-3 rounded-xl font-semibold ${n === 2 ? 'bg-orange-500 text-white' : 'bg-gray-100'}">${n}</button>`).join('')}</div></div><button onclick="handleJoinQueue('${restaurantId}')" class="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white py-4 rounded-xl font-bold text-lg">Join Queue</button></div></div></div>`);
+            window.selectedGuests = 2;
+        }
+        function selectGuests(n) {
+            window.selectedGuests = n;
+            document.querySelectorAll('[id^="guest-"]').forEach(btn => { btn.className = 'py-3 rounded-xl font-semibold bg-gray-100'; });
+            document.getElementById(`guest-${n}`).className = 'py-3 rounded-xl font-semibold bg-orange-500 text-white';
+        }
+        function handleJoinQueue(restaurantId) {
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const guests = window.selectedGuests || 2;
+            if (!name || !phone) { alert('Please fill all fields'); return; }
+            const queueNumber = DB.addToQueue(restaurantId, { name, phone, guests });
+            const restaurant = DB.restaurants[restaurantId];
+            const position = restaurant.queue.filter(q => q.status === 'waiting').length;
+            alert(`✅ Success!\n\nQueue Number: ${queueNumber}\nPosition: ${position}\nEstimated Wait: ~${position * 5} minutes\n\nYou'll be notified via WhatsApp!`);
+            navigate(`/r/${restaurantId}/display`);
+        }
+        function showDisplay(restaurantId) {
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) { render(`<div class="p-8 text-center"><h1 class="text-2xl text-red-600">Restaurant not found</h1></div>`); return; }
+            const waiting = restaurant.queue.filter(q => q.status === 'waiting');
+            const allocated = restaurant.queue.filter(q => q.status === 'allocated');
+            render(`<div class="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6"><div class="bg-slate-800/50 p-6 rounded-2xl mb-6 flex justify-between items-center"><div><h1 class="text-4xl font-bold">${restaurant.name}</h1><p class="text-slate-300">Queue Management System</p></div><div class="text-right"><div class="text-2xl font-mono text-orange-400">${new Date().toLocaleTimeString()}</div></div></div><div class="grid grid-cols-2 gap-6"><div class="bg-emerald-900/40 p-6 rounded-2xl border border-emerald-700/50"><h2 class="text-3xl font-bold text-emerald-300 mb-6">Table Allocated (${allocated.length})</h2><div class="grid grid-cols-2 gap-4">${allocated.length > 0 ? allocated.map(a => `<div class="bg-slate-800/60 p-4 rounded-xl border border-emerald-600/30"><div class="text-3xl font-bold text-emerald-400">Table ${a.tableNo}</div><div class="text-sm text-slate-400">Queue: ${a.queueNumber}</div><div class="text-sm text-slate-400">${a.name} • ${a.guests} guests</div></div>`).join('') : '<p class="text-slate-400">No tables allocated yet</p>'}</div></div><div class="bg-orange-900/40 p-6 rounded-2xl border border-orange-700/50"><h2 class="text-3xl font-bold text-orange-300 mb-6">Waiting Queue (${waiting.length})</h2><div class="space-y-3 max-h-[600px] overflow-y-auto">${waiting.length > 0 ? waiting.map(w => `<div class="bg-slate-800/60 p-4 rounded-xl border border-orange-600/30 flex justify-between items-center"><div><div class="text-2xl font-bold text-orange-400">${w.queueNumber}</div><div class="text-sm text-slate-300">${w.name} • ${w.guests} guests</div></div><div class="text-right"><div class="text-xs text-slate-400">~${Math.round((Date.now() - w.joinedAt) / 60000)} min ago</div></div></div>`).join('') : '<p class="text-slate-400">No customers waiting</p>'}</div></div></div><div class="mt-6 text-center text-slate-400 bg-slate-800/30 p-4 rounded-xl"><p>Scan QR code at entrance to join the queue</p></div></div>`);
+            setTimeout(() => handleRoute(), 5000);
+        }
+        function showRestaurantAdmin(restaurantId) {
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) { render(`<div class="p-8 text-center"><h1 class="text-2xl text-red-600">Restaurant not found</h1></div>`); return; }
+            const waiting = restaurant.queue.filter(q => q.status === 'waiting');
+            const allocated = restaurant.queue.filter(q => q.status === 'allocated');
+            const currentPlan = restaurant.plan || 'free';
+            
+            // Debug log
+            console.log(`🔍 Restaurant Admin - ID: ${restaurantId}, Plan: ${currentPlan}`);
+            
+            const planBadge = currentPlan === 'premium' ? '<span class="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">PREMIUM</span>' : '<span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm font-bold">FREE</span>';
+            
+            render(`<div class="min-h-screen bg-gray-100 p-6"><div class="max-w-6xl mx-auto"><div class="bg-white rounded-2xl shadow-lg p-6 mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-bold">${restaurant.name} - Admin Panel ${planBadge}</h1><p class="text-gray-600">Manage your queue and tables</p></div><div class="flex gap-2"><button onclick="navigate('/pricing')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold">${currentPlan === 'free' ? 'Upgrade' : 'Manage Plan'}</button><button onclick="logout('${restaurantId}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button></div></div><div class="grid grid-cols-2 gap-6 mb-6"><div class="bg-orange-50 rounded-xl p-6 border-2 border-orange-200"><div class="text-4xl font-bold text-orange-600">${waiting.length}</div><div class="text-gray-600">Customers Waiting</div></div><div class="bg-green-50 rounded-xl p-6 border-2 border-green-200"><div class="text-4xl font-bold text-green-600">${allocated.length}</div><div class="text-gray-600">Tables Occupied</div></div></div><div class="bg-white rounded-2xl shadow-lg p-6 mb-6"><h2 class="text-2xl font-bold mb-4">Waiting Queue</h2><div class="space-y-3">${waiting.length > 0 ? waiting.map(w => `<div class="border-2 border-gray-200 rounded-xl p-4 flex justify-between items-center"><div><div class="text-xl font-bold">${w.queueNumber}</div><div class="text-gray-600">${w.name} • ${w.phone}</div><div class="text-sm text-gray-500">${w.guests} guests</div></div><div class="flex gap-2 items-center"><input type="number" id="table-${w.queueNumber}" placeholder="Table #" class="w-24 px-3 py-2 border-2 rounded-lg" min="1"><button onclick="allocateTable('${restaurantId}', '${w.queueNumber}')" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">Seat</button></div></div>`).join('') : '<p class="text-gray-500">No customers in queue</p>'}</div></div><div class="bg-white rounded-2xl shadow-lg p-6 mb-6"><h2 class="text-2xl font-bold mb-4">Allocated Tables</h2><div class="grid grid-cols-3 gap-4">${allocated.length > 0 ? allocated.map(a => `<div class="border-2 border-green-200 rounded-xl p-4 bg-green-50"><div class="text-2xl font-bold text-green-600">Table ${a.tableNo}</div><div class="text-gray-600">${a.queueNumber}</div><div class="text-sm text-gray-500">${a.name} • ${a.guests} guests</div></div>`).join('') : '<p class="text-gray-500 col-span-3">No tables allocated yet</p>'}</div></div><div class="flex gap-4"><button onclick="navigate('/r/${restaurantId}/display')" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700">📺 Display Screen</button><button onclick="navigate('/r/${restaurantId}/join')" class="bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700">📱 Customer Entry</button></div></div></div>`);
+        }
+        function logout(restaurantId) {
+            sessionStorage.removeItem(`loggedIn_${restaurantId}`);
+            alert('✅ Logged out successfully');
+            navigate('/');
+        }
+        function allocateTable(restaurantId, queueNumber) {
+            const tableNo = document.getElementById(`table-${queueNumber}`).value;
+            if (!tableNo || tableNo < 1) { alert('⚠️ Please enter a valid table number'); return; }
+            DB.allocateTable(restaurantId, queueNumber, tableNo);
+            alert(`✅ Table ${tableNo} allocated to ${queueNumber}!\n\n📱 Customer notified via WhatsApp.`);
+            handleRoute();
+        }
+        function showPlatformAdmin() {
+            const restaurants = Object.entries(DB.restaurants);
+            const totalCustomers = restaurants.reduce((sum, [_, r]) => sum + r.queue.length, 0);
+            const totalRevenue = restaurants.filter(([_, r]) => r.plan === 'premium').length * 2999;
+            render(`<div class="min-h-screen bg-gray-100 p-6"><div class="max-w-7xl mx-auto"><div class="bg-white rounded-2xl shadow-lg p-6 mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-bold">🏢 Platform Admin Dashboard</h1><p class="text-gray-600">Manage all restaurants on QueueApp</p></div><button onclick="adminLogout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button></div><div class="grid grid-cols-3 gap-6 mb-6"><div class="bg-blue-50 rounded-xl p-6 border-2 border-blue-200"><div class="text-4xl font-bold text-blue-600">${restaurants.length}</div><div class="text-gray-600">Total Restaurants</div></div><div class="bg-green-50 rounded-xl p-6 border-2 border-green-200"><div class="text-4xl font-bold text-green-600">${totalCustomers}</div><div class="text-gray-600">Total Customers Today</div></div><div class="bg-purple-50 rounded-xl p-6 border-2 border-purple-200"><div class="text-4xl font-bold text-purple-600">₹${totalRevenue.toLocaleString()}</div><div class="text-gray-600">Monthly Revenue</div></div></div><div class="bg-white rounded-2xl shadow-lg p-6"><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">All Restaurants</h2><button onclick="navigate('/signup')" class="bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700">+ Add Restaurant</button></div><div class="space-y-3">${restaurants.length > 0 ? restaurants.map(([id, r]) => `<div class="border-2 border-gray-200 rounded-xl p-4"><div class="flex justify-between items-center"><div><div class="text-xl font-bold">${r.name} ${r.plan === 'premium' ? '<span class="text-sm bg-orange-500 text-white px-2 py-1 rounded-full ml-2">PREMIUM</span>' : '<span class="text-sm bg-gray-400 text-white px-2 py-1 rounded-full ml-2">FREE</span>'}</div><div class="text-gray-600">ID: ${id} • Owner: ${r.owner} • ${r.city}</div><div class="text-sm text-gray-500">${r.queue.filter(q => q.status === 'waiting').length} waiting • ${r.queue.filter(q => q.status === 'allocated').length} seated • ${r.queue.length} total today</div></div><div class="flex gap-2"><button onclick="navigate('/r/${id}/join')" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Join</button><button onclick="navigate('/r/${id}/display')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Display</button></div></div></div>`).join('') : `<div class="text-center py-12"><p class="text-gray-500 text-xl mb-4">No restaurants registered yet</p><button onclick="navigate('/signup')" class="bg-orange-600 text-white px-8 py-3 rounded-xl hover:bg-orange-700">Register First Restaurant</button></div>`}</div></div></div></div>`);
+        }
+        function adminLogout() {
+            sessionStorage.removeItem('adminAuth');
+            alert('✅ Logged out');
+            navigate('/');
+        }
+        window.navigate = navigate;
+        window.selectGuests = selectGuests;
+        window.handleSignup = handleSignup;
+        window.handleLogin = handleLogin;
+        window.handleRestaurantLogin = handleRestaurantLogin;
+        window.handleJoinQueue = handleJoinQueue;
+        window.allocateTable = allocateTable;
+        window.logout = logout;
+        window.checkAdminPassword = checkAdminPassword;
+        window.adminLogout = adminLogout;
+        window.handleUpgrade = handleUpgrade;
+        window.confirmDowngrade = confirmDowngrade;
+        handleRoute();
+    </script>
+</body>
+</html>
