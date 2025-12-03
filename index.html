@@ -3,399 +3,481 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QueueApp - Complete System with Payment</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>QueueApp - Smart Queue Management</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* CSS Variables & Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #f97316; --primary-dark: #ea580c; --secondary: #ec4899;
+            --success: #22c55e; --warning: #eab308; --danger: #dc2626;
+            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+            --gray-600: #4b5563; --gray-700: #374151; --gray-900: #111827; --white: #ffffff;
+        }
+        
+        /* Base Styles */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: var(--gray-900); background: var(--gray-50); font-size: 16px; }
+        h1 { font-size: clamp(1.5rem, 4vw, 3.5rem); font-weight: 700; }
+        h2 { font-size: clamp(1.25rem, 3vw, 2.5rem); font-weight: 700; }
+        h3 { font-size: clamp(1.1rem, 2.5vw, 2rem); font-weight: 600; }
+        
+        /* Layout */
+        .container { width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem); }
+        nav { background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: clamp(0.75rem, 2vw, 1.5rem); position: sticky; top: 0; z-index: 100; }
+        nav .nav-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        nav h1 { color: var(--primary); cursor: pointer; font-size: clamp(1.25rem, 3vw, 2rem); }
+        nav .nav-buttons { display: flex; gap: clamp(0.5rem, 1.5vw, 1rem); flex-wrap: wrap; }
+        
+        /* Buttons */
+        button, .btn { padding: clamp(0.5rem, 1.5vw, 1rem) clamp(1rem, 3vw, 2rem); border: none; border-radius: clamp(0.5rem, 1vw, 1rem); font-size: clamp(0.875rem, 1.5vw, 1.125rem); font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-block; text-align: center; }
+        button:hover, .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
+        .btn-secondary { background: var(--gray-600); color: var(--white); }
+        .btn-success { background: var(--success); color: var(--white); }
+        .btn-danger { background: var(--danger); color: var(--white); }
+        .btn-warning { background: var(--warning); color: var(--white); }
+        
+        /* Cards & Grid */
+        .card { background: var(--white); border-radius: clamp(1rem, 2vw, 2rem); padding: clamp(1.5rem, 3vw, 3rem); box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: clamp(1rem, 2vw, 2rem); }
+        .grid { display: grid; gap: clamp(1rem, 2vw, 2rem); margin-bottom: clamp(1rem, 2vw, 2rem); }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); }
+        
+        /* Form Elements */
+        input, select, textarea { width: 100%; padding: clamp(0.75rem, 2vw, 1.25rem); border: 2px solid var(--gray-200); border-radius: clamp(0.5rem, 1vw, 1rem); font-size: clamp(0.875rem, 1.5vw, 1.125rem); margin-bottom: clamp(0.75rem, 1.5vw, 1.5rem); transition: border 0.3s ease; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        
+        /* Badges & Backgrounds */
+        .badge { display: inline-block; padding: clamp(0.25rem, 0.5vw, 0.5rem) clamp(0.5rem, 1vw, 1rem); border-radius: 999px; font-size: clamp(0.75rem, 1vw, 0.875rem); font-weight: 700; }
+        .badge-primary { background: var(--primary); color: var(--white); }
+        .badge-warning { background: var(--warning); color: var(--white); }
+        .badge-secondary { background: var(--gray-600); color: var(--white); }
+        .bg-gradient { background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
+        .bg-gradient-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
+        
+        /* Display Screen for TVs */
+        .display-screen { background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: var(--white); min-height: 100vh; padding: clamp(1rem, 3vw, 4rem); }
+        .display-screen h1 { font-size: clamp(2rem, 6vw, 6rem); margin-bottom: clamp(1rem, 3vw, 3rem); }
+        .display-screen h2 { font-size: clamp(1.5rem, 4vw, 4rem); }
+        .display-screen .queue-number { font-size: clamp(3rem, 10vw, 12rem); font-weight: 900; }
+        
+        /* Alerts & FAQ */
+        .alert { padding: clamp(1rem, 2vw, 1.5rem); border-radius: clamp(0.5rem, 1vw, 1rem); margin-bottom: clamp(1rem, 2vw, 1.5rem); border: 2px solid; }
+        .alert-warning { background: #fef9c3; border-color: var(--warning); color: #854d0e; }
+        details summary { transition: all 0.3s ease; list-style: none; cursor: pointer; }
+        details[open] summary { color: var(--primary); }
+        details[open] summary span { transform: rotate(90deg); display: inline-block; }
+        details summary::-webkit-details-marker { display: none; }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .flex { display: flex; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-1 { gap: clamp(0.5rem, 1vw, 1rem); }
+        .w-full { width: 100%; }
+        .hidden { display: none; }
+        .space-y > * + * { margin-top: clamp(0.75rem, 1.5vw, 1.5rem); }
+        .mb { margin-bottom: clamp(1rem, 2vw, 2rem); }
+        .mt { margin-top: clamp(1rem, 2vw, 2rem); }
+        
+        /* Loading Animation */
+        .loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
+        .loading-icon { font-size: clamp(3rem, 8vw, 6rem); margin-bottom: clamp(1rem, 2vw, 2rem); animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Responsive Breakpoints */
+        @media (max-width: 640px) { nav .nav-buttons { width: 100%; justify-content: center; } .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        @media (min-width: 1920px) { body { font-size: 20px; } .display-screen .queue-number { font-size: 15rem; } }
+        @media (min-width: 2560px) { body { font-size: 24px; } .container { max-width: 2000px; } .display-screen .queue-number { font-size: 20rem; } }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <div id="app"></div>
+<body>
+    <div id="app">
+        <div class="loading-screen">
+            <div class="loading-icon">⏳</div>
+            <h1>Loading QueueApp...</h1>
+        </div>
+    </div>
+    
     <script>
+        // Database Layer - localStorage wrapper
         const DB = {
             restaurants: JSON.parse(localStorage.getItem('restaurants') || '{}'),
-            
-            save() { 
-                console.log('💾 Saving to localStorage');
-                localStorage.setItem('restaurants', JSON.stringify(this.restaurants)); 
-            },
-            
+            save() { localStorage.setItem('restaurants', JSON.stringify(this.restaurants)); },
             addRestaurant(id, data) { 
-                this.restaurants[id] = { 
-                    ...data, 
-                    queue: [], 
-                    tables: [], 
-                    createdAt: Date.now(), 
-                    plan: 'free',
-                    planStatus: 'active',
-                    paymentProof: null,
-                    planExpiryDate: null
-                }; 
-                console.log(`✅ Restaurant ${id} created with FREE plan`);
-                this.save(); 
-                return id; 
+                this.restaurants[id] = { ...data, queue: [], tables: [], createdAt: Date.now(), plan: 'free', planStatus: 'active', paymentProof: null, planExpiryDate: null }; 
+                this.save(); return id; 
             },
-            
             addToQueue(restaurantId, customer) { 
                 const restaurant = this.restaurants[restaurantId]; 
-                if (!restaurant) {
-                    console.error(`❌ Restaurant ${restaurantId} not found`);
-                    return null;
-                }
-                
-                const originalPlan = restaurant.plan;
+                if (!restaurant) return null;
                 const queueNumber = `A-${Math.floor(Math.random() * 900) + 100}`; 
-                
-                restaurant.queue.push({ 
-                    ...customer, 
-                    queueNumber, 
-                    status: 'waiting', 
-                    joinedAt: Date.now() 
-                }); 
-                
-                restaurant.plan = originalPlan || 'free';
-                
-                console.log(`✅ Customer added. Plan: ${restaurant.plan}`);
-                this.save(); 
-                return queueNumber; 
+                restaurant.queue.push({ ...customer, queueNumber, status: 'waiting', joinedAt: Date.now() }); 
+                this.save(); return queueNumber; 
             },
-            
             allocateTable(restaurantId, queueNumber, tableNo) { 
                 const restaurant = this.restaurants[restaurantId]; 
                 if (!restaurant) return false;
-                
                 const queueItem = restaurant.queue.find(q => q.queueNumber === queueNumber); 
-                if (queueItem) { 
-                    queueItem.status = 'allocated'; 
-                    queueItem.tableNo = tableNo; 
-                    queueItem.allocatedAt = Date.now();
-                    this.save(); 
-                    return true; 
-                } 
+                if (queueItem) { queueItem.status = 'allocated'; queueItem.tableNo = tableNo; queueItem.allocatedAt = Date.now(); this.save(); return true; } 
                 return false; 
             },
-            
             login(restaurantId, phone) { 
                 const restaurant = this.restaurants[restaurantId]; 
                 return restaurant && restaurant.phone === phone; 
             },
-            
-            upgradePlan(restaurantId, plan) { 
-                const restaurant = this.restaurants[restaurantId]; 
-                if (restaurant) { 
-                    restaurant.plan = plan; 
-                    console.log(`✅ Plan changed to: ${plan} for ${restaurantId}`);
-                    this.save(); 
-                    return true; 
-                } 
-                return false; 
-            },
-
-            // NEW: Save payment proof
             savePaymentProof(restaurantId, paymentData) {
                 const restaurant = this.restaurants[restaurantId];
-                if (restaurant) {
-                    restaurant.paymentProof = {
-                        screenshot: paymentData.screenshot,
-                        transactionId: paymentData.transactionId,
-                        amount: paymentData.amount,
-                        uploadedAt: Date.now()
-                    };
-                    restaurant.planStatus = 'pending';
-                    console.log(`💳 Payment proof saved for ${restaurantId}`);
-                    this.save();
-                    return true;
-                }
+                if (restaurant) { restaurant.paymentProof = { ...paymentData, uploadedAt: Date.now() }; restaurant.planStatus = 'pending'; this.save(); return true; }
                 return false;
             },
-
-            // NEW: Approve Premium plan
             approvePremium(restaurantId) {
                 const restaurant = this.restaurants[restaurantId];
-                if (restaurant) {
-                    restaurant.plan = 'premium';
-                    restaurant.planStatus = 'active';
-                    const expiryDate = new Date();
-                    expiryDate.setDate(expiryDate.getDate() + 30);
-                    restaurant.planExpiryDate = expiryDate.getTime();
-                    console.log(`✅ Premium activated for ${restaurantId}`);
-                    this.save();
-                    return true;
+                if (restaurant) { 
+                    restaurant.plan = 'premium'; restaurant.planStatus = 'active'; 
+                    const expiryDate = new Date(); expiryDate.setDate(expiryDate.getDate() + 30); 
+                    restaurant.planExpiryDate = expiryDate.getTime(); this.save(); return true; 
                 }
                 return false;
             },
-
-            // NEW: Reject Premium request
             rejectPremium(restaurantId) {
                 const restaurant = this.restaurants[restaurantId];
-                if (restaurant) {
-                    restaurant.planStatus = 'rejected';
-                    if (restaurant.paymentProof) {
-                        restaurant.paymentProof.rejectedAt = Date.now();
-                    }
-                    console.log(`❌ Premium rejected for ${restaurantId}`);
-                    this.save();
-                    return true;
-                }
+                if (restaurant) { restaurant.planStatus = 'rejected'; if (restaurant.paymentProof) restaurant.paymentProof.rejectedAt = Date.now(); this.save(); return true; }
                 return false;
             }
         };
         
+        window.DB = DB;
+        
+        // Helper Functions
         function getLoggedInRestaurant() {
             const allRestaurants = Object.keys(DB.restaurants);
-            for (let id of allRestaurants) {
-                if (sessionStorage.getItem(`loggedIn_${id}`)) {
-                    return { id, data: DB.restaurants[id] };
-                }
-            }
+            for (let id of allRestaurants) { if (sessionStorage.getItem(`loggedIn_${id}`)) return { id, data: DB.restaurants[id] }; }
             return null;
         }
-        
-        function navigateHome() {
-            const loggedIn = getLoggedInRestaurant();
-            if (loggedIn) {
-                console.log(`🏠 Logo clicked: User logged in → Dashboard`);
-                navigate(`/r/${loggedIn.id}/admin`);
-            } else {
-                console.log(`🏠 Logo clicked: User not logged in → Home`);
-                navigate('/');
-            }
-        }
-        
+        function navigateHome() { const loggedIn = getLoggedInRestaurant(); loggedIn ? navigate(`/r/${loggedIn.id}/admin`) : navigate('/'); }
         function render(html) { document.getElementById('app').innerHTML = html; }
         function navigate(path) { window.location.hash = path; }
         
+        // Router
         function handleRoute() {
             const hash = window.location.hash.slice(1) || '/';
             const parts = hash.split('/').filter(Boolean);
             
             if (hash === '/' || hash === '') showHome();
             else if (hash === '/pricing') showPricing();
-            else if (hash === '/terms') showTerms();
-            else if (hash === '/privacy') showPrivacy();
+            else if (hash === '/terms') showLegal('Terms of Service', getTermsContent());
+            else if (hash === '/privacy') showLegal('Privacy Policy', getPrivacyContent());
             else if (hash === '/signup') showSignup();
             else if (hash === '/login') showLogin();
-            else if (hash === '/admin') {
-                if (sessionStorage.getItem('adminAuth') === 'yes') {
-                    showPlatformAdmin();
-                } else {
-                    showAdminPasswordPrompt();
-                }
-            }
-            // NEW: Payment routes
+            else if (hash === '/admin') sessionStorage.getItem('adminAuth') === 'yes' ? showPlatformAdmin() : showAdminPasswordPrompt();
             else if (parts[0] === 'payment' && parts[1] && parts[2] === 'upload') showUploadScreenshot(parts[1]);
             else if (parts[0] === 'payment' && parts[1]) showPaymentPage(parts[1]);
-            // Existing routes
             else if (parts[0] === 'r' && parts[2] === 'join') showJoinQueue(parts[1]);
             else if (parts[0] === 'r' && parts[2] === 'display') showDisplay(parts[1]);
             else if (parts[0] === 'r' && parts[2] === 'status' && parts[3]) showQueueStatus(parts[1], parts[3]);
-            else if (parts[0] === 'r' && parts[2] === 'admin') { 
-                const loggedIn = sessionStorage.getItem(`loggedIn_${parts[1]}`); 
-                if (loggedIn) {
-                    const restaurant = DB.restaurants[parts[1]];
-                    console.log(`🔍 Loading admin for ${parts[1]}, Plan: ${restaurant?.plan}`);
-                    showRestaurantAdmin(parts[1]); 
-                } else {
-                    showRestaurantLogin(parts[1]); 
-                }
-            }
-            else render(`<div class="p-8 text-center"><h1 class="text-4xl">404 - Page Not Found</h1><button onclick="navigate('/')" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg">Go Home</button></div>`);
+            else if (parts[0] === 'r' && parts[2] === 'admin') sessionStorage.getItem(`loggedIn_${parts[1]}`) ? showRestaurantAdmin(parts[1]) : showRestaurantLogin(parts[1]);
+            else render(`<div class="container text-center" style="padding-top: 4rem;"><h1>404 - Page Not Found</h1><button onclick="navigate('/')" class="btn btn-primary mt">Go Home</button></div>`);
         }
         
         window.onhashchange = handleRoute;
         
-        // [The existing showHome, showTerms, showPrivacy functions remain exactly the same]
-        // I'll include a minimal version here to save space - you should use your full versions
+        // Legal Pages Content
+        function getTermsContent() {
+            return `
+                <h3>1. Acceptance of Terms</h3>
+                <p>By using QueueApp, you agree to these Terms of Service.</p>
+                
+                <h3>2. Service Description</h3>
+                <p>QueueApp provides digital queue management including: queue management, QR code entry, live displays, table allocation, and analytics.</p>
+                
+                <h3>3. Subscription Plans</h3>
+                <p><strong>Free:</strong> 500 customers/month, 1 location, basic features - free forever.<br>
+                <strong>Premium (₹2,999/month):</strong> Unlimited customers, advanced analytics, custom branding, priority support.</p>
+                
+                <h3>4. Payment Terms</h3>
+                <p>Premium billed monthly in advance. All fees in INR, non-refundable. Cancel anytime to downgrade to Free.</p>
+                
+                <h3>5. User Responsibilities</h3>
+                <p>You're responsible for all account activity. No illegal use. Comply with all laws. Maintain account security.</p>
+                
+                <h3>6. Contact</h3>
+                <p>Email: support@queueapp.com</p>
+            `;
+        }
         
+        function getPrivacyContent() {
+            return `
+                <h3>1. Information Collection</h3>
+                <p><strong>Restaurant:</strong> Name, owner, email, phone, location, credentials.<br>
+                <strong>Customer:</strong> Name, phone, queue status, guest count.</p>
+                
+                <h3>2. Data Use</h3>
+                <p>Provide service, generate analytics, process payments, improve UX, comply with law.</p>
+                
+                <h3>3. Data Storage</h3>
+                <p><strong>Free:</strong> Browser localStorage only.<br><strong>Premium:</strong> Secure server-side (when available).</p>
+                
+                <h3>4. Your Rights</h3>
+                <p>Access, correct, delete, or export your data anytime.</p>
+                
+                <h3>5. Security</h3>
+                <p>Secure storage, access controls, regular updates.</p>
+                
+                <h3>6. Contact</h3>
+                <p>privacy@queueapp.com | support@queueapp.com</p>
+            `;
+        }
+        
+        function showLegal(title, content) {
+            render(`
+                <div style="min-height: 100vh; background: var(--gray-50);">
+                    <nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1><button onclick="navigateHome()" class="btn btn-secondary">← Back</button></div></nav>
+                    <div class="container" style="padding: 3rem 0; max-width: 900px;">
+                        <h1 class="mb">${title}</h1>
+                        <p style="color: var(--gray-600); margin-bottom: 2rem;">Last Updated: December 2024</p>
+                        <div class="card" style="max-height: 600px; overflow-y: auto;"><div class="space-y" style="color: var(--gray-700);">${content}</div></div>
+                        <div class="text-center mt"><button onclick="navigateHome()" class="btn btn-primary">Back to Home</button></div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // Home Page
         function showHome() {
-            render(`<div class="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto flex justify-between items-center"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigateHome()">QueueApp</h1><div class="space-x-4"><button onclick="navigate('/pricing')" class="text-gray-700 hover:text-orange-600 font-semibold">Pricing</button><button onclick="navigate('/login')" class="text-gray-700 hover:text-orange-600 font-semibold">Login</button><button onclick="navigate('/signup')" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700">Sign Up</button></div></div></nav><main class="container mx-auto px-4 py-16 text-center"><h1 class="text-6xl font-bold text-gray-900 mb-6">Smart Queue Management</h1><p class="text-2xl text-gray-600 mb-12">No more crowded entrances. Happy customers.</p><button onclick="navigate('/signup')" class="bg-gradient-to-r from-orange-500 to-pink-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:shadow-xl">Start Free Forever</button></main></div>`);
+            render(`
+                <div class="bg-gradient" style="min-height: 100vh;">
+                    <nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1>
+                    <div class="nav-buttons">
+                        <button onclick="navigate('/pricing')" class="btn btn-secondary">Pricing</button>
+                        <button onclick="navigate('/login')" class="btn btn-secondary">Login</button>
+                        <button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button>
+                    </div></div></nav>
+                    <main class="container text-center" style="padding: clamp(2rem, 5vw, 8rem) 0;">
+                        <h1 style="margin-bottom: clamp(1rem, 2vw, 2rem);">Smart Queue Management</h1>
+                        <p style="font-size: clamp(1.125rem, 2vw, 1.5rem); color: var(--gray-600); margin-bottom: clamp(2rem, 4vw, 4rem);">No more crowded entrances. Happy customers.</p>
+                        <div class="grid grid-3 mb">
+                            <div class="card text-center"><div style="font-size: clamp(2rem, 4vw, 4rem); margin-bottom: 1rem;">📱</div><h3>Digital Queue</h3><p style="color: var(--gray-600);">Customers join via QR code</p></div>
+                            <div class="card text-center"><div style="font-size: clamp(2rem, 4vw, 4rem); margin-bottom: 1rem;">📺</div><h3>Live Display</h3><p style="color: var(--gray-600);">Real-time queue on TV</p></div>
+                            <div class="card text-center"><div style="font-size: clamp(2rem, 4vw, 4rem); margin-bottom: 1rem;">📊</div><h3>Smart Analytics</h3><p style="color: var(--gray-600);">Track customer flow</p></div>
+                        </div>
+                        <button onclick="navigate('/signup')" class="btn btn-primary" style="font-size: clamp(1rem, 2vw, 1.5rem); padding: clamp(1rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3rem);">Start Free Forever</button>
+                        <p style="margin-top: 1rem; color: var(--gray-600);">No credit card required • 500 customers/month free</p>
+                    </main>
+                    <footer style="background: white; border-top: 2px solid var(--gray-200); padding: 2rem 0; margin-top: 4rem;">
+                        <div class="container text-center">
+                            <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                <button onclick="navigate('/terms')" style="background: none; border: none; color: var(--gray-600); cursor: pointer; text-decoration: underline;">Terms of Service</button>
+                                <button onclick="navigate('/privacy')" style="background: none; border: none; color: var(--gray-600); cursor: pointer; text-decoration: underline;">Privacy Policy</button>
+                                <a href="mailto:support@queueapp.com" style="color: var(--gray-600); text-decoration: underline;">Contact Support</a>
+                            </div>
+                            <p style="color: var(--gray-500); font-size: 0.875rem;">© 2024 QueueApp. All rights reserved.</p>
+                        </div>
+                    </footer>
+                </div>
+            `);
         }
 
-        function showTerms() {
-            render(`<div class="min-h-screen bg-gray-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigateHome()">QueueApp</h1></div></nav><div class="container mx-auto px-4 py-12"><h1 class="text-4xl font-bold">Terms of Service</h1><p class="mt-4">Terms content here...</p><button onclick="navigateHome()" class="mt-8 bg-orange-600 text-white px-8 py-3 rounded-xl">Back</button></div></div>`);
-        }
-
-        function showPrivacy() {
-            render(`<div class="min-h-screen bg-gray-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigateHome()">QueueApp</h1></div></nav><div class="container mx-auto px-4 py-12"><h1 class="text-4xl font-bold">Privacy Policy</h1><p class="mt-4">Privacy content here...</p><button onclick="navigateHome()" class="mt-8 bg-orange-600 text-white px-8 py-3 rounded-xl">Back</button></div></div>`);
-        }
-
+        // Pricing Page with FAQ
         function showPricing() {
             const loggedIn = getLoggedInRestaurant();
-            const isLoggedIn = !!loggedIn;
             const restaurant = loggedIn?.data;
             const restaurantId = loggedIn?.id;
             const currentPlan = restaurant?.plan || 'free';
             const planStatus = restaurant?.planStatus || 'active';
             
-            const navButtons = isLoggedIn 
-                ? `<div class="flex items-center gap-4">
-                     <span class="text-sm font-semibold text-gray-700">${restaurant.name}</span>
-                     <span class="px-3 py-1 rounded-full text-xs font-bold ${currentPlan === 'premium' ? 'bg-orange-500 text-white' : planStatus === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-400 text-white'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>
-                     <button onclick="navigate('/r/${restaurantId}/admin')" class="text-gray-700 hover:text-orange-600 font-semibold">Dashboard</button>
-                     <button onclick="logout('${restaurantId}')" class="bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+            const navButtons = loggedIn 
+                ? `<div class="flex gap-1 flex-wrap items-center">
+                     <span style="font-weight: 600; color: var(--gray-700);">${restaurant.name}</span>
+                     <span class="badge ${currentPlan === 'premium' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>
+                     <button onclick="navigate('/r/${restaurantId}/admin')" class="btn btn-secondary">Dashboard</button>
+                     <button onclick="logout('${restaurantId}')" class="btn btn-danger">Logout</button>
                    </div>`
-                : `<div class="space-x-4">
-                     <button onclick="navigate('/login')" class="text-gray-700 hover:text-orange-600 font-semibold">Login</button>
-                     <button onclick="navigate('/signup')" class="bg-orange-600 text-white px-6 py-2 rounded-lg">Sign Up</button>
-                   </div>`;
+                : `<div class="nav-buttons"><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div>`;
             
             let premiumCTA;
-            if (isLoggedIn && currentPlan === 'premium' && planStatus === 'active') {
-                premiumCTA = `<button class="w-full bg-green-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed" disabled>✓ Current Plan</button>`;
-            } else if (isLoggedIn && planStatus === 'pending') {
-                premiumCTA = `<button class="w-full bg-yellow-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed" disabled>⏳ Verification Pending</button>`;
-            } else if (isLoggedIn && currentPlan === 'free') {
-                premiumCTA = `<button onclick="handleUpgrade('${restaurantId}')" class="w-full bg-white hover:bg-gray-100 text-orange-600 py-4 rounded-xl font-bold text-lg shadow-lg">Upgrade Now</button>`;
+            if (loggedIn && currentPlan === 'premium' && planStatus === 'active') {
+                premiumCTA = `<button class="btn btn-success w-full" disabled style="opacity: 0.7; cursor: not-allowed;">✓ Current Plan</button>`;
+            } else if (loggedIn && planStatus === 'pending') {
+                premiumCTA = `<button class="btn btn-warning w-full" disabled style="opacity: 0.7; cursor: not-allowed;">⏳ Verification Pending</button>`;
+            } else if (loggedIn && currentPlan === 'free') {
+                premiumCTA = `<button onclick="handleUpgrade('${restaurantId}')" class="btn w-full" style="background: white; color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">Upgrade Now</button>`;
             } else {
-                premiumCTA = `<button onclick="navigate('/signup')" class="w-full bg-white hover:bg-gray-100 text-orange-600 py-4 rounded-xl font-bold text-lg shadow-lg">Get Started</button>`;
-            }
-
-            render(`<div class="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50"><nav class="bg-white shadow-md p-4"><div class="container mx-auto flex justify-between items-center"><h1 class="text-2xl font-bold text-orange-600 cursor-pointer" onclick="navigateHome()">QueueApp</h1>${navButtons}</div></nav><div class="container mx-auto px-4 py-16"><div class="text-center mb-16"><h1 class="text-5xl font-bold text-gray-900 mb-4">Simple, Honest Pricing</h1>${isLoggedIn && planStatus === 'pending' ? `<div class="inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 px-6 py-3 rounded-full font-semibold mb-4">⏳ Payment verification in progress</div>` : ''}</div><div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto"><div class="bg-white rounded-3xl shadow-xl p-8"><h3 class="text-3xl font-bold mb-2">Free</h3><div class="text-6xl font-bold text-gray-900 mb-6">₹0<span class="text-lg">/month</span></div><ul class="space-y-3 mb-8"><li>✓ 500 customers/month</li><li>✓ Digital queue</li><li>✓ QR code entry</li><li>✓ Live display</li></ul></div><div class="bg-gradient-to-br from-orange-500 to-pink-600 rounded-3xl shadow-2xl p-8 text-white"><h3 class="text-3xl font-bold mb-2">Premium</h3><div class="text-6xl font-bold mb-6">₹2,999<span class="text-lg">/month</span></div><ul class="space-y-3 mb-8"><li>✓ Unlimited customers</li><li>✓ WhatsApp notifications</li><li>✓ Advanced analytics</li><li>✓ Custom branding</li><li>✓ Priority support</li></ul>${premiumCTA}</div></div></div></div>`);
-        }
-        
-        // NEW: Payment Page
-        function showPaymentPage(restaurantId) {
-            const restaurant = DB.restaurants[restaurantId];
-            if (!restaurant) {
-                render(`<div class="p-8 text-center"><h1 class="text-2xl text-red-600">Restaurant not found</h1></div>`);
-                return;
+                premiumCTA = `<button onclick="navigate('/signup')" class="btn w-full" style="background: white; color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">Get Started</button>`;
             }
 
             render(`
-                <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
-                    <div class="max-w-2xl mx-auto">
+                <div class="bg-gradient" style="min-height: 100vh;">
+                    <nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1>${navButtons}</div></nav>
+                    <div class="container" style="padding: clamp(2rem, 4vw, 4rem) 0;">
+                        <div class="text-center mb">
+                            <h1 style="margin-bottom: 1rem;">Simple, Honest Pricing</h1>
+                            <p style="font-size: clamp(1rem, 2vw, 1.25rem); color: var(--gray-600); margin-bottom: 1rem;">Start free forever. Upgrade when you need more.</p>
+                            ${loggedIn && planStatus === 'pending' ? '<div class="alert alert-warning" style="display: inline-block;">⏳ Payment verification in progress</div>' : ''}
+                        </div>
                         
-                        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h1 class="text-2xl font-bold text-gray-900">Upgrade to Premium</h1>
-                                    <p class="text-gray-600">${restaurant.name}</p>
+                        <div class="text-center" style="margin: 2rem 0;">
+                            <p style="color: var(--success); font-weight: 600; font-size: clamp(1rem, 2vw, 1.25rem);">✅ No Credit Card • No Setup Fees • Cancel Anytime</p>
+                        </div>
+                        
+                        <div class="grid grid-2" style="max-width: 1200px; margin: 0 auto;">
+                            <div class="card">
+                                <div class="text-center">
+                                    <p style="color: var(--success); font-weight: 700; font-size: 0.875rem; margin-bottom: 1rem;">FREE FOREVER</p>
+                                    <h3 style="margin-bottom: 1rem;">Free</h3>
+                                    <p style="color: var(--gray-600); margin-bottom: 1rem;">Perfect for getting started</p>
+                                    <div style="font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; margin-bottom: 1rem;">₹0<span style="font-size: clamp(1rem, 2vw, 1.5rem); color: var(--gray-600);">/month</span></div>
+                                    <p style="color: var(--gray-600); font-size: 0.875rem; margin-bottom: 2rem;">Up to 500 customers/month</p>
                                 </div>
-                                <button onclick="navigate('/pricing')" class="text-gray-600 hover:text-gray-900 text-2xl">✕</button>
+                                <div class="space-y">
+                                    <p>✓ 1 location</p>
+                                    <p>✓ Digital queue management</p>
+                                    <p>✓ QR code entry</p>
+                                    <p>✓ Live display screen</p>
+                                    <p>✓ Basic analytics</p>
+                                </div>
+                                <div class="mt">
+                                    <p class="text-center" style="color: var(--gray-600); font-size: 0.875rem; padding: 1rem; background: var(--gray-50); border-radius: 0.5rem;">Perfect for small cafes • ~17 customers/day</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl shadow-xl p-8 mb-6 text-white text-center">
-                            <p class="text-lg mb-2">Total Amount</p>
-                            <div class="text-6xl font-bold mb-2">₹2,999</div>
-                            <p class="text-orange-100">per month • 30 days validity</p>
-                        </div>
-
-                        <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
-                            <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Pay via UPI</h2>
                             
-                            <div class="bg-gray-50 rounded-xl p-4 mb-6 text-center">
-                                <p class="text-sm text-gray-600 mb-2">UPI ID</p>
-                                <p class="text-xl font-mono font-bold text-orange-600">sriramvasudev@okhdfcbank</p>
-                            </div>
-
-                            <div class="bg-gray-50 rounded-xl p-6 mb-6 text-center">
-                                <p class="text-sm font-semibold text-gray-700 mb-4">Scan QR Code</p>
-                                <div id="payment-qr" class="inline-block bg-white p-4 rounded-xl"></div>
-                            </div>
-
-                            <div class="space-y-3 mb-6">
-                                <button onclick="payWithUPIApp('phonepe', '${restaurantId}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-3">
-                                    <span class="text-2xl">📱</span> Pay with PhonePe
-                                </button>
-                                <button onclick="payWithUPIApp('gpay', '${restaurantId}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-3">
-                                    <span class="text-2xl">🔵</span> Pay with Google Pay
-                                </button>
-                                <button onclick="payWithUPIApp('paytm', '${restaurantId}')" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-3">
-                                    <span class="text-2xl">💙</span> Pay with Paytm
-                                </button>
-                                <button onclick="payWithUPIApp('generic', '${restaurantId}')" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-3">
-                                    <span class="text-2xl">💰</span> Pay with Any UPI App
-                                </button>
-                            </div>
-
-                            <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
-                                <p class="text-sm text-yellow-800 font-semibold">⚠️ <strong>Important:</strong> After payment, upload screenshot on next page for verification</p>
+                            <div class="card bg-gradient-primary" style="transform: scale(1.05); position: relative;">
+                                <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--warning); color: white; padding: 0.5rem 1.5rem; border-radius: 999px; font-weight: 700; font-size: 0.875rem;">MOST POPULAR</div>
+                                <div class="text-center">
+                                    <p style="font-size: 0.875rem; margin-bottom: 0.5rem; opacity: 0.9;">ALL FEATURES</p>
+                                    <h3 style="margin-bottom: 0.5rem;">Premium</h3>
+                                    <p style="opacity: 0.9; margin-bottom: 1rem;">For serious restaurants</p>
+                                    <div style="font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; margin-bottom: 0.5rem;">₹2,999<span style="font-size: clamp(1rem, 2vw, 1.5rem); opacity: 0.8;">/month</span></div>
+                                    <p style="opacity: 0.9; margin-bottom: 2rem;">Unlimited customers • Per location</p>
+                                </div>
+                                <div class="space-y">
+                                    <p>✓ Everything in Free, PLUS:</p>
+                                    <p>✓ Unlimited customers</p>
+                                    <p>✓ Advanced analytics</p>
+                                    <p>✓ Custom branding</p>
+                                    <p>✓ Priority support</p>
+                                    <p style="opacity: 0.7;">📱 WhatsApp notifications (Coming Soon)</p>
+                                </div>
+                                <div class="mt">
+                                    ${premiumCTA}
+                                    <p class="text-center" style="margin-top: 1rem; font-size: 0.875rem; opacity: 0.9;">Instant activation • Cancel anytime</p>
+                                </div>
                             </div>
                         </div>
+                        
+                        <div class="card mb" style="max-width: 1200px; margin: 3rem auto;">
+                            <h2 class="text-center" style="margin-bottom: 2rem;">Frequently Asked Questions</h2>
+                            <div class="space-y">
+                                <details class="card" style="cursor: pointer; background: var(--gray-50); border: 1px solid var(--gray-200);">
+                                    <summary style="font-weight: 600; padding: 1rem;"><span style="margin-right: 0.5rem;">▸</span>Is the free plan really free forever?</summary>
+                                    <p style="margin-top: 1rem; color: var(--gray-600); padding: 0 1rem 1rem 1rem; border-top: 1px solid var(--gray-200);">Yes! The free plan is completely free forever. You get 500 customers per month, 1 location, and all basic features with no credit card required. No hidden fees, no trials - it's genuinely free.</p>
+                                </details>
+                                <details class="card" style="cursor: pointer; background: var(--gray-50); border: 1px solid var(--gray-200);">
+                                    <summary style="font-weight: 600; padding: 1rem;"><span style="margin-right: 0.5rem;">▸</span>What happens if I exceed 500 customers on free?</summary>
+                                    <p style="margin-top: 1rem; color: var(--gray-600); padding: 0 1rem 1rem 1rem; border-top: 1px solid var(--gray-200);">If you exceed 500 customers in a month, you'll need to upgrade to Premium for unlimited customers. We'll notify you as you approach the limit so you can plan accordingly.</p>
+                                </details>
+                                <details class="card" style="cursor: pointer; background: var(--gray-50); border: 1px solid var(--gray-200);">
+                                    <summary style="font-weight: 600; padding: 1rem;"><span style="margin-right: 0.5rem;">▸</span>Can I upgrade or downgrade anytime?</summary>
+                                    <p style="margin-top: 1rem; color: var(--gray-600); padding: 0 1rem 1rem 1rem; border-top: 1px solid var(--gray-200);">Absolutely! You can upgrade to Premium anytime with instant activation. You can also downgrade back to Free at any time - you'll keep Premium features until the end of your billing period.</p>
+                                </details>
+                                <details class="card" style="cursor: pointer; background: var(--gray-50); border: 1px solid var(--gray-200);">
+                                    <summary style="font-weight: 600; padding: 1rem;"><span style="margin-right: 0.5rem;">▸</span>How does billing work for multiple locations?</summary>
+                                    <p style="margin-top: 1rem; color: var(--gray-600); padding: 0 1rem 1rem 1rem; border-top: 1px solid var(--gray-200);">Each location is billed separately at ₹2,999/month. If you have multiple locations, you can manage them all from one account and choose which locations to upgrade to Premium.</p>
+                                </details>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // Payment Flow
+        function showPaymentPage(restaurantId) {
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) { render(`<div class="container text-center" style="padding-top: 4rem;"><h1 style="color: var(--danger);">Restaurant not found</h1></div>`); return; }
 
-                        <button onclick="navigate('/payment/${restaurantId}/upload')" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg">
-                            I've Completed Payment → Upload Screenshot
-                        </button>
-
+            render(`
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%); padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <div class="flex justify-between items-center mb">
+                            <div><h2>Upgrade to Premium</h2><p style="color: var(--gray-600);">${restaurant.name}</p></div>
+                            <button onclick="navigate('/pricing')" class="btn btn-secondary">✕</button>
+                        </div>
+                        <div class="card bg-gradient-primary text-center mb">
+                            <p style="font-size: clamp(1rem, 2vw, 1.25rem); margin-bottom: 0.5rem;">Total Amount</p>
+                            <div style="font-size: clamp(3rem, 8vw, 5rem); font-weight: 900;">₹2,999</div>
+                            <p style="opacity: 0.9;">per month • 30 days validity</p>
+                        </div>
+                        <div class="mb">
+                            <h3 class="text-center mb">Pay via UPI</h3>
+                            <div class="card text-center" style="background: var(--gray-50);">
+                                <p style="font-size: clamp(0.875rem, 1.5vw, 1rem); color: var(--gray-600); margin-bottom: 0.5rem;">UPI ID</p>
+                                <p style="font-size: clamp(1.125rem, 2vw, 1.5rem); font-weight: 700; color: var(--primary); font-family: monospace;">sriramvasudev@okhdfcbank</p>
+                            </div>
+                            <div class="card text-center" style="background: var(--gray-50);">
+                                <p style="font-weight: 600; margin-bottom: 1rem;">Scan QR Code</p>
+                                <div id="payment-qr" style="display: inline-block; padding: 1rem; background: white; border-radius: 1rem;"></div>
+                            </div>
+                            <div class="space-y">
+                                <button onclick="payWithUPIApp('phonepe', '${restaurantId}')" class="btn w-full" style="background: #5f259f;">📱 Pay with PhonePe</button>
+                                <button onclick="payWithUPIApp('gpay', '${restaurantId}')" class="btn w-full" style="background: #2563eb;">🔵 Pay with Google Pay</button>
+                                <button onclick="payWithUPIApp('paytm', '${restaurantId}')" class="btn w-full" style="background: #0891b2;">💙 Pay with Paytm</button>
+                                <button onclick="payWithUPIApp('generic', '${restaurantId}')" class="btn btn-secondary w-full">💰 Pay with Any UPI App</button>
+                            </div>
+                            <div class="alert alert-warning mt"><strong>⚠️ Important:</strong> After payment, upload screenshot on next page for verification</div>
+                        </div>
+                        <button onclick="navigate('/payment/${restaurantId}/upload')" class="btn btn-success w-full">I've Completed Payment → Upload Screenshot</button>
                     </div>
                 </div>
             `);
 
-            // Generate QR Code
             setTimeout(() => {
                 const upiString = `upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=2999&cu=INR&tn=QueueApp-${restaurantId}-Premium`;
-                new QRCode(document.getElementById('payment-qr'), {
-                    text: upiString,
-                    width: 200,
-                    height: 200,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.H
-                });
+                new QRCode(document.getElementById('payment-qr'), { text: upiString, width: 200, height: 200, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
             }, 100);
         }
 
-        // NEW: Screenshot Upload Page
         function showUploadScreenshot(restaurantId) {
             const restaurant = DB.restaurants[restaurantId];
-            if (!restaurant) {
-                render(`<div class="p-8 text-center"><h1 class="text-2xl text-red-600">Restaurant not found</h1></div>`);
-                return;
-            }
+            if (!restaurant) { render(`<div class="container text-center" style="padding-top: 4rem;"><h1 style="color: var(--danger);">Restaurant not found</h1></div>`); return; }
 
             render(`
-                <div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 p-6">
-                    <div class="max-w-2xl mx-auto">
-                        
-                        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                            <h1 class="text-2xl font-bold text-gray-900 text-center">Upload Payment Proof</h1>
-                            <p class="text-gray-600 text-center">${restaurant.name}</p>
-                        </div>
-
-                        <div class="bg-white rounded-2xl shadow-lg p-8">
-                            
-                            <div class="mb-6">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Transaction ID / UTR Number *</label>
-                                <input type="text" id="transactionId" placeholder="e.g., 123456789012" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <h2 class="text-center">Upload Payment Proof</h2>
+                        <p class="text-center" style="color: var(--gray-600); margin-bottom: 2rem;">${restaurant.name}</p>
+                        <div class="space-y">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Transaction ID / UTR Number *</label>
+                                <input type="text" id="transactionId" placeholder="e.g., 123456789012">
                             </div>
-
-                            <div class="mb-6">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Upload Payment Screenshot *</label>
-                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-500">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Upload Payment Screenshot *</label>
+                                <div class="card text-center" style="border: 2px dashed var(--gray-200); cursor: pointer; background: var(--gray-50);" onclick="document.getElementById('screenshotFile').click()">
                                     <input type="file" id="screenshotFile" accept="image/*" onchange="previewScreenshot()" class="hidden">
-                                    <button onclick="document.getElementById('screenshotFile').click()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold">
-                                        📷 Choose Screenshot
-                                    </button>
-                                    <p class="text-sm text-gray-500 mt-3">PNG, JPG up to 5MB</p>
+                                    <button type="button" class="btn btn-primary" style="pointer-events: none;">📷 Choose Screenshot</button>
+                                    <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--gray-600);">PNG, JPG up to 5MB</p>
                                 </div>
-                                <div id="screenshotPreview" class="mt-4 hidden">
-                                    <p class="text-sm font-semibold text-gray-700 mb-2">Preview:</p>
-                                    <img id="previewImage" class="w-full rounded-xl border-2 border-gray-200" />
+                                <div id="screenshotPreview" class="hidden mt">
+                                    <p style="font-weight: 600; margin-bottom: 0.5rem;">Preview:</p>
+                                    <img id="previewImage" class="w-full" style="border: 2px solid var(--gray-200); border-radius: 1rem;" />
                                 </div>
                             </div>
-
-                            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-                                <p class="font-semibold text-blue-900 mb-2">📋 What to include:</p>
-                                <ul class="text-sm text-blue-800 space-y-1 ml-4 list-disc">
-                                    <li>Transaction ID / UTR number</li>
-                                    <li>Amount paid (₹2,999)</li>
-                                    <li>Date and time</li>
-                                    <li>Transaction status (Success)</li>
-                                </ul>
+                            <div class="card" style="background: #eff6ff; border: 2px solid #2563eb;">
+                                <p style="font-weight: 600; color: #1e40af; margin-bottom: 0.5rem;">📋 What to include:</p>
+                                <ul style="margin-left: 1.5rem; color: #1e40af;"><li>Transaction ID / UTR number</li><li>Amount paid (₹2,999)</li><li>Date and time</li><li>Transaction status (Success)</li></ul>
                             </div>
-
-                            <button onclick="submitPaymentProof('${restaurantId}')" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg">
-                                Submit for Verification
-                            </button>
-
-                            <p class="text-center text-sm text-gray-500 mt-4">Verification typically takes 2-24 hours</p>
+                            <button onclick="submitPaymentProof('${restaurantId}')" class="btn btn-success w-full">Submit for Verification</button>
+                            <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Verification typically takes 2-24 hours</p>
                         </div>
-
                     </div>
                 </div>
             `);
         }
 
-        // NEW: Preview screenshot
         function previewScreenshot() {
             const file = document.getElementById('screenshotFile').files[0];
             if (file) {
@@ -408,90 +490,53 @@
             }
         }
 
-        // NEW: Submit payment proof
         function submitPaymentProof(restaurantId) {
             const transactionId = document.getElementById('transactionId').value.trim();
             const fileInput = document.getElementById('screenshotFile');
-            
-            if (!transactionId) {
-                alert('⚠️ Please enter transaction ID');
-                return;
-            }
-            
-            if (!fileInput.files[0]) {
-                alert('⚠️ Please upload payment screenshot');
-                return;
-            }
+            if (!transactionId) { alert('⚠️ Please enter transaction ID'); return; }
+            if (!fileInput.files[0]) { alert('⚠️ Please upload payment screenshot'); return; }
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const screenshot = e.target.result;
-                
-                DB.savePaymentProof(restaurantId, {
-                    screenshot: screenshot,
-                    transactionId: transactionId,
-                    amount: 2999
-                });
-
-                alert('✅ Payment proof submitted successfully!\n\nYour payment is under verification.\nYou will be notified once approved (typically within 2-24 hours).\n\nTrack status in your dashboard.');
-                
+                DB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId: transactionId, amount: 2999 });
+                alert('✅ Payment proof submitted!\n\nVerification takes 2-24 hours.\nTrack status in your dashboard.');
                 navigate(`/r/${restaurantId}/admin`);
             };
-            
             reader.readAsDataURL(fileInput.files[0]);
         }
 
-        // NEW: Handle UPI app payment
         function payWithUPIApp(app, restaurantId) {
             const upiId = 'sriramvasudev@okhdfcbank';
             const amount = '2999';
             const note = `QueueApp-${restaurantId}-Premium`;
-            
             let url;
             switch(app) {
-                case 'phonepe':
-                    url = `phonepe://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-                    break;
-                case 'gpay':
-                    url = `tez://upi/pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-                    break;
-                case 'paytm':
-                    url = `paytmmp://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-                    break;
-                default:
-                    url = `upi://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
+                case 'phonepe': url = `phonepe://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`; break;
+                case 'gpay': url = `tez://upi/pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`; break;
+                case 'paytm': url = `paytmmp://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`; break;
+                default: url = `upi://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
             }
-            
             window.location.href = url;
-            
-            setTimeout(() => {
-                const genericUrl = `upi://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-                window.location.href = genericUrl;
-            }, 2000);
+            setTimeout(() => { window.location.href = `upi://pay?pa=${upiId}&pn=QueueApp&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`; }, 2000);
         }
         
-        // MODIFIED: Upgrade handler now navigates to payment page
-        function handleUpgrade(restaurantId) {
-            navigate(`/payment/${restaurantId}`);
-        }
+        function handleUpgrade(restaurantId) { navigate(`/payment/${restaurantId}`); }
         
-        function confirmDowngrade(restaurantId) {
-            if (confirm('Are you sure you want to downgrade to Free plan?\n\nYou will lose Premium features.')) {
-                DB.upgradePlan(restaurantId, 'free');
-                const restaurant = DB.restaurants[restaurantId];
-                restaurant.planStatus = 'active';
-                restaurant.planExpiryDate = null;
-                DB.save();
-                alert('✅ Downgraded to Free plan successfully!');
-                navigate('/pricing');
-            }
-        }
-        
-        // [Include all other existing functions: showLogin, showSignup, showJoinQueue, showQueueStatus, showDisplay, showRestaurantAdmin, showPlatformAdmin, etc.]
-        // For brevity, I'll add minimal versions - use your full implementations
-        
+        // Auth Pages
         function showLogin() {
-            render(`<div class="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Restaurant Login</h1><div class="space-y-4"><input type="text" id="loginRestaurantId" placeholder="Restaurant ID" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="tel" id="loginPhone" placeholder="Phone Number" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><button onclick="handleLogin()" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg">Login</button></div></div></div>`);
+            render(`
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%); display: flex; align-items: center; justify-content: center; padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 500px; width: 100%;">
+                        <h2 class="text-center mb">Restaurant Login</h2>
+                        <div class="space-y">
+                            <input type="text" id="loginRestaurantId" placeholder="Restaurant ID">
+                            <input type="tel" id="loginPhone" placeholder="Phone Number" maxlength="10">
+                            <button onclick="handleLogin()" class="btn btn-primary w-full">Login</button>
+                            <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Don't have an account? <button onclick="navigate('/signup')" style="background: none; border: none; color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">Sign Up</button></p>
+                        </div>
+                    </div>
+                </div>
+            `);
         }
         
         function handleLogin() {
@@ -502,28 +547,50 @@
                 sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
                 alert('✅ Login successful!'); 
                 navigate(`/r/${restaurantId}/admin`); 
-            } else { 
-                alert('❌ Invalid Restaurant ID or Phone Number'); 
-            }
+            } else { alert('❌ Invalid Restaurant ID or Phone Number'); }
         }
         
         function showRestaurantLogin(restaurantId) {
-            render(`<div class="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Login Required</h1><input type="tel" id="restaurantLoginPhone" placeholder="Phone Number" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none mb-4"><button onclick="handleRestaurantLogin('${restaurantId}')" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg">Login</button></div></div>`);
+            render(`
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%); display: flex; align-items: center; justify-content: center; padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 500px; width: 100%;">
+                        <h2 class="text-center mb">Login Required</h2>
+                        <p class="text-center mb" style="color: var(--gray-600);">Please login to access admin panel</p>
+                        <input type="tel" id="restaurantLoginPhone" placeholder="Phone Number" maxlength="10">
+                        <button onclick="handleRestaurantLogin('${restaurantId}')" class="btn btn-primary w-full mt">Login</button>
+                    </div>
+                </div>
+            `);
         }
         
         function handleRestaurantLogin(restaurantId) {
             const phone = document.getElementById('restaurantLoginPhone').value.trim();
             if (!phone) { alert('Please enter phone number'); return; }
-            if (DB.login(restaurantId, phone)) { 
-                sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
-                handleRoute(); 
-            } else { 
-                alert('❌ Invalid phone number'); 
-            }
+            if (DB.login(restaurantId, phone)) { sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); handleRoute(); } 
+            else { alert('❌ Invalid phone number'); }
         }
         
         function showSignup() {
-            render(`<div class="min-h-screen bg-gradient-to-br from-orange-500 to-pink-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Register Your Restaurant</h1><div class="space-y-4"><input type="text" id="restaurantName" placeholder="Restaurant Name" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="text" id="ownerName" placeholder="Owner Name" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="email" id="email" placeholder="Email" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="tel" id="phone" placeholder="Phone (10 digits)" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="text" id="city" placeholder="City" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><div class="flex items-start gap-3"><input type="checkbox" id="agreeTerms" class="mt-1"><label for="agreeTerms" class="text-sm">I agree to Terms & Privacy</label></div><button onclick="handleSignup()" class="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white py-4 rounded-xl font-bold text-lg">Register</button></div></div></div>`);
+            render(`
+                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 700px; width: 100%;">
+                        <h2 class="text-center mb">Register Your Restaurant</h2>
+                        <div class="space-y">
+                            <input type="text" id="restaurantName" placeholder="Restaurant Name">
+                            <input type="text" id="ownerName" placeholder="Owner Name">
+                            <input type="email" id="email" placeholder="Email">
+                            <input type="tel" id="phone" placeholder="Phone (10 digits)" maxlength="10">
+                            <input type="text" id="city" placeholder="Branch Location (e.g., Mumbai - Andheri West)">
+                            <div class="flex gap-1" style="align-items: flex-start;">
+                                <input type="checkbox" id="agreeTerms" class="mt-1">
+                                <label for="agreeTerms" style="font-size: 0.875rem; color: var(--gray-700);">I agree to the Terms of Service and Privacy Policy</label>
+                            </div>
+                            <button onclick="handleSignup()" class="btn btn-primary w-full">Register</button>
+                            <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Already registered? <button onclick="navigate('/login')" style="background: none; border: none; color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">Login</button></p>
+                        </div>
+                    </div>
+                </div>
+            `);
         }
         
         function handleSignup() {
@@ -534,81 +601,215 @@
             const city = document.getElementById('city').value;
             const agreeTerms = document.getElementById('agreeTerms').checked;
             
-            if (!name || !owner || !email || !phone || !city) { alert('Please fill all fields'); return; }
-            if (!agreeTerms) { alert('⚠️ Please agree to Terms of Service'); return; }
+            if (!name || !owner || !email || !phone || !city) { alert('Please fill all fields including branch location'); return; }
+            if (!agreeTerms) { alert('⚠️ Please agree to Terms of Service and Privacy Policy'); return; }
             
             const restaurantId = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') + Math.floor(Math.random() * 1000);
             DB.addRestaurant(restaurantId, { name, owner, email, phone, city });
             sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-            
             alert(`✅ Success! Your Restaurant ID: ${restaurantId}\n\n🎉 You're on the FREE plan (500 customers/month)`);
             navigate(`/r/${restaurantId}/admin`);
         }
         
+        // Customer Queue Functions
         function showJoinQueue(restaurantId) {
             const restaurant = DB.restaurants[restaurantId];
-            if (!restaurant) { 
-                render(`<div class="p-8 text-center"><h1 class="text-2xl text-red-600">Restaurant not found</h1></div>`); 
-                return; 
-            }
-            render(`<div class="min-h-screen bg-gradient-to-br from-orange-500 to-pink-600 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-2 text-center">Join Queue</h1><p class="text-gray-600 text-center mb-6">${restaurant.name}</p><div class="space-y-6"><input type="text" id="customerName" placeholder="Your Name" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><input type="tel" id="customerPhone" placeholder="Mobile (10 digits)" maxlength="10" class="w-full px-4 py-3 border-2 rounded-xl outline-none"><div><label class="block text-sm font-semibold mb-2">Guests</label><div class="grid grid-cols-4 gap-2">${[1,2,3,4,5,6,7,8].map(n => `<button onclick="selectGuests(${n})" id="guest-${n}" class="py-3 rounded-xl font-semibold ${n === 2 ? 'bg-orange-500 text-white' : 'bg-gray-100'}">${n}</button>`).join('')}</div></div><button onclick="handleJoinQueue('${restaurantId}')" class="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white py-4 rounded-xl font-bold text-lg">Join Queue</button></div></div></div>`);
+            if (!restaurant) { render(`<div class="container text-center" style="padding-top: 4rem;"><h1 style="color: var(--danger);">Restaurant not found</h1></div>`); return; }
+            render(`
+                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 500px; width: 100%;">
+                        <h2 class="text-center mb">Join Queue</h2>
+                        <p class="text-center mb" style="color: var(--gray-600);">${restaurant.name}</p>
+                        <div class="space-y">
+                            <input type="text" id="customerName" placeholder="Your Name">
+                            <input type="tel" id="customerPhone" placeholder="Mobile (10 digits)" maxlength="10">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Number of Guests</label>
+                                <div class="grid grid-4">${[1,2,3,4,5,6,7,8].map(n => `<button onclick="selectGuests(${n})" id="guest-${n}" class="btn ${n === 2 ? 'btn-primary' : 'btn-secondary'}">${n}</button>`).join('')}</div>
+                            </div>
+                            <button onclick="handleJoinQueue('${restaurantId}')" class="btn btn-primary w-full">Join Queue</button>
+                        </div>
+                    </div>
+                </div>
+            `);
             window.selectedGuests = 2;
         }
         
         function selectGuests(n) {
             window.selectedGuests = n;
-            document.querySelectorAll('[id^="guest-"]').forEach(btn => btn.className = 'py-3 rounded-xl font-semibold bg-gray-100');
-            document.getElementById(`guest-${n}`).className = 'py-3 rounded-xl font-semibold bg-orange-500 text-white';
+            document.querySelectorAll('[id^="guest-"]').forEach(btn => btn.className = 'btn btn-secondary');
+            document.getElementById(`guest-${n}`).className = 'btn btn-primary';
         }
         
         function handleJoinQueue(restaurantId) {
             const name = document.getElementById('customerName').value;
             const phone = document.getElementById('customerPhone').value;
             const guests = window.selectedGuests || 2;
-            
             if (!name || !phone) { alert('Please fill all fields'); return; }
-            
             const queueNumber = DB.addToQueue(restaurantId, { name, phone, guests });
             alert(`✅ You're in queue!\n\nYour number: ${queueNumber}\n\nWatch the display screen!`);
             navigate(`/r/${restaurantId}/status/${queueNumber}`);
         }
         
         function showQueueStatus(restaurantId, queueNumber) {
-            render(`<div class="p-8 text-center"><h1 class="text-3xl font-bold">Queue Status</h1><p class="text-xl mt-4">Number: ${queueNumber}</p><button onclick="navigate('/r/${restaurantId}/display')" class="mt-6 bg-blue-600 text-white px-8 py-4 rounded-xl">View Display</button></div>`);
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) return;
+            const myQueue = restaurant.queue.find(q => q.queueNumber === queueNumber);
+            if (!myQueue) { render(`<div class="container text-center" style="padding-top: 4rem;"><h1>Queue Number Not Found</h1><button onclick="navigate('/r/${restaurantId}/join')" class="btn btn-primary mt">Join Queue</button></div>`); return; }
+            
+            if (myQueue.status === 'allocated') {
+                render(`
+                    <div style="min-height: 100vh; background: var(--success); display: flex; align-items: center; justify-content: center; color: white; padding: clamp(1rem, 3vw, 3rem);">
+                        <div class="text-center">
+                            <h1 style="margin-bottom: 2rem;">🎉 Table Ready!</h1>
+                            <div class="card" style="background: white; color: var(--gray-900);">
+                                <div style="font-size: clamp(5rem, 15vw, 12rem); font-weight: 900; color: var(--success);">${myQueue.tableNo}</div>
+                                <p style="font-size: clamp(1.5rem, 3vw, 2rem);">Queue: ${queueNumber}</p>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            } else {
+                const waiting = restaurant.queue.filter(q => q.status === 'waiting');
+                const position = waiting.findIndex(q => q.queueNumber === queueNumber) + 1;
+                render(`
+                    <div style="min-height: 100vh; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; padding: clamp(1rem, 3vw, 3rem);">
+                        <div class="text-center">
+                            <h1 style="margin-bottom: 2rem;">Still in Queue</h1>
+                            <div class="card" style="background: white; color: var(--gray-900);">
+                                <div style="font-size: clamp(5rem, 15vw, 12rem); font-weight: 900; color: var(--primary);">${queueNumber}</div>
+                                <p style="font-size: clamp(1.5rem, 3vw, 2rem);">Position: #${position}</p>
+                            </div>
+                            <button onclick="navigate('/r/${restaurantId}/display')" class="btn btn-primary mt" style="background: white; color: var(--primary);">View Display</button>
+                        </div>
+                    </div>
+                `);
+            }
         }
         
+        // TV Display Screen - Compressed but complete
         function showDisplay(restaurantId) {
             const restaurant = DB.restaurants[restaurantId];
             if (!restaurant) return;
-            
             const waiting = restaurant.queue.filter(q => q.status === 'waiting');
             const allocated = restaurant.queue.filter(q => q.status === 'allocated');
+            const justCalled = allocated.slice(-3);
             
-            render(`<div class="min-h-screen bg-gray-900 text-white p-8"><h1 class="text-5xl font-bold mb-8 text-center">${restaurant.name}</h1><div class="grid grid-cols-2 gap-8"><div><h2 class="text-3xl font-bold mb-4">Waiting (${waiting.length})</h2>${waiting.map((w, i) => `<div class="bg-gray-800 p-4 rounded-xl mb-3"><div class="text-3xl font-bold">${w.queueNumber}</div><div class="text-gray-400">#${i+1} • ${w.guests} guests</div></div>`).join('')}</div><div><h2 class="text-3xl font-bold mb-4">Now Serving</h2>${allocated.slice(-3).map(a => `<div class="bg-green-600 p-4 rounded-xl mb-3"><div class="text-3xl font-bold">${a.queueNumber}</div><div>Table ${a.tableNo}</div></div>`).join('')}</div></div></div>`);
-            
+            render(`
+                <div class="display-screen">
+                    <div class="container">
+                        <div class="text-center mb" style="padding-bottom: clamp(1rem, 3vw, 3rem); border-bottom: 4px solid var(--primary);">
+                            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">${restaurant.name}</h1>
+                            <p style="font-size: clamp(1rem, 2vw, 2rem); color: rgba(255,255,255,0.7);">Queue Management System</p>
+                            <div style="font-size: clamp(1.5rem, 3vw, 3rem); color: var(--primary); font-weight: 700; margin-top: 0.5rem;">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                        
+                        ${justCalled.length > 0 ? `
+                        <div class="card mb" style="background: linear-gradient(135deg, rgba(22, 163, 74, 0.9) 0%, rgba(21, 128, 61, 0.9) 100%); border: 4px solid var(--success); padding: clamp(2rem, 4vw, 4rem);">
+                            <div class="text-center mb"><h2 style="font-size: clamp(2rem, 4vw, 5rem); margin-bottom: clamp(1rem, 2vw, 2rem); display: flex; align-items: center; justify-content: center; gap: 1rem;"><span style="font-size: clamp(3rem, 6vw, 8rem); animation: pulse 2s ease-in-out infinite;">🔔</span>NOW SERVING</h2></div>
+                            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: clamp(1.5rem, 3vw, 3rem);">
+                                ${justCalled.map(a => `<div class="card text-center" style="background: rgba(255, 255, 255, 0.95); padding: clamp(2rem, 4vw, 4rem); border: 4px solid #ffffff;"><div style="font-size: clamp(4rem, 10vw, 12rem); font-weight: 900; color: var(--success); line-height: 1;">${a.queueNumber}</div><div style="font-size: clamp(2rem, 5vw, 6rem); font-weight: 800; color: var(--gray-900);">Table ${a.tableNo}</div><div style="font-size: clamp(1.25rem, 3vw, 3rem); color: var(--gray-600);">${a.guests} ${a.guests === 1 ? 'guest' : 'guests'}</div></div>`).join('')}
+                            </div>
+                        </div>
+                        ` : `<div class="card text-center mb" style="background: rgba(55, 65, 81, 0.5); padding: clamp(2rem, 4vw, 4rem);"><p style="font-size: clamp(1.5rem, 3vw, 4rem); color: rgba(255,255,255,0.6);">⏳ Waiting for first customer...</p></div>`}
+                        
+                        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: clamp(1.5rem, 3vw, 3rem);">
+                            <div class="card" style="background: rgba(249, 115, 22, 0.2); border: 3px solid var(--primary); padding: clamp(1.5rem, 3vw, 3rem);">
+                                <h2 class="text-center" style="color: var(--primary); margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 4rem);"><span style="font-size: clamp(2rem, 4vw, 5rem);">⏳</span> Waiting Queue (${waiting.length})</h2>
+                                <div style="max-height: 60vh; overflow-y: auto;"><div class="space-y">
+                                    ${waiting.length > 0 ? waiting.slice(0, 15).map((w, i) => `
+                                        <div class="card" style="background: ${i < 3 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(55, 65, 81, 0.8)'}; padding: clamp(1rem, 2vw, 2rem); border: ${i < 3 ? '3px solid var(--primary)' : '2px solid rgba(156, 163, 175, 0.3)'};">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                                <div style="flex: 1; min-width: 200px;">
+                                                    <div style="font-size: clamp(2rem, 5vw, 6rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'var(--primary)'}; line-height: 1;">${w.queueNumber}</div>
+                                                    ${i < 3 ? '<div style="font-size: clamp(1rem, 2vw, 1.5rem); color: #fef9c3; font-weight: 700; margin-top: 0.5rem;">🔜 COMING UP NEXT</div>' : ''}
+                                                    <div style="font-size: clamp(1rem, 2vw, 1.5rem); color: ${i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)'}; margin-top: 0.5rem;">${w.guests} ${w.guests === 1 ? 'guest' : 'guests'}</div>
+                                                </div>
+                                                <div style="text-align: right;">
+                                                    <div style="font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.7)'};">#${i + 1}</div>
+                                                    <div style="font-size: clamp(0.875rem, 1.5vw, 1.25rem); color: rgba(255,255,255,0.6);">~${(i + 1) * 5} min</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : '<p class="text-center" style="color: rgba(255,255,255,0.6); font-size: clamp(1.25rem, 2vw, 2rem); padding: 2rem;">No customers waiting</p>'}
+                                </div></div>
+                            </div>
+                            
+                            <div class="space-y" style="display: flex; flex-direction: column; gap: clamp(1.5rem, 3vw, 3rem);">
+                                <div class="card" style="background: rgba(59, 130, 246, 0.2); border: 3px solid #2563eb; padding: clamp(1.5rem, 3vw, 3rem);">
+                                    <h2 class="text-center" style="color: #60a5fa; margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 3rem);">📱 How to Join Queue</h2>
+                                    <div class="space-y" style="font-size: clamp(1rem, 2vw, 2rem); color: white;">
+                                        ${['1️⃣ Scan QR code at entrance', '2️⃣ Enter your details', '3️⃣ Get queue number', '4️⃣ Watch this screen!'].map(step => `<div style="display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.5rem); padding: clamp(0.5rem, 1vw, 1rem); background: rgba(59, 130, 246, 0.2); border-radius: clamp(0.5rem, 1vw, 1rem);"><span>${step}</span></div>`).join('')}
+                                    </div>
+                                </div>
+                                <div class="card" style="background: rgba(168, 85, 247, 0.2); border: 3px solid #9333ea; padding: clamp(1.5rem, 3vw, 3rem);">
+                                    <h2 class="text-center" style="color: #c084fc; margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 3rem);">📊 Live Stats</h2>
+                                    <div class="grid grid-2" style="gap: clamp(1rem, 2vw, 2rem);">
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem);"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: var(--primary);">${waiting.length}</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Waiting</div></div>
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem);"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: var(--success);">${allocated.length}</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Seated</div></div>
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem); grid-column: 1 / -1;"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: #60a5fa;">~${waiting.length * 5} min</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Estimated Wait</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt" style="padding-top: clamp(2rem, 4vw, 4rem); border-top: 2px solid rgba(255,255,255,0.2);"><p style="font-size: clamp(1rem, 2vw, 2rem); color: rgba(255,255,255,0.5);">⚡ Powered by QueueApp</p></div>
+                    </div>
+                </div>
+            `);
             setTimeout(() => handleRoute(), 3000);
         }
         
+        // Restaurant Admin Dashboard
         function showRestaurantAdmin(restaurantId) {
             const restaurant = DB.restaurants[restaurantId];
             if (!restaurant) return;
-            
             const waiting = restaurant.queue.filter(q => q.status === 'waiting');
+            const allocated = restaurant.queue.filter(q => q.status === 'allocated');
             const currentPlan = restaurant.plan || 'free';
             const planStatus = restaurant.planStatus || 'active';
+            const planBadge = `<span class="badge ${currentPlan === 'premium' && planStatus === 'active' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>`;
             
-            const planBadge = currentPlan === 'premium' 
-                ? '<span class="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">PREMIUM</span>' 
-                : planStatus === 'pending'
-                ? '<span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">PENDING</span>'
-                : '<span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm font-bold">FREE</span>';
-            
-            render(`<div class="min-h-screen bg-gray-100 p-6"><div class="max-w-6xl mx-auto"><div class="bg-white rounded-2xl shadow-lg p-6 mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-bold cursor-pointer" onclick="navigateHome()">QueueApp</h1><p class="text-gray-600">${restaurant.name} - Admin ${planBadge}</p></div><div class="flex gap-2"><button onclick="navigate('/pricing')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold">${currentPlan === 'free' && planStatus !== 'pending' ? 'Upgrade' : 'Manage Plan'}</button><button onclick="logout('${restaurantId}')" class="bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button></div></div>${planStatus === 'pending' ? '<div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-6"><p class="text-yellow-800 font-semibold">⏳ Premium upgrade pending verification. We\'ll notify you once approved!</p></div>' : ''}<div class="bg-white rounded-2xl shadow-lg p-6 mb-6"><h2 class="text-2xl font-bold mb-4">Waiting Queue (${waiting.length})</h2><div class="space-y-3">${waiting.length > 0 ? waiting.map(w => `<div class="border-2 border-gray-200 rounded-xl p-4 flex justify-between items-center"><div><div class="text-xl font-bold">${w.queueNumber}</div><div class="text-gray-600">${w.name} • ${w.phone} • ${w.guests} guests</div></div><div class="flex gap-2 items-center"><input type="number" id="table-${w.queueNumber}" placeholder="Table #" class="w-24 px-3 py-2 border-2 rounded-lg" min="1"><button onclick="allocateTable('${restaurantId}', '${w.queueNumber}')" class="bg-green-600 text-white px-6 py-2 rounded-lg">Seat</button></div></div>`).join('') : '<p class="text-gray-500">No customers in queue</p>'}</div></div><div class="flex gap-4"><button onclick="navigate('/r/${restaurantId}/display')" class="bg-blue-600 text-white px-6 py-3 rounded-xl">📺 Display</button><button onclick="navigate('/r/${restaurantId}/join')" class="bg-purple-600 text-white px-6 py-3 rounded-xl">📱 Join Queue</button></div></div></div>`);
+            render(`
+                <div style="min-height: 100vh; background: var(--gray-100); padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="container">
+                        <div class="card mb flex justify-between items-center flex-wrap gap-1">
+                            <div><h1 onclick="navigateHome()" style="cursor: pointer;">QueueApp</h1><p style="color: var(--gray-600);">${restaurant.name} - Admin ${planBadge}</p></div>
+                            <div class="flex gap-1">
+                                <button onclick="navigate('/pricing')" class="btn" style="background: #2563eb; color: white;">${currentPlan === 'free' && planStatus !== 'pending' ? 'Upgrade' : 'Manage Plan'}</button>
+                                <button onclick="logout('${restaurantId}')" class="btn btn-danger">Logout</button>
+                            </div>
+                        </div>
+                        ${planStatus === 'pending' ? '<div class="alert alert-warning mb">⏳ Premium upgrade pending verification.</div>' : ''}
+                        <div class="grid grid-2 mb">
+                            <div class="card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--primary);">${waiting.length}</div><p style="color: var(--gray-600);">Customers Waiting</p></div>
+                            <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--success);">${allocated.length}</div><p style="color: var(--gray-600);">Tables Occupied</p></div>
+                        </div>
+                        <div class="card mb">
+                            <h2 style="margin-bottom: 1rem;">Waiting Queue</h2>
+                            <div class="space-y">
+                                ${waiting.length > 0 ? waiting.map(w => `
+                                    <div class="card flex justify-between items-center flex-wrap gap-1" style="background: var(--gray-50);">
+                                        <div><div style="font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 700;">${w.queueNumber}</div><p style="color: var(--gray-600);">${w.name} • ${w.phone} • ${w.guests} guests</p></div>
+                                        <div class="flex gap-1 items-center">
+                                            <input type="number" id="table-${w.queueNumber}" placeholder="Table #" style="width: clamp(80px, 15vw, 100px);" min="1">
+                                            <button onclick="allocateTable('${restaurantId}', '${w.queueNumber}')" class="btn btn-success">Seat</button>
+                                        </div>
+                                    </div>
+                                `).join('') : '<p class="text-center" style="color: var(--gray-600); padding: 2rem;">No customers in queue</p>'}
+                            </div>
+                        </div>
+                        <div class="flex gap-1 flex-wrap">
+                            <button onclick="navigate('/r/${restaurantId}/display')" class="btn" style="background: #2563eb; color: white;">📺 Display Screen</button>
+                            <button onclick="navigate('/r/${restaurantId}/join')" class="btn" style="background: #9333ea; color: white;">📱 Customer Entry</button>
+                        </div>
+                    </div>
+                </div>
+            `);
         }
         
         function allocateTable(restaurantId, queueNumber) {
             const tableNo = document.getElementById(`table-${queueNumber}`).value;
-            if (!tableNo || tableNo < 1) { alert('⚠️ Please enter table number'); return; }
+            if (!tableNo || tableNo < 1) { alert('⚠️ Please enter a valid table number'); return; }
             DB.allocateTable(restaurantId, queueNumber, tableNo);
             alert(`✅ Table ${tableNo} allocated to ${queueNumber}!`);
             handleRoute();
@@ -620,50 +821,109 @@
             navigate('/');
         }
         
+        // Platform Admin
         function showAdminPasswordPrompt() {
-            render(`<div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6 flex items-center justify-center"><div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"><h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">🔐 Platform Admin</h1><input type="password" id="adminPass" placeholder="Master Password" class="w-full px-4 py-3 border-2 rounded-xl outline-none mb-4"><button onclick="checkAdminPassword()" class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg">Login</button></div></div>`);
+            render(`
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #111827 0%, #1f2937 100%); display: flex; align-items: center; justify-content: center; padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="card" style="max-width: 500px; width: 100%;">
+                        <h2 class="text-center mb">🔐 Platform Admin</h2>
+                        <input type="password" id="adminPass" placeholder="Enter Master Password">
+                        <button onclick="checkAdminPassword()" class="btn w-full mt" style="background: var(--gray-900); color: white;">Login</button>
+                    </div>
+                </div>
+            `);
         }
         
         function checkAdminPassword() {
             if (document.getElementById('adminPass').value === 'SuperAdmin2024!@#') {
                 sessionStorage.setItem('adminAuth', 'yes');
                 navigate('/admin');
-            } else {
-                alert('❌ Wrong password');
-            }
+            } else { alert('❌ Wrong password'); }
         }
         
-        // NEW: Enhanced Platform Admin with payment verification
         function showPlatformAdmin() {
             const restaurants = Object.entries(DB.restaurants);
             const pendingPayments = restaurants.filter(([_, r]) => r.planStatus === 'pending');
             const totalCustomers = restaurants.reduce((sum, [_, r]) => sum + r.queue.length, 0);
             const totalRevenue = restaurants.filter(([_, r]) => r.plan === 'premium' && r.planStatus === 'active').length * 2999;
             
-            render(`<div class="min-h-screen bg-gray-100 p-6"><div class="max-w-7xl mx-auto"><div class="bg-white rounded-2xl shadow-lg p-6 mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-bold">🏢 Platform Admin</h1><p class="text-gray-600">Manage all restaurants</p></div><button onclick="adminLogout()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button></div><div class="grid grid-cols-4 gap-6 mb-6"><div class="bg-blue-50 rounded-xl p-6 border-2 border-blue-200"><div class="text-4xl font-bold text-blue-600">${restaurants.length}</div><div class="text-gray-600">Total Restaurants</div></div><div class="bg-green-50 rounded-xl p-6 border-2 border-green-200"><div class="text-4xl font-bold text-green-600">${totalCustomers}</div><div class="text-gray-600">Total Customers</div></div><div class="bg-purple-50 rounded-xl p-6 border-2 border-purple-200"><div class="text-4xl font-bold text-purple-600">₹${totalRevenue.toLocaleString()}</div><div class="text-gray-600">Monthly Revenue</div></div><div class="bg-yellow-50 rounded-xl p-6 border-2 border-yellow-200"><div class="text-4xl font-bold text-yellow-600">${pendingPayments.length}</div><div class="text-gray-600">Pending Payments</div></div></div>${pendingPayments.length > 0 ? `<div class="bg-white rounded-2xl shadow-lg p-6 mb-6"><h2 class="text-2xl font-bold mb-4 text-yellow-600">⏳ Pending Payment Verifications (${pendingPayments.length})</h2><div class="space-y-4">${pendingPayments.map(([id, r]) => `<div class="border-2 border-yellow-300 bg-yellow-50 rounded-xl p-4"><div class="flex justify-between items-start"><div class="flex-1"><div class="text-xl font-bold">${r.name}</div><div class="text-gray-600">ID: ${id} • Owner: ${r.owner}</div><div class="text-sm text-gray-500 mt-2">Transaction ID: ${r.paymentProof?.transactionId || 'N/A'}</div><div class="text-sm text-gray-500">Uploaded: ${new Date(r.paymentProof?.uploadedAt || 0).toLocaleString()}</div></div><div class="flex gap-2"><button onclick="viewScreenshot('${id}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg">View Screenshot</button><button onclick="approvePayment('${id}')" class="bg-green-600 text-white px-4 py-2 rounded-lg">✓ Approve</button><button onclick="rejectPayment('${id}')" class="bg-red-600 text-white px-4 py-2 rounded-lg">✗ Reject</button></div></div></div>`).join('')}</div></div>` : ''}<div class="bg-white rounded-2xl shadow-lg p-6"><h2 class="text-2xl font-bold mb-4">All Restaurants</h2><div class="space-y-3">${restaurants.map(([id, r]) => `<div class="border-2 border-gray-200 rounded-xl p-4"><div class="flex justify-between items-center"><div><div class="text-xl font-bold">${r.name} ${r.plan === 'premium' && r.planStatus === 'active' ? '<span class="text-sm bg-orange-500 text-white px-2 py-1 rounded-full ml-2">PREMIUM</span>' : r.planStatus === 'pending' ? '<span class="text-sm bg-yellow-500 text-white px-2 py-1 rounded-full ml-2">PENDING</span>' : '<span class="text-sm bg-gray-400 text-white px-2 py-1 rounded-full ml-2">FREE</span>'}</div><div class="text-gray-600">ID: ${id} • ${r.city} • ${r.queue.length} customers today</div></div><div class="flex gap-2"><button onclick="navigate('/r/${id}/join')" class="bg-purple-600 text-white px-4 py-2 rounded-lg">Join</button><button onclick="navigate('/r/${id}/display')" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Display</button></div></div></div>`).join('')}</div></div></div></div>`);
+            render(`
+                <div style="min-height: 100vh; background: var(--gray-100); padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="container">
+                        <div class="card mb flex justify-between items-center flex-wrap"><div><h1>🏢 Platform Admin</h1><p style="color: var(--gray-600);">Manage all restaurants</p></div><button onclick="adminLogout()" class="btn btn-danger">Logout</button></div>
+                        <div class="grid grid-4 mb">
+                            <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #2563eb;">${restaurants.length}</div><p style="color: var(--gray-600);">Total Restaurants</p></div>
+                            <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--success);">${totalCustomers}</div><p style="color: var(--gray-600);">Total Customers</p></div>
+                            <div class="card" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #9333ea;">₹${totalRevenue.toLocaleString()}</div><p style="color: var(--gray-600);">Monthly Revenue</p></div>
+                            <div class="card" style="background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--warning);">${pendingPayments.length}</div><p style="color: var(--gray-600);">Pending Payments</p></div>
+                        </div>
+                        ${pendingPayments.length > 0 ? `
+                            <div class="card mb" style="border: 2px solid var(--warning);">
+                                <h2 style="color: var(--warning); margin-bottom: 1rem;">⏳ Pending Payment Verifications (${pendingPayments.length})</h2>
+                                <div class="space-y">
+                                    ${pendingPayments.map(([id, r]) => `
+                                        <div class="card" style="background: #fef9c3;">
+                                            <div class="flex justify-between items-start flex-wrap gap-1">
+                                                <div style="flex: 1;">
+                                                    <h3>${r.name}</h3>
+                                                    <p style="color: var(--gray-600); font-size: 0.875rem;">ID: ${id} • Owner: ${r.owner}</p>
+                                                    <p style="color: var(--gray-600); font-size: 0.875rem;">Transaction: ${r.paymentProof?.transactionId || 'N/A'}</p>
+                                                    <p style="color: var(--gray-600); font-size: 0.875rem;">Uploaded: ${new Date(r.paymentProof?.uploadedAt || 0).toLocaleString()}</p>
+                                                </div>
+                                                <div class="flex gap-1 flex-wrap">
+                                                    <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
+                                                    <button onclick="approvePayment('${id}')" class="btn btn-success">✓ Approve</button>
+                                                    <button onclick="rejectPayment('${id}')" class="btn btn-danger">✗ Reject</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        <div class="card">
+                            <h2 style="margin-bottom: 1rem;">All Restaurants</h2>
+                            <div class="space-y">
+                                ${restaurants.map(([id, r]) => `
+                                    <div class="card" style="background: var(--gray-50);">
+                                        <div class="flex justify-between items-center flex-wrap gap-1">
+                                            <div>
+                                                <h3>${r.name} ${r.plan === 'premium' && r.planStatus === 'active' ? '<span class="badge badge-primary">PREMIUM</span>' : r.planStatus === 'pending' ? '<span class="badge badge-warning">PENDING</span>' : '<span class="badge badge-secondary">FREE</span>'}</h3>
+                                                <p style="color: var(--gray-600); font-size: 0.875rem;">ID: ${id} • ${r.city} • ${r.queue.length} customers</p>
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button onclick="navigate('/r/${id}/admin')" class="btn btn-secondary">Admin</button>
+                                                <button onclick="navigate('/r/${id}/display')" class="btn" style="background: #2563eb; color: white;">Display</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
         }
         
         function viewScreenshot(restaurantId) {
             const restaurant = DB.restaurants[restaurantId];
             if (restaurant && restaurant.paymentProof && restaurant.paymentProof.screenshot) {
                 window.open(restaurant.paymentProof.screenshot, '_blank');
-            } else {
-                alert('No screenshot available');
-            }
+            } else { alert('No screenshot available'); }
         }
         
         function approvePayment(restaurantId) {
             if (confirm('Approve this Premium payment?')) {
                 DB.approvePremium(restaurantId);
-                alert('✅ Premium activated!');
+                alert('✅ Premium activated for 30 days!');
                 handleRoute();
             }
         }
         
         function rejectPayment(restaurantId) {
-            if (confirm('Reject this payment?\n\nProvide reason to the restaurant owner separately.')) {
-                DB.rejectPremium(restaurantId);
-                alert('❌ Payment rejected. Please contact the restaurant owner.');
+            if (confirm('Reject this payment?')) {
+                DB.rejectPayment(restaurantId);
+                alert('❌ Payment rejected.');
                 handleRoute();
             }
         }
@@ -674,7 +934,7 @@
             navigate('/');
         }
         
-        // Global exports
+        // Export all functions
         window.navigate = navigate;
         window.navigateHome = navigateHome;
         window.selectGuests = selectGuests;
@@ -687,7 +947,6 @@
         window.checkAdminPassword = checkAdminPassword;
         window.adminLogout = adminLogout;
         window.handleUpgrade = handleUpgrade;
-        window.confirmDowngrade = confirmDowngrade;
         window.payWithUPIApp = payWithUPIApp;
         window.previewScreenshot = previewScreenshot;
         window.submitPaymentProof = submitPaymentProof;
@@ -695,8 +954,8 @@
         window.approvePayment = approvePayment;
         window.rejectPayment = rejectPayment;
         
-        // Start app
-        handleRoute();
+        // Initialize app
+        setTimeout(() => handleRoute(), 500);
     </script>
 </body>
 </html>
