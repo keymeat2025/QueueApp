@@ -114,14 +114,12 @@
         
         // Firebase Config for queueapp-97728
         const firebaseConfig = {
-         
-            apiKey: "AIzaSyBQRfA1_qgG9x4w4aiDqAzAPghMEc5zE6Q",
+            apiKey: "YOUR_API_KEY", // Replace with your actual API key
             authDomain: "queueapp-97728.firebaseapp.com",
             projectId: "queueapp-97728",
             storageBucket: "queueapp-97728.firebasestorage.app",
-            messagingSenderId: "41156558140",
-            appId: "1:41156558140:web:f3277e7018176d0870f239",
-            measurementId: "G-QSP7ZXNSFT"
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         
         // Initialize Firebase
@@ -902,7 +900,7 @@
                         <div class="space-y">
                             <input type="email" id="adminEmail" placeholder="Admin Email" autocomplete="email">
                             <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password">
-                            <button onclick="firebaseAdminLogin()" class="btn w-full" style="background: var(--gray-900); color: white;">Sign In</button>
+                            <button onclick="firebaseAdminLogin(event)" class="btn w-full" style="background: var(--gray-900); color: white;">Sign In</button>
                             <div id="adminLoginError" class="hidden alert alert-warning" style="margin-top: 1rem;"></div>
                         </div>
                     </div>
@@ -910,7 +908,7 @@
             `);
         }
         
-        async function firebaseAdminLogin() {
+        async function firebaseAdminLogin(event) {
             const email = document.getElementById('adminEmail').value.trim();
             const password = document.getElementById('adminPassword').value.trim();
             const errorDiv = document.getElementById('adminLoginError');
@@ -922,29 +920,43 @@
             }
             
             // Show loading state
-            const btn = event.target;
+            const btn = event ? event.target : document.querySelector('button[onclick*="firebaseAdminLogin"]');
             const originalText = btn.textContent;
             btn.textContent = 'Signing in...';
             btn.disabled = true;
             
-            // Attempt Firebase sign in
-            const result = await FirebaseAdmin.signIn(email, password);
-            
-            if (result.success) {
-                // Store auth state in sessionStorage
-                sessionStorage.setItem('adminAuth', 'yes');
-                sessionStorage.setItem('adminEmail', result.user.email);
-                sessionStorage.setItem('adminUid', result.user.uid);
+            try {
+                // Attempt Firebase sign in
+                const result = await FirebaseAdmin.signIn(email, password);
                 
-                // Success - navigate to admin panel
-                alert('✅ Successfully signed in as Platform Admin');
-                navigate('/admin');
-            } else {
-                // Show error
-                errorDiv.textContent = `❌ ${result.error}`;
+                if (result.success) {
+                    // Store auth state in sessionStorage
+                    sessionStorage.setItem('adminAuth', 'yes');
+                    sessionStorage.setItem('adminEmail', result.user.email);
+                    sessionStorage.setItem('adminUid', result.user.uid);
+                    
+                    // Success - navigate to admin panel
+                    console.log('✅ Login successful, navigating to /admin');
+                    navigate('/admin');
+                } else {
+                    // Show error
+                    errorDiv.textContent = `❌ ${result.error}`;
+                    errorDiv.classList.remove('hidden');
+                    
+                    // Reset button
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = `❌ ${error.message}`;
                 errorDiv.classList.remove('hidden');
                 
                 // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
