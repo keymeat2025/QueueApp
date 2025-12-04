@@ -9,6 +9,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
         /* CSS Variables & Reset */
@@ -113,20 +114,21 @@
         // ============================================
         
         // Firebase Config for queueapp-97728
-       
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-          apiKey: "AIzaSyBQRfA1_qgG9x4w4aiDqAzAPghMEc5zE6Q",
-          authDomain: "queueapp-97728.firebaseapp.com",
-          projectId: "queueapp-97728",
-          storageBucket: "queueapp-97728.firebasestorage.app",
-          messagingSenderId: "41156558140",
-          appId: "1:41156558140:web:f3277e7018176d0870f239",
-          measurementId: "G-QSP7ZXNSFT"
+            apiKey: "YOUR_API_KEY", // Replace with your actual API key
+            authDomain: "queueapp-97728.firebaseapp.com",
+            projectId: "queueapp-97728",
+            storageBucket: "queueapp-97728.firebasestorage.app",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
+        
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        console.log('🔥 Firebase initialized with Firestore');
         
         // Firebase Admin User Management
         const FirebaseAdmin = {
@@ -166,6 +168,181 @@
         };
         
         window.FirebaseAdmin = FirebaseAdmin;
+        
+        // ============================================
+        // FIREBASE RESTAURANT DATABASE
+        // ============================================
+        
+        const FirebaseDB = {
+            // Add new restaurant to Firestore
+            async addRestaurant(restaurantId, data) {
+                try {
+                    await db.collection('restaurants').doc(restaurantId).set({
+                        ...data,
+                        queue: [],
+                        tables: [],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        plan: 'free',
+                        planStatus: 'active',
+                        paymentProof: null,
+                        planExpiryDate: null
+                    });
+                    console.log('✅ Restaurant added to Firestore:', restaurantId);
+                    return { success: true, id: restaurantId };
+                } catch (error) {
+                    console.error('❌ Error adding restaurant:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Get restaurant by ID
+            async getRestaurant(restaurantId) {
+                try {
+                    const doc = await db.collection('restaurants').doc(restaurantId).get();
+                    if (doc.exists) {
+                        return { success: true, data: doc.data() };
+                    } else {
+                        return { success: false, error: 'Restaurant not found' };
+                    }
+                } catch (error) {
+                    console.error('❌ Error getting restaurant:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Get all restaurants
+            async getAllRestaurants() {
+                try {
+                    const snapshot = await db.collection('restaurants').get();
+                    const restaurants = {};
+                    snapshot.forEach(doc => {
+                        restaurants[doc.id] = doc.data();
+                    });
+                    return { success: true, data: restaurants };
+                } catch (error) {
+                    console.error('❌ Error getting restaurants:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Login verification
+            async login(restaurantId, phone) {
+                try {
+                    const result = await this.getRestaurant(restaurantId);
+                    if (result.success && result.data.phone === phone) {
+                        return { success: true, data: result.data };
+                    } else {
+                        return { success: false, error: 'Invalid credentials' };
+                    }
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Add customer to queue
+            async addToQueue(restaurantId, customer) {
+                try {
+                    const queueNumber = `A-${Math.floor(Math.random() * 900) + 100}`;
+                    const queueItem = {
+                        ...customer,
+                        queueNumber,
+                        status: 'waiting',
+                        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    await db.collection('restaurants').doc(restaurantId).update({
+                        queue: firebase.firestore.FieldValue.arrayUnion(queueItem)
+                    });
+                    
+                    console.log('✅ Customer added to queue:', queueNumber);
+                    return { success: true, queueNumber };
+                } catch (error) {
+                    console.error('❌ Error adding to queue:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Allocate table
+            async allocateTable(restaurantId, queueNumber, tableNo) {
+                try {
+                    const result = await this.getRestaurant(restaurantId);
+                    if (!result.success) return result;
+                    
+                    const restaurant = result.data;
+                    const updatedQueue = restaurant.queue.map(q => 
+                        q.queueNumber === queueNumber 
+                            ? { ...q, status: 'allocated', tableNo, allocatedAt: Date.now() }
+                            : q
+                    );
+                    
+                    await db.collection('restaurants').doc(restaurantId).update({
+                        queue: updatedQueue
+                    });
+                    
+                    console.log('✅ Table allocated:', tableNo);
+                    return { success: true };
+                } catch (error) {
+                    console.error('❌ Error allocating table:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Save payment proof
+            async savePaymentProof(restaurantId, paymentData) {
+                try {
+                    await db.collection('restaurants').doc(restaurantId).update({
+                        paymentProof: {
+                            ...paymentData,
+                            uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        },
+                        planStatus: 'pending'
+                    });
+                    console.log('✅ Payment proof saved');
+                    return { success: true };
+                } catch (error) {
+                    console.error('❌ Error saving payment proof:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Approve premium
+            async approvePremium(restaurantId) {
+                try {
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 30);
+                    
+                    await db.collection('restaurants').doc(restaurantId).update({
+                        plan: 'premium',
+                        planStatus: 'active',
+                        planExpiryDate: expiryDate.getTime()
+                    });
+                    
+                    console.log('✅ Premium approved');
+                    return { success: true };
+                } catch (error) {
+                    console.error('❌ Error approving premium:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Reject premium
+            async rejectPremium(restaurantId) {
+                try {
+                    await db.collection('restaurants').doc(restaurantId).update({
+                        planStatus: 'rejected',
+                        'paymentProof.rejectedAt': firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    console.log('✅ Premium rejected');
+                    return { success: true };
+                } catch (error) {
+                    console.error('❌ Error rejecting premium:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+        };
+        
+        window.FirebaseDB = FirebaseDB;
         
         // ============================================
         // DATABASE LAYER - localStorage wrapper
@@ -598,7 +775,7 @@
                         <div class="space-y">
                             <input type="text" id="loginRestaurantId" placeholder="Restaurant ID">
                             <input type="tel" id="loginPhone" placeholder="Phone Number" maxlength="10">
-                            <button onclick="handleLogin()" class="btn btn-primary w-full">Login</button>
+                            <button onclick="handleLogin(event)" class="btn btn-primary w-full">Login</button>
                             <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Don't have an account? <button onclick="navigate('/signup')" style="background: none; border: none; color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">Sign Up</button></p>
                         </div>
                     </div>
@@ -606,15 +783,55 @@
             `);
         }
         
-        function handleLogin() {
+        async function handleLogin() {
             const restaurantId = document.getElementById('loginRestaurantId').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
-            if (!restaurantId || !phone) { alert('Please enter Restaurant ID and Phone'); return; }
-            if (DB.login(restaurantId, phone)) { 
-                sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
-                alert('✅ Login successful!'); 
-                navigate(`/r/${restaurantId}/admin`); 
-            } else { alert('❌ Invalid Restaurant ID or Phone Number'); }
+            
+            if (!restaurantId || !phone) { 
+                alert('⚠️ Please enter Restaurant ID and Phone'); 
+                return; 
+            }
+            
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Logging in...';
+            btn.disabled = true;
+            
+            try {
+                // Try Firebase first
+                const result = await FirebaseDB.login(restaurantId, phone);
+                
+                if (result.success) {
+                    // Store in session
+                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
+                    sessionStorage.setItem(`restaurantData_${restaurantId}`, JSON.stringify(result.data));
+                    
+                    // Also sync to localStorage
+                    if (!DB.restaurants[restaurantId]) {
+                        DB.addRestaurant(restaurantId, result.data);
+                    }
+                    
+                    alert('✅ Login successful!'); 
+                    navigate(`/r/${restaurantId}/admin`);
+                } else {
+                    // Fallback to localStorage
+                    if (DB.login(restaurantId, phone)) { 
+                        sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
+                        alert('✅ Login successful!'); 
+                        navigate(`/r/${restaurantId}/admin`); 
+                    } else { 
+                        alert('❌ Invalid Restaurant ID or Phone Number');
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert(`❌ Login failed: ${error.message}`);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }
         
         function showRestaurantLogin(restaurantId) {
@@ -652,7 +869,7 @@
                                 <input type="checkbox" id="agreeTerms" class="mt-1">
                                 <label for="agreeTerms" style="font-size: 0.875rem; color: var(--gray-700);">I agree to the Terms of Service and Privacy Policy</label>
                             </div>
-                            <button onclick="handleSignup()" class="btn btn-primary w-full">Register</button>
+                            <button onclick="handleSignup(event)" class="btn btn-primary w-full">Register</button>
                             <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Already registered? <button onclick="navigate('/login')" style="background: none; border: none; color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">Login</button></p>
                         </div>
                     </div>
@@ -660,22 +877,63 @@
             `);
         }
         
-        function handleSignup() {
-            const name = document.getElementById('restaurantName').value;
-            const owner = document.getElementById('ownerName').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const city = document.getElementById('city').value;
+        async function handleSignup() {
+            const name = document.getElementById('restaurantName').value.trim();
+            const owner = document.getElementById('ownerName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const city = document.getElementById('city').value.trim();
             const agreeTerms = document.getElementById('agreeTerms').checked;
             
-            if (!name || !owner || !email || !phone || !city) { alert('Please fill all fields including branch location'); return; }
-            if (!agreeTerms) { alert('⚠️ Please agree to Terms of Service and Privacy Policy'); return; }
+            if (!name || !owner || !email || !phone || !city) { 
+                alert('⚠️ Please fill all fields including branch location'); 
+                return; 
+            }
+            if (!agreeTerms) { 
+                alert('⚠️ Please agree to Terms of Service and Privacy Policy'); 
+                return; 
+            }
             
-            const restaurantId = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') + Math.floor(Math.random() * 1000);
-            DB.addRestaurant(restaurantId, { name, owner, email, phone, city });
-            sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-            alert(`✅ Success! Your Restaurant ID: ${restaurantId}\n\n🎉 You're on the FREE plan (500 customers/month)`);
-            navigate(`/r/${restaurantId}/admin`);
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Registering...';
+            btn.disabled = true;
+            
+            try {
+                // Generate restaurant ID
+                const restaurantId = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') + Math.floor(Math.random() * 10000);
+                
+                // Add to Firebase Firestore
+                const result = await FirebaseDB.addRestaurant(restaurantId, { 
+                    name, 
+                    owner, 
+                    email, 
+                    phone, 
+                    city 
+                });
+                
+                if (result.success) {
+                    // Also keep in localStorage as backup
+                    DB.addRestaurant(restaurantId, { name, owner, email, phone, city });
+                    
+                    // Set session
+                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
+                    sessionStorage.setItem(`restaurantData_${restaurantId}`, JSON.stringify({ name, owner, email, phone, city }));
+                    
+                    alert(`✅ Success! Your Restaurant ID: ${restaurantId}\n\n🎉 You're on the FREE plan (500 customers/month)\n\nℹ️ Save your Restaurant ID for future logins!`);
+                    navigate(`/r/${restaurantId}/admin`);
+                } else {
+                    alert(`❌ Registration failed: ${result.error}`);
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert(`❌ Registration failed: ${error.message}`);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }
         
         // Customer Queue Functions
