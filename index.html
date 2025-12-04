@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QueueApp - Smart Queue Management</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
     <style>
         /* CSS Variables & Reset */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -103,7 +108,69 @@
     </div>
     
     <script>
-        // Database Layer - localStorage wrapper
+        // ============================================
+        // FIREBASE CONFIGURATION & INITIALIZATION
+        // ============================================
+        
+        // Firebase Config for queueapp-97728
+        const firebaseConfig = {
+         
+            apiKey: "AIzaSyBQRfA1_qgG9x4w4aiDqAzAPghMEc5zE6Q",
+            authDomain: "queueapp-97728.firebaseapp.com",
+            projectId: "queueapp-97728",
+            storageBucket: "queueapp-97728.firebasestorage.app",
+            messagingSenderId: "41156558140",
+            appId: "1:41156558140:web:f3277e7018176d0870f239",
+            measurementId: "G-QSP7ZXNSFT"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        // Firebase Admin User Management
+        const FirebaseAdmin = {
+            // Sign in with email/password
+            async signIn(email, password) {
+                try {
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    console.log('✅ Firebase Admin signed in:', userCredential.user.email);
+                    return { success: true, user: userCredential.user };
+                } catch (error) {
+                    console.error('❌ Firebase sign in error:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Sign out
+            async signOut() {
+                try {
+                    await auth.signOut();
+                    console.log('✅ Firebase Admin signed out');
+                    return { success: true };
+                } catch (error) {
+                    console.error('❌ Firebase sign out error:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Check if user is currently signed in
+            getCurrentUser() {
+                return auth.currentUser;
+            },
+            
+            // Listen to auth state changes
+            onAuthStateChanged(callback) {
+                return auth.onAuthStateChanged(callback);
+            }
+        };
+        
+        window.FirebaseAdmin = FirebaseAdmin;
+        
+        // ============================================
+        // DATABASE LAYER - localStorage wrapper
+        // ============================================
+        
         const DB = {
             restaurants: JSON.parse(localStorage.getItem('restaurants') || '{}'),
             save() { localStorage.setItem('restaurants', JSON.stringify(this.restaurants)); },
@@ -173,7 +240,7 @@
             else if (hash === '/privacy') showLegal('Privacy Policy', getPrivacyContent());
             else if (hash === '/signup') showSignup();
             else if (hash === '/login') showLogin();
-            else if (hash === '/admin') sessionStorage.getItem('adminAuth') === 'yes' ? showPlatformAdmin() : showAdminPasswordPrompt();
+            else if (hash === '/admin') checkFirebaseAdminAuth() ? showPlatformAdmin() : showAdminPasswordPrompt();
             else if (parts[0] === 'payment' && parts[1] && parts[2] === 'upload') showUploadScreenshot(parts[1]);
             else if (parts[0] === 'payment' && parts[1]) showPaymentPage(parts[1]);
             else if (parts[0] === 'r' && parts[2] === 'join') showJoinQueue(parts[1]);
@@ -822,24 +889,87 @@
         }
         
         // Platform Admin
+        // ============================================
+        // PLATFORM ADMIN - FIREBASE AUTHENTICATION
+        // ============================================
+        
         function showAdminPasswordPrompt() {
             render(`
                 <div style="min-height: 100vh; background: linear-gradient(135deg, #111827 0%, #1f2937 100%); display: flex; align-items: center; justify-content: center; padding: clamp(1rem, 3vw, 3rem);">
                     <div class="card" style="max-width: 500px; width: 100%;">
-                        <h2 class="text-center mb">🔐 Platform Admin</h2>
-                        <input type="password" id="adminPass" placeholder="Enter Master Password">
-                        <button onclick="checkAdminPassword()" class="btn w-full mt" style="background: var(--gray-900); color: white;">Login</button>
+                        <h2 class="text-center mb">🔐 Platform Admin Login</h2>
+                        <p class="text-center" style="color: var(--gray-600); margin-bottom: 2rem; font-size: 0.875rem;">Sign in with Firebase credentials</p>
+                        <div class="space-y">
+                            <input type="email" id="adminEmail" placeholder="Admin Email" autocomplete="email">
+                            <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password">
+                            <button onclick="firebaseAdminLogin()" class="btn w-full" style="background: var(--gray-900); color: white;">Sign In</button>
+                            <div id="adminLoginError" class="hidden alert alert-warning" style="margin-top: 1rem;"></div>
+                        </div>
                     </div>
                 </div>
             `);
         }
         
-        function checkAdminPassword() {
-            if (document.getElementById('adminPass').value === 'SuperAdmin2024!@#') {
+        async function firebaseAdminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            const errorDiv = document.getElementById('adminLoginError');
+            
+            if (!email || !password) {
+                errorDiv.textContent = '⚠️ Please enter both email and password';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
+            
+            // Attempt Firebase sign in
+            const result = await FirebaseAdmin.signIn(email, password);
+            
+            if (result.success) {
+                // Store auth state in sessionStorage
                 sessionStorage.setItem('adminAuth', 'yes');
+                sessionStorage.setItem('adminEmail', result.user.email);
+                sessionStorage.setItem('adminUid', result.user.uid);
+                
+                // Success - navigate to admin panel
+                alert('✅ Successfully signed in as Platform Admin');
                 navigate('/admin');
-            } else { alert('❌ Wrong password'); }
+            } else {
+                // Show error
+                errorDiv.textContent = `❌ ${result.error}`;
+                errorDiv.classList.remove('hidden');
+                
+                // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }
+        
+        // Check Firebase auth state on admin route
+        function checkFirebaseAdminAuth() {
+            const currentUser = FirebaseAdmin.getCurrentUser();
+            const sessionAuth = sessionStorage.getItem('adminAuth');
+            
+            // If Firebase user exists and session is valid, allow access
+            if (currentUser && sessionAuth === 'yes') {
+                return true;
+            }
+            
+            // If session exists but no Firebase user, clear session
+            if (sessionAuth === 'yes' && !currentUser) {
+                sessionStorage.removeItem('adminAuth');
+                sessionStorage.removeItem('adminEmail');
+                sessionStorage.removeItem('adminUid');
+            }
+            
+            return false;
+        }
+        
         
         function showPlatformAdmin() {
             const restaurants = Object.entries(DB.restaurants);
@@ -928,9 +1058,21 @@
             }
         }
         
-        function adminLogout() {
+        async function adminLogout() {
+            // Sign out from Firebase
+            const result = await FirebaseAdmin.signOut();
+            
+            // Clear session storage
             sessionStorage.removeItem('adminAuth');
-            alert('✅ Logged out');
+            sessionStorage.removeItem('adminEmail');
+            sessionStorage.removeItem('adminUid');
+            
+            if (result.success) {
+                alert('✅ Logged out successfully');
+            } else {
+                alert('✅ Logged out (local session cleared)');
+            }
+            
             navigate('/');
         }
         
@@ -944,7 +1086,7 @@
         window.handleJoinQueue = handleJoinQueue;
         window.allocateTable = allocateTable;
         window.logout = logout;
-        window.checkAdminPassword = checkAdminPassword;
+        window.firebaseAdminLogin = firebaseAdminLogin;
         window.adminLogout = adminLogout;
         window.handleUpgrade = handleUpgrade;
         window.payWithUPIApp = payWithUPIApp;
@@ -953,6 +1095,31 @@
         window.viewScreenshot = viewScreenshot;
         window.approvePayment = approvePayment;
         window.rejectPayment = rejectPayment;
+        
+        // ============================================
+        // FIREBASE AUTH STATE LISTENER
+        // ============================================
+        
+        // Listen for Firebase auth state changes
+        FirebaseAdmin.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('🔥 Firebase Admin User:', user.email);
+                // User is signed in - ensure session is set
+                if (sessionStorage.getItem('adminAuth') !== 'yes') {
+                    sessionStorage.setItem('adminAuth', 'yes');
+                    sessionStorage.setItem('adminEmail', user.email);
+                    sessionStorage.setItem('adminUid', user.uid);
+                }
+            } else {
+                console.log('🔥 Firebase: No admin user signed in');
+                // User is signed out - clear session
+                if (sessionStorage.getItem('adminAuth') === 'yes') {
+                    sessionStorage.removeItem('adminAuth');
+                    sessionStorage.removeItem('adminEmail');
+                    sessionStorage.removeItem('adminUid');
+                }
+            }
+        });
         
         // Initialize app
         setTimeout(() => handleRoute(), 500);
