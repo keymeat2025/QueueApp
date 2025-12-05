@@ -1735,10 +1735,10 @@
                     </head><body>
                     <h1>Scan to Join Queue</h1>
                     <div class="qr-container">${qrElement.innerHTML}</div>
-                    <script>window.onload = function() { window.print(); }</script>
                     </body></html>
                 `);
                 printWindow.document.close();
+                setTimeout(() => printWindow.print(), 250);
             }
         }
         
