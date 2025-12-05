@@ -466,27 +466,36 @@
         
         window.DB = DB;
         
-        // Daily Cleanup Scheduler
+        // Daily Cleanup Scheduler - Runs at Midnight (12 AM IST)
         async function checkDailyCleanup() {
             const today = new Date().toISOString().slice(0, 10);
             const lastCleanupDate = localStorage.getItem('lastCleanupDate');
-            const isPast12PM = new Date().getHours() >= 12;
             
-            if (lastCleanupDate !== today && isPast12PM) {
-                console.log('🧹 Running daily cleanup');
+            // Cleanup when date changes (after midnight 12 AM)
+            // This runs on first visit after midnight, ensuring fresh start each day
+            if (lastCleanupDate !== today) {
+                console.log('🧹 Daily cleanup: New day detected');
+                console.log(`   Last cleanup: ${lastCleanupDate || 'Never'}`);
+                console.log(`   Current date: ${today}`);
                 
                 try {
                     const result = await FirebaseDB.getAllRestaurants();
                     if (result.success) {
+                        let cleanedCount = 0;
                         for (const [restaurantId] of Object.entries(result.data)) {
-                            await FirebaseDB.dailyCleanup(restaurantId);
+                            const cleanupResult = await FirebaseDB.dailyCleanup(restaurantId);
+                            if (cleanupResult.success) cleanedCount++;
                         }
+                        
                         localStorage.setItem('lastCleanupDate', today);
-                        console.log('✅ Cleanup completed');
+                        console.log(`✅ Cleanup completed: ${cleanedCount} restaurants cleaned`);
+                        console.log(`   Next cleanup: After midnight tomorrow`);
                     }
                 } catch (error) {
                     console.error('❌ Cleanup error:', error);
                 }
+            } else {
+                console.log('ℹ️ Cleanup already done today - Next cleanup after midnight');
             }
         }
         
