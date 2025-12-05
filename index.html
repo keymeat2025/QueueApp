@@ -53,6 +53,7 @@
         .alert-warning { background: #fef9c3; border-color: var(--warning); color: #854d0e; }
         .alert-danger { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
         .alert-success { background: #dcfce7; border-color: var(--success); color: #166534; }
+        .alert-info { background: #dbeafe; border-color: #2563eb; color: #1e40af; }
         details summary { transition: all 0.3s ease; list-style: none; cursor: pointer; }
         details[open] summary { color: var(--primary); }
         details[open] summary span { transform: rotate(90deg); display: inline-block; }
@@ -62,6 +63,7 @@
         .flex-wrap { flex-wrap: wrap; }
         .items-center { align-items: center; }
         .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
         .gap-1 { gap: clamp(0.5rem, 1vw, 1rem); }
         .w-full { width: 100%; }
         .hidden { display: none; }
@@ -71,11 +73,20 @@
         .loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
         .loading-icon { font-size: clamp(3rem, 8vw, 6rem); margin-bottom: clamp(1rem, 2vw, 2rem); animation: pulse 2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes pulse-badge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         .progress-bar { background: var(--gray-200); height: 30px; border-radius: 999px; overflow: hidden; position: relative; }
         .progress-fill { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; transition: width 0.3s ease; }
+        .qr-container { background: white; padding: 2rem; border-radius: 1rem; display: inline-block; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .qr-badge { position: absolute; top: -10px; right: -10px; background: var(--success); color: white; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; animation: pulse 2s infinite; }
+        @keyframes pulse-badge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         @media (max-width: 640px) { nav .nav-buttons { width: 100%; justify-content: center; } .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
         @media (min-width: 1920px) { body { font-size: 20px; } .display-screen .queue-number { font-size: 15rem; } }
         @media (min-width: 2560px) { body { font-size: 24px; } .container { max-width: 2000px; } .display-screen .queue-number { font-size: 20rem; } }
+        @media print { 
+            body * { visibility: hidden; }
+            .print-qr, .print-qr * { visibility: visible; }
+            .print-qr { position: absolute; left: 0; top: 0; width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -103,6 +114,45 @@
         const db = firebase.firestore();
         
         console.log('🔥 Firebase initialized');
+        
+        // Daily QR Code Generator
+        function getTodayQRCode(restaurantId) {
+            const today = new Date().toISOString().slice(0, 10);
+            const baseUrl = window.location.origin + window.location.pathname;
+            const qrUrl = `${baseUrl}#/r/${restaurantId}/join?date=${today}`;
+            return qrUrl;
+        }
+        
+        function generateQRCode(elementId, restaurantId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            element.innerHTML = '';
+            const qrUrl = getTodayQRCode(restaurantId);
+            
+            new QRCode(element, {
+                text: qrUrl,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+        
+        function printQRCode() {
+            window.print();
+        }
+        
+        function downloadQRCode(restaurantId) {
+            const canvas = document.querySelector('#daily-qr canvas');
+            if (!canvas) return;
+            
+            const link = document.createElement('a');
+            link.download = `QueueApp-QR-${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
         
         // Firebase Admin Auth
         const FirebaseAdmin = {
@@ -471,12 +521,11 @@
             const today = new Date().toISOString().slice(0, 10);
             const lastCleanupDate = localStorage.getItem('lastCleanupDate');
             
-            // Cleanup when date changes (after midnight 12 AM)
-            // This runs on first visit after midnight, ensuring fresh start each day
             if (lastCleanupDate !== today) {
                 console.log('🧹 Daily cleanup: New day detected');
                 console.log(`   Last cleanup: ${lastCleanupDate || 'Never'}`);
                 console.log(`   Current date: ${today}`);
+                console.log('   🔄 QR codes will auto-refresh with new date');
                 
                 try {
                     const result = await FirebaseDB.getAllRestaurants();
@@ -605,7 +654,7 @@
             `);
         }
 
-        // Pricing Page (abbreviated)
+        // Pricing Page
         function showPricing() {
             const loggedIn = getLoggedInRestaurant();
             const restaurant = loggedIn?.data;
@@ -671,7 +720,7 @@
             `);
         }
         
-        // Payment Pages (simplified)
+        // Payment Pages
         function showPaymentPage(restaurantId) {
             const restaurant = DB.restaurants[restaurantId];
             if (!restaurant) { render(`<div class="container text-center" style="padding-top: 4rem;"><h1 style="color: var(--danger);">Not found</h1></div>`); return; }
@@ -1031,7 +1080,14 @@
                 const justCalled = allocated.slice(-3);
                 
                 render(`
-                    <div class="display-screen">
+                    <div class="display-screen" style="position: relative;">
+                        <div style="position: fixed; top: 2rem; right: 2rem; z-index: 1000;">
+                            <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 4px solid var(--primary); position: relative;">
+                                <span class="qr-badge" style="animation: pulse-badge 2s infinite;">SCAN HERE</span>
+                                <div id="display-qr" style="background: white;"></div>
+                                <div style="text-align: center; margin-top: 1rem; color: var(--gray-900); font-weight: 700; font-size: 1.25rem;">📱 JOIN QUEUE</div>
+                            </div>
+                        </div>
                         <div class="container">
                             <div class="text-center mb" style="padding-bottom: 2rem; border-bottom: 4px solid var(--primary);">
                                 <h1 style="color: var(--primary);">${restaurant.name}</h1>
@@ -1094,10 +1150,13 @@
                         </div>
                     </div>
                 `);
+                
+                // Generate QR Code for display after render
+                setTimeout(() => generateQRCode('display-qr', restaurantId), 100);
             });
         }
         
-        // Restaurant Admin - Real-time
+        // Restaurant Admin - Real-time with QR Code
         let adminUnsubscribe = null;
         
         async function showRestaurantAdmin(restaurantId) {
@@ -1127,6 +1186,9 @@
                 const planStatus = restaurant.planStatus || 'active';
                 const planBadge = `<span class="badge ${currentPlan === 'premium' && planStatus === 'active' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>`;
                 
+                const today = new Date().toISOString().slice(0, 10);
+                const todayFormatted = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
                 render(`
                     <div style="min-height: 100vh; background: var(--gray-100); padding: 2rem;">
                         <div class="container">
@@ -1143,6 +1205,35 @@
                             </div>
                             
                             ${planStatus === 'pending' ? '<div class="alert alert-warning mb">⏳ Premium upgrade pending</div>' : ''}
+                            
+                            <div class="alert alert-info mb">
+                                <div class="flex justify-between items-center flex-wrap gap-1">
+                                    <div>
+                                        <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">📅 Today's QR Code</div>
+                                        <p style="margin: 0;">${todayFormatted}</p>
+                                        <p style="margin: 0; font-size: 0.875rem; color: #1e40af;">🔄 Auto-refreshes at midnight</p>
+                                    </div>
+                                    <div style="position: relative;">
+                                        <span class="qr-badge">LIVE</span>
+                                        <div class="qr-container">
+                                            <div id="daily-qr"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1 mt" style="flex-wrap: wrap;">
+                                    <button onclick="printQRCode()" class="btn btn-secondary">🖨️ Print QR</button>
+                                    <button onclick="downloadQRCode('${restaurantId}')" class="btn btn-secondary">💾 Download QR</button>
+                                    <button onclick="copyQRLink('${restaurantId}')" class="btn" style="background: #2563eb; color: white;">🔗 Copy Link</button>
+                                </div>
+                                <div class="mt">
+                                    <p style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">💡 How to use:</p>
+                                    <ol style="font-size: 0.875rem; color: #1e40af; margin-left: 1.5rem;">
+                                        <li>Print QR and display at entrance</li>
+                                        <li>Customers scan and join queue instantly</li>
+                                        <li>New QR generated daily at 12 AM</li>
+                                    </ol>
+                                </div>
+                            </div>
                             
                             ${restaurant.plan === 'free' ? `
                             <div class="card mb" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
@@ -1204,6 +1295,18 @@
                         </div>
                     </div>
                 `);
+                
+                // Generate QR Code after render
+                setTimeout(() => generateQRCode('daily-qr', restaurantId), 100);
+            });
+        }
+        
+        function copyQRLink(restaurantId) {
+            const qrUrl = getTodayQRCode(restaurantId);
+            navigator.clipboard.writeText(qrUrl).then(() => {
+                alert('✅ Link copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this link:', qrUrl);
             });
         }
         
@@ -1421,6 +1524,10 @@
         window.viewScreenshot = viewScreenshot;
         window.approvePayment = approvePayment;
         window.rejectPayment = rejectPayment;
+        window.printQRCode = printQRCode;
+        window.downloadQRCode = downloadQRCode;
+        window.copyQRLink = copyQRLink;
+        window.generateQRCode = generateQRCode;
         
         // Firebase Auth Listener
         FirebaseAdmin.onAuthStateChanged((user) => {
