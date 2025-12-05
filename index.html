@@ -9,7 +9,6 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
         /* CSS Variables & Reset */
@@ -128,9 +127,6 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        console.log('🔥 Firebase initialized with Firestore');
         
         // Firebase Admin User Management
         const FirebaseAdmin = {
@@ -170,181 +166,6 @@
         };
         
         window.FirebaseAdmin = FirebaseAdmin;
-        
-        // ============================================
-        // FIREBASE RESTAURANT DATABASE
-        // ============================================
-        
-        const FirebaseDB = {
-            // Add new restaurant to Firestore
-            async addRestaurant(restaurantId, data) {
-                try {
-                    await db.collection('restaurants').doc(restaurantId).set({
-                        ...data,
-                        queue: [],
-                        tables: [],
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        plan: 'free',
-                        planStatus: 'active',
-                        paymentProof: null,
-                        planExpiryDate: null
-                    });
-                    console.log('✅ Restaurant added to Firestore:', restaurantId);
-                    return { success: true, id: restaurantId };
-                } catch (error) {
-                    console.error('❌ Error adding restaurant:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Get restaurant by ID
-            async getRestaurant(restaurantId) {
-                try {
-                    const doc = await db.collection('restaurants').doc(restaurantId).get();
-                    if (doc.exists) {
-                        return { success: true, data: doc.data() };
-                    } else {
-                        return { success: false, error: 'Restaurant not found' };
-                    }
-                } catch (error) {
-                    console.error('❌ Error getting restaurant:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Get all restaurants
-            async getAllRestaurants() {
-                try {
-                    const snapshot = await db.collection('restaurants').get();
-                    const restaurants = {};
-                    snapshot.forEach(doc => {
-                        restaurants[doc.id] = doc.data();
-                    });
-                    return { success: true, data: restaurants };
-                } catch (error) {
-                    console.error('❌ Error getting restaurants:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Login verification
-            async login(restaurantId, phone) {
-                try {
-                    const result = await this.getRestaurant(restaurantId);
-                    if (result.success && result.data.phone === phone) {
-                        return { success: true, data: result.data };
-                    } else {
-                        return { success: false, error: 'Invalid credentials' };
-                    }
-                } catch (error) {
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Add customer to queue
-            async addToQueue(restaurantId, customer) {
-                try {
-                    const queueNumber = `A-${Math.floor(Math.random() * 900) + 100}`;
-                    const queueItem = {
-                        ...customer,
-                        queueNumber,
-                        status: 'waiting',
-                        joinedAt: new Date().toISOString()  // Use client timestamp instead of serverTimestamp
-                    };
-                    
-                    await db.collection('restaurants').doc(restaurantId).update({
-                        queue: firebase.firestore.FieldValue.arrayUnion(queueItem)
-                    });
-                    
-                    console.log('✅ Customer added to queue:', queueNumber);
-                    return { success: true, queueNumber };
-                } catch (error) {
-                    console.error('❌ Error adding to queue:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Allocate table
-            async allocateTable(restaurantId, queueNumber, tableNo) {
-                try {
-                    const result = await this.getRestaurant(restaurantId);
-                    if (!result.success) return result;
-                    
-                    const restaurant = result.data;
-                    const updatedQueue = restaurant.queue.map(q => 
-                        q.queueNumber === queueNumber 
-                            ? { ...q, status: 'allocated', tableNo, allocatedAt: Date.now() }
-                            : q
-                    );
-                    
-                    await db.collection('restaurants').doc(restaurantId).update({
-                        queue: updatedQueue
-                    });
-                    
-                    console.log('✅ Table allocated:', tableNo);
-                    return { success: true };
-                } catch (error) {
-                    console.error('❌ Error allocating table:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Save payment proof
-            async savePaymentProof(restaurantId, paymentData) {
-                try {
-                    await db.collection('restaurants').doc(restaurantId).update({
-                        paymentProof: {
-                            ...paymentData,
-                            uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        },
-                        planStatus: 'pending'
-                    });
-                    console.log('✅ Payment proof saved');
-                    return { success: true };
-                } catch (error) {
-                    console.error('❌ Error saving payment proof:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Approve premium
-            async approvePremium(restaurantId) {
-                try {
-                    const expiryDate = new Date();
-                    expiryDate.setDate(expiryDate.getDate() + 30);
-                    
-                    await db.collection('restaurants').doc(restaurantId).update({
-                        plan: 'premium',
-                        planStatus: 'active',
-                        planExpiryDate: expiryDate.getTime()
-                    });
-                    
-                    console.log('✅ Premium approved');
-                    return { success: true };
-                } catch (error) {
-                    console.error('❌ Error approving premium:', error);
-                    return { success: false, error: error.message };
-                }
-            },
-            
-            // Reject premium
-            async rejectPremium(restaurantId) {
-                try {
-                    await db.collection('restaurants').doc(restaurantId).update({
-                        planStatus: 'rejected',
-                        'paymentProof.rejectedAt': firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    console.log('✅ Premium rejected');
-                    return { success: true };
-                } catch (error) {
-                    console.error('❌ Error rejecting premium:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-        };
-        
-        window.FirebaseDB = FirebaseDB;
         
         // ============================================
         // DATABASE LAYER - localStorage wrapper
@@ -777,7 +598,7 @@
                         <div class="space-y">
                             <input type="text" id="loginRestaurantId" placeholder="Restaurant ID">
                             <input type="tel" id="loginPhone" placeholder="Phone Number" maxlength="10">
-                            <button onclick="handleLogin(event)" class="btn btn-primary w-full">Login</button>
+                            <button onclick="handleLogin()" class="btn btn-primary w-full">Login</button>
                             <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Don't have an account? <button onclick="navigate('/signup')" style="background: none; border: none; color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">Sign Up</button></p>
                         </div>
                     </div>
@@ -785,55 +606,15 @@
             `);
         }
         
-        async function handleLogin() {
+        function handleLogin() {
             const restaurantId = document.getElementById('loginRestaurantId').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
-            
-            if (!restaurantId || !phone) { 
-                alert('⚠️ Please enter Restaurant ID and Phone'); 
-                return; 
-            }
-            
-            // Show loading state
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = 'Logging in...';
-            btn.disabled = true;
-            
-            try {
-                // Try Firebase first
-                const result = await FirebaseDB.login(restaurantId, phone);
-                
-                if (result.success) {
-                    // Store in session
-                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-                    sessionStorage.setItem(`restaurantData_${restaurantId}`, JSON.stringify(result.data));
-                    
-                    // Also sync to localStorage
-                    if (!DB.restaurants[restaurantId]) {
-                        DB.addRestaurant(restaurantId, result.data);
-                    }
-                    
-                    alert('✅ Login successful!'); 
-                    navigate(`/r/${restaurantId}/admin`);
-                } else {
-                    // Fallback to localStorage
-                    if (DB.login(restaurantId, phone)) { 
-                        sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
-                        alert('✅ Login successful!'); 
-                        navigate(`/r/${restaurantId}/admin`); 
-                    } else { 
-                        alert('❌ Invalid Restaurant ID or Phone Number');
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                alert(`❌ Login failed: ${error.message}`);
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
+            if (!restaurantId || !phone) { alert('Please enter Restaurant ID and Phone'); return; }
+            if (DB.login(restaurantId, phone)) { 
+                sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
+                alert('✅ Login successful!'); 
+                navigate(`/r/${restaurantId}/admin`); 
+            } else { alert('❌ Invalid Restaurant ID or Phone Number'); }
         }
         
         function showRestaurantLogin(restaurantId) {
@@ -871,7 +652,7 @@
                                 <input type="checkbox" id="agreeTerms" class="mt-1">
                                 <label for="agreeTerms" style="font-size: 0.875rem; color: var(--gray-700);">I agree to the Terms of Service and Privacy Policy</label>
                             </div>
-                            <button onclick="handleSignup(event)" class="btn btn-primary w-full">Register</button>
+                            <button onclick="handleSignup()" class="btn btn-primary w-full">Register</button>
                             <p class="text-center" style="font-size: 0.875rem; color: var(--gray-600);">Already registered? <button onclick="navigate('/login')" style="background: none; border: none; color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">Login</button></p>
                         </div>
                     </div>
@@ -879,63 +660,22 @@
             `);
         }
         
-        async function handleSignup() {
-            const name = document.getElementById('restaurantName').value.trim();
-            const owner = document.getElementById('ownerName').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const city = document.getElementById('city').value.trim();
+        function handleSignup() {
+            const name = document.getElementById('restaurantName').value;
+            const owner = document.getElementById('ownerName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const city = document.getElementById('city').value;
             const agreeTerms = document.getElementById('agreeTerms').checked;
             
-            if (!name || !owner || !email || !phone || !city) { 
-                alert('⚠️ Please fill all fields including branch location'); 
-                return; 
-            }
-            if (!agreeTerms) { 
-                alert('⚠️ Please agree to Terms of Service and Privacy Policy'); 
-                return; 
-            }
+            if (!name || !owner || !email || !phone || !city) { alert('Please fill all fields including branch location'); return; }
+            if (!agreeTerms) { alert('⚠️ Please agree to Terms of Service and Privacy Policy'); return; }
             
-            // Show loading state
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = 'Registering...';
-            btn.disabled = true;
-            
-            try {
-                // Generate restaurant ID
-                const restaurantId = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') + Math.floor(Math.random() * 10000);
-                
-                // Add to Firebase Firestore
-                const result = await FirebaseDB.addRestaurant(restaurantId, { 
-                    name, 
-                    owner, 
-                    email, 
-                    phone, 
-                    city 
-                });
-                
-                if (result.success) {
-                    // Also keep in localStorage as backup
-                    DB.addRestaurant(restaurantId, { name, owner, email, phone, city });
-                    
-                    // Set session
-                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-                    sessionStorage.setItem(`restaurantData_${restaurantId}`, JSON.stringify({ name, owner, email, phone, city }));
-                    
-                    alert(`✅ Success! Your Restaurant ID: ${restaurantId}\n\n🎉 You're on the FREE plan (500 customers/month)\n\nℹ️ Save your Restaurant ID for future logins!`);
-                    navigate(`/r/${restaurantId}/admin`);
-                } else {
-                    alert(`❌ Registration failed: ${result.error}`);
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                alert(`❌ Registration failed: ${error.message}`);
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
+            const restaurantId = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') + Math.floor(Math.random() * 1000);
+            DB.addRestaurant(restaurantId, { name, owner, email, phone, city });
+            sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
+            alert(`✅ Success! Your Restaurant ID: ${restaurantId}\n\n🎉 You're on the FREE plan (500 customers/month)`);
+            navigate(`/r/${restaurantId}/admin`);
         }
         
         // Customer Queue Functions
@@ -968,41 +708,14 @@
             document.getElementById(`guest-${n}`).className = 'btn btn-primary';
         }
         
-        async function handleJoinQueue(restaurantId) {
-            const name = document.getElementById('customerName').value.trim();
-            const phone = document.getElementById('customerPhone').value.trim();
+        function handleJoinQueue(restaurantId) {
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
             const guests = window.selectedGuests || 2;
-            
-            if (!name || !phone) { 
-                alert('⚠️ Please fill all fields'); 
-                return; 
-            }
-            
-            // Show loading
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = 'Joining...';
-            btn.disabled = true;
-            
-            try {
-                // Add to Firestore (syncs to all devices)
-                const result = await FirebaseDB.addToQueue(restaurantId, { name, phone, guests });
-                
-                if (result.success) {
-                    // Also backup to localStorage
-                    const localQueueNumber = DB.addToQueue(restaurantId, { name, phone, guests });
-                    
-                    alert(`✅ You're in queue!\n\nYour number: ${result.queueNumber}\n\nWatch the display screen!`);
-                    navigate(`/r/${restaurantId}/status/${result.queueNumber}`);
-                } else {
-                    throw new Error(result.error);
-                }
-            } catch (error) {
-                console.error('Join queue error:', error);
-                alert(`❌ Failed to join queue: ${error.message}`);
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
+            if (!name || !phone) { alert('Please fill all fields'); return; }
+            const queueNumber = DB.addToQueue(restaurantId, { name, phone, guests });
+            alert(`✅ You're in queue!\n\nYour number: ${queueNumber}\n\nWatch the display screen!`);
+            navigate(`/r/${restaurantId}/status/${queueNumber}`);
         }
         
         function showQueueStatus(restaurantId, queueNumber) {
@@ -1041,227 +754,132 @@
             }
         }
         
-        // TV Display Screen - Real-Time Firestore Sync
-        let displayUnsubscribe = null;
-        
-        async function showDisplay(restaurantId) {
-            // Clean up previous listener if exists
-            if (displayUnsubscribe) {
-                displayUnsubscribe();
-            }
+        // TV Display Screen - Compressed but complete
+        function showDisplay(restaurantId) {
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) return;
+            const waiting = restaurant.queue.filter(q => q.status === 'waiting');
+            const allocated = restaurant.queue.filter(q => q.status === 'allocated');
+            const justCalled = allocated.slice(-3);
             
-            // Set up real-time listener
-            displayUnsubscribe = db.collection('restaurants')
-                .doc(restaurantId)
-                .onSnapshot((doc) => {
-                    if (!doc.exists) {
-                        render(`<div class="container text-center" style="padding-top: 4rem;">
-                            <h1 style="color: var(--danger);">Restaurant not found</h1>
-                            <p style="color: var(--gray-600); margin-top: 1rem;">Please check the restaurant ID</p>
-                        </div>`);
-                        return;
-                    }
-                    
-                    const restaurant = doc.data();
-                    
-                    // Update localStorage backup
-                    DB.restaurants[restaurantId] = restaurant;
-                    DB.save();
-                    
-                    const waiting = restaurant.queue.filter(q => q.status === 'waiting');
-                    const allocated = restaurant.queue.filter(q => q.status === 'allocated');
-                    const justCalled = allocated.slice(-3);
-                    
-                    render(`
-                        <div class="display-screen">
-                            <div class="container">
-                                <div class="text-center mb" style="padding-bottom: clamp(1rem, 3vw, 3rem); border-bottom: 4px solid var(--primary);">
-                                    <h1 style="color: var(--primary); margin-bottom: 0.5rem;">${restaurant.name}</h1>
-                                    <p style="font-size: clamp(1rem, 2vw, 2rem); color: rgba(255,255,255,0.7);">Queue Management System</p>
-                                    <div style="font-size: clamp(1.5rem, 3vw, 3rem); color: var(--primary); font-weight: 700; margin-top: 0.5rem;">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-                                    <div style="font-size: clamp(0.875rem, 1.5vw, 1.25rem); color: #10b981; margin-top: 0.5rem;">🔥 Live Updates</div>
-                                </div>
-                                
-                                ${justCalled.length > 0 ? `
-                                <div class="card mb" style="background: linear-gradient(135deg, rgba(22, 163, 74, 0.9) 0%, rgba(21, 128, 61, 0.9) 100%); border: 4px solid var(--success); padding: clamp(2rem, 4vw, 4rem);">
-                                    <div class="text-center mb"><h2 style="font-size: clamp(2rem, 4vw, 5rem); margin-bottom: clamp(1rem, 2vw, 2rem); display: flex; align-items: center; justify-content: center; gap: 1rem;"><span style="font-size: clamp(3rem, 6vw, 8rem); animation: pulse 2s ease-in-out infinite;">🔔</span>NOW SERVING</h2></div>
-                                    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: clamp(1.5rem, 3vw, 3rem);">
-                                        ${justCalled.map(a => `<div class="card text-center" style="background: rgba(255, 255, 255, 0.95); padding: clamp(2rem, 4vw, 4rem); border: 4px solid #ffffff;"><div style="font-size: clamp(4rem, 10vw, 12rem); font-weight: 900; color: var(--success); line-height: 1;">${a.queueNumber}</div><div style="font-size: clamp(2rem, 5vw, 6rem); font-weight: 800; color: var(--gray-900);">Table ${a.tableNo}</div><div style="font-size: clamp(1.25rem, 3vw, 3rem); color: var(--gray-600);">${a.guests} ${a.guests === 1 ? 'guest' : 'guests'}</div></div>`).join('')}
-                                    </div>
-                                </div>
-                                ` : `<div class="card text-center mb" style="background: rgba(55, 65, 81, 0.5); padding: clamp(2rem, 4vw, 4rem);"><p style="font-size: clamp(1.5rem, 3vw, 4rem); color: rgba(255,255,255,0.6);">⏳ Waiting for first customer...</p></div>`}
-                                
-                                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: clamp(1.5rem, 3vw, 3rem);">
-                                    <div class="card" style="background: rgba(249, 115, 22, 0.2); border: 3px solid var(--primary); padding: clamp(1.5rem, 3vw, 3rem);">
-                                        <h2 class="text-center" style="color: var(--primary); margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 4rem);"><span style="font-size: clamp(2rem, 4vw, 5rem);">⏳</span> Waiting Queue (${waiting.length})</h2>
-                                        <div style="max-height: 60vh; overflow-y: auto;"><div class="space-y">
-                                            ${waiting.length > 0 ? waiting.slice(0, 15).map((w, i) => `
-                                                <div class="card" style="background: ${i < 3 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(55, 65, 81, 0.8)'}; padding: clamp(1rem, 2vw, 2rem); border: ${i < 3 ? '3px solid var(--primary)' : '2px solid rgba(156, 163, 175, 0.3)'};">
-                                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                                                        <div style="flex: 1; min-width: 200px;">
-                                                            <div style="font-size: clamp(2rem, 5vw, 6rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'var(--primary)'}; line-height: 1;">${w.queueNumber}</div>
-                                                            ${i < 3 ? '<div style="font-size: clamp(1rem, 2vw, 1.5rem); color: #fef9c3; font-weight: 700; margin-top: 0.5rem;">🔜 COMING UP NEXT</div>' : ''}
-                                                            <div style="font-size: clamp(1rem, 2vw, 1.5rem); color: ${i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)'}; margin-top: 0.5rem;">${w.guests} ${w.guests === 1 ? 'guest' : 'guests'}</div>
-                                                        </div>
-                                                        <div style="text-align: right;">
-                                                            <div style="font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.7)'};">#${i + 1}</div>
-                                                            <div style="font-size: clamp(0.875rem, 1.5vw, 1.25rem); color: rgba(255,255,255,0.6);">~${(i + 1) * 5} min</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            `).join('') : '<p class="text-center" style="color: rgba(255,255,255,0.6); font-size: clamp(1.25rem, 2vw, 2rem); padding: 2rem;">No customers waiting</p>'}
-                                        </div></div>
-                                    </div>
-                                    
-                                    <div class="space-y" style="display: flex; flex-direction: column; gap: clamp(1.5rem, 3vw, 3rem);">
-                                        <div class="card" style="background: rgba(59, 130, 246, 0.2); border: 3px solid #2563eb; padding: clamp(1.5rem, 3vw, 3rem);">
-                                            <h2 class="text-center" style="color: #60a5fa; margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 3rem);">📱 How to Join Queue</h2>
-                                            <div class="space-y" style="font-size: clamp(1rem, 2vw, 2rem); color: white;">
-                                                ${['1️⃣ Scan QR code at entrance', '2️⃣ Enter your details', '3️⃣ Get queue number', '4️⃣ Watch this screen!'].map(step => `<div style="display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.5rem); padding: clamp(0.5rem, 1vw, 1rem); background: rgba(59, 130, 246, 0.2); border-radius: clamp(0.5rem, 1vw, 1rem);"><span>${step}</span></div>`).join('')}
-                                            </div>
-                                        </div>
-                                        <div class="card" style="background: rgba(168, 85, 247, 0.2); border: 3px solid #9333ea; padding: clamp(1.5rem, 3vw, 3rem);">
-                                            <h2 class="text-center" style="color: #c084fc; margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 3rem);">📊 Live Stats</h2>
-                                            <div class="grid grid-2" style="gap: clamp(1rem, 2vw, 2rem);">
-                                                <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem);"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: var(--primary);">${waiting.length}</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Waiting</div></div>
-                                                <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem);"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: var(--success);">${allocated.length}</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Seated</div></div>
-                                                <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem); grid-column: 1 / -1;"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: #60a5fa;">~${waiting.length * 5} min</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Estimated Wait</div></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-center mt" style="padding-top: clamp(2rem, 4vw, 4rem); border-top: 2px solid rgba(255,255,255,0.2);"><p style="font-size: clamp(1rem, 2vw, 2rem); color: rgba(255,255,255,0.5);">⚡ Powered by QueueApp</p></div>
+            render(`
+                <div class="display-screen">
+                    <div class="container">
+                        <div class="text-center mb" style="padding-bottom: clamp(1rem, 3vw, 3rem); border-bottom: 4px solid var(--primary);">
+                            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">${restaurant.name}</h1>
+                            <p style="font-size: clamp(1rem, 2vw, 2rem); color: rgba(255,255,255,0.7);">Queue Management System</p>
+                            <div style="font-size: clamp(1.5rem, 3vw, 3rem); color: var(--primary); font-weight: 700; margin-top: 0.5rem;">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                        
+                        ${justCalled.length > 0 ? `
+                        <div class="card mb" style="background: linear-gradient(135deg, rgba(22, 163, 74, 0.9) 0%, rgba(21, 128, 61, 0.9) 100%); border: 4px solid var(--success); padding: clamp(2rem, 4vw, 4rem);">
+                            <div class="text-center mb"><h2 style="font-size: clamp(2rem, 4vw, 5rem); margin-bottom: clamp(1rem, 2vw, 2rem); display: flex; align-items: center; justify-content: center; gap: 1rem;"><span style="font-size: clamp(3rem, 6vw, 8rem); animation: pulse 2s ease-in-out infinite;">🔔</span>NOW SERVING</h2></div>
+                            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: clamp(1.5rem, 3vw, 3rem);">
+                                ${justCalled.map(a => `<div class="card text-center" style="background: rgba(255, 255, 255, 0.95); padding: clamp(2rem, 4vw, 4rem); border: 4px solid #ffffff;"><div style="font-size: clamp(4rem, 10vw, 12rem); font-weight: 900; color: var(--success); line-height: 1;">${a.queueNumber}</div><div style="font-size: clamp(2rem, 5vw, 6rem); font-weight: 800; color: var(--gray-900);">Table ${a.tableNo}</div><div style="font-size: clamp(1.25rem, 3vw, 3rem); color: var(--gray-600);">${a.guests} ${a.guests === 1 ? 'guest' : 'guests'}</div></div>`).join('')}
                             </div>
                         </div>
-                    `);
-                    
-                    console.log('🔥 Display updated from Firestore in real-time!');
-                }, (error) => {
-                    console.error('❌ Display listener error:', error);
-                    // Fallback to localStorage
-                    const restaurant = DB.restaurants[restaurantId];
-                    if (restaurant) {
-                        console.log('⚠️ Using localStorage fallback');
-                        const waiting = restaurant.queue.filter(q => q.status === 'waiting');
-                        const allocated = restaurant.queue.filter(q => q.status === 'allocated');
-                        // Render with localStorage data...
-                    }
-                });
-        }
-        
-        // Restaurant Admin Dashboard - Real-Time Firestore Sync
-        let adminUnsubscribe = null;
-        
-        async function showRestaurantAdmin(restaurantId) {
-            // Clean up previous listener
-            if (adminUnsubscribe) {
-                adminUnsubscribe();
-            }
-            
-            // Set up real-time listener
-            adminUnsubscribe = db.collection('restaurants')
-                .doc(restaurantId)
-                .onSnapshot((doc) => {
-                    if (!doc.exists) {
-                        render(`<div class="container text-center" style="padding-top: 4rem;">
-                            <h1 style="color: var(--danger);">Restaurant not found</h1>
-                            <p style="color: var(--gray-600); margin-top: 1rem;">Please check the restaurant ID</p>
-                        </div>`);
-                        return;
-                    }
-                    
-                    const restaurant = doc.data();
-                    
-                    // Update localStorage backup
-                    DB.restaurants[restaurantId] = restaurant;
-                    DB.save();
-                    
-                    const waiting = restaurant.queue.filter(q => q.status === 'waiting');
-                    const allocated = restaurant.queue.filter(q => q.status === 'allocated');
-                    const currentPlan = restaurant.plan || 'free';
-                    const planStatus = restaurant.planStatus || 'active';
-                    const planBadge = `<span class="badge ${currentPlan === 'premium' && planStatus === 'active' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>`;
-                    
-                    render(`
-                        <div style="min-height: 100vh; background: var(--gray-100); padding: clamp(1rem, 3vw, 3rem);">
-                            <div class="container">
-                                <div class="card mb flex justify-between items-center flex-wrap gap-1">
-                                    <div>
-                                        <h1 onclick="navigateHome()" style="cursor: pointer;">QueueApp</h1>
-                                        <p style="color: var(--gray-600);">${restaurant.name} - Admin ${planBadge}</p>
-                                        <p style="color: #10b981; font-size: 0.875rem;">🔥 Live Updates</p>
-                                    </div>
-                                    <div class="flex gap-1">
-                                        <button onclick="navigate('/pricing')" class="btn" style="background: #2563eb; color: white;">${currentPlan === 'free' && planStatus !== 'pending' ? 'Upgrade' : 'Manage Plan'}</button>
-                                        <button onclick="logout('${restaurantId}')" class="btn btn-danger">Logout</button>
-                                    </div>
-                                </div>
-                                ${planStatus === 'pending' ? '<div class="alert alert-warning mb">⏳ Premium upgrade pending verification.</div>' : ''}
-                                <div class="grid grid-2 mb">
-                                    <div class="card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--primary);">${waiting.length}</div><p style="color: var(--gray-600);">Customers Waiting</p></div>
-                                    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--success);">${allocated.length}</div><p style="color: var(--gray-600);">Tables Occupied</p></div>
-                                </div>
-                                <div class="card mb">
-                                    <h2 style="margin-bottom: 1rem;">Waiting Queue</h2>
-                                    <div class="space-y">
-                                        ${waiting.length > 0 ? waiting.map(w => `
-                                            <div class="card flex justify-between items-center flex-wrap gap-1" style="background: var(--gray-50);">
-                                                <div><div style="font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 700;">${w.queueNumber}</div><p style="color: var(--gray-600);">${w.name} • ${w.phone} • ${w.guests} guests</p></div>
-                                                <div class="flex gap-1 items-center">
-                                                    <input type="number" id="table-${w.queueNumber}" placeholder="Table #" style="width: clamp(80px, 15vw, 100px);" min="1">
-                                                    <button onclick="allocateTable('${restaurantId}', '${w.queueNumber}')" class="btn btn-success">Seat</button>
+                        ` : `<div class="card text-center mb" style="background: rgba(55, 65, 81, 0.5); padding: clamp(2rem, 4vw, 4rem);"><p style="font-size: clamp(1.5rem, 3vw, 4rem); color: rgba(255,255,255,0.6);">⏳ Waiting for first customer...</p></div>`}
+                        
+                        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: clamp(1.5rem, 3vw, 3rem);">
+                            <div class="card" style="background: rgba(249, 115, 22, 0.2); border: 3px solid var(--primary); padding: clamp(1.5rem, 3vw, 3rem);">
+                                <h2 class="text-center" style="color: var(--primary); margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 4rem);"><span style="font-size: clamp(2rem, 4vw, 5rem);">⏳</span> Waiting Queue (${waiting.length})</h2>
+                                <div style="max-height: 60vh; overflow-y: auto;"><div class="space-y">
+                                    ${waiting.length > 0 ? waiting.slice(0, 15).map((w, i) => `
+                                        <div class="card" style="background: ${i < 3 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(55, 65, 81, 0.8)'}; padding: clamp(1rem, 2vw, 2rem); border: ${i < 3 ? '3px solid var(--primary)' : '2px solid rgba(156, 163, 175, 0.3)'};">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                                <div style="flex: 1; min-width: 200px;">
+                                                    <div style="font-size: clamp(2rem, 5vw, 6rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'var(--primary)'}; line-height: 1;">${w.queueNumber}</div>
+                                                    ${i < 3 ? '<div style="font-size: clamp(1rem, 2vw, 1.5rem); color: #fef9c3; font-weight: 700; margin-top: 0.5rem;">🔜 COMING UP NEXT</div>' : ''}
+                                                    <div style="font-size: clamp(1rem, 2vw, 1.5rem); color: ${i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)'}; margin-top: 0.5rem;">${w.guests} ${w.guests === 1 ? 'guest' : 'guests'}</div>
+                                                </div>
+                                                <div style="text-align: right;">
+                                                    <div style="font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.7)'};">#${i + 1}</div>
+                                                    <div style="font-size: clamp(0.875rem, 1.5vw, 1.25rem); color: rgba(255,255,255,0.6);">~${(i + 1) * 5} min</div>
                                                 </div>
                                             </div>
-                                        `).join('') : '<p class="text-center" style="color: var(--gray-600); padding: 2rem;">No customers in queue</p>'}
+                                        </div>
+                                    `).join('') : '<p class="text-center" style="color: rgba(255,255,255,0.6); font-size: clamp(1.25rem, 2vw, 2rem); padding: 2rem;">No customers waiting</p>'}
+                                </div></div>
+                            </div>
+                            
+                            <div class="space-y" style="display: flex; flex-direction: column; gap: clamp(1.5rem, 3vw, 3rem);">
+                                <div class="card" style="background: rgba(59, 130, 246, 0.2); border: 3px solid #2563eb; padding: clamp(1.5rem, 3vw, 3rem);">
+                                    <h2 class="text-center" style="color: #60a5fa; margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 3rem);">📱 How to Join Queue</h2>
+                                    <div class="space-y" style="font-size: clamp(1rem, 2vw, 2rem); color: white;">
+                                        ${['1️⃣ Scan QR code at entrance', '2️⃣ Enter your details', '3️⃣ Get queue number', '4️⃣ Watch this screen!'].map(step => `<div style="display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.5rem); padding: clamp(0.5rem, 1vw, 1rem); background: rgba(59, 130, 246, 0.2); border-radius: clamp(0.5rem, 1vw, 1rem);"><span>${step}</span></div>`).join('')}
                                     </div>
                                 </div>
-                                <div class="flex gap-1 flex-wrap">
-                                    <button onclick="navigate('/r/${restaurantId}/display')" class="btn" style="background: #2563eb; color: white;">📺 Display Screen</button>
-                                    <button onclick="navigate('/r/${restaurantId}/join')" class="btn" style="background: #9333ea; color: white;">📱 Customer Entry</button>
+                                <div class="card" style="background: rgba(168, 85, 247, 0.2); border: 3px solid #9333ea; padding: clamp(1.5rem, 3vw, 3rem);">
+                                    <h2 class="text-center" style="color: #c084fc; margin-bottom: clamp(1rem, 2vw, 2rem); font-size: clamp(1.5rem, 3vw, 3rem);">📊 Live Stats</h2>
+                                    <div class="grid grid-2" style="gap: clamp(1rem, 2vw, 2rem);">
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem);"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: var(--primary);">${waiting.length}</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Waiting</div></div>
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem);"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: var(--success);">${allocated.length}</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Seated</div></div>
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: clamp(1rem, 2vw, 2rem); grid-column: 1 / -1;"><div style="font-size: clamp(3rem, 7vw, 7rem); font-weight: 900; color: #60a5fa;">~${waiting.length * 5} min</div><div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Estimated Wait</div></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    `);
-                    
-                    console.log('🔥 Admin dashboard updated from Firestore in real-time!');
-                }, (error) => {
-                    console.error('❌ Admin listener error:', error);
-                    // Fallback to localStorage
-                    const restaurant = DB.restaurants[restaurantId];
-                    if (restaurant) {
-                        console.log('⚠️ Using localStorage fallback');
-                        // Could render with localStorage data as fallback
-                    }
-                });
+                        <div class="text-center mt" style="padding-top: clamp(2rem, 4vw, 4rem); border-top: 2px solid rgba(255,255,255,0.2);"><p style="font-size: clamp(1rem, 2vw, 2rem); color: rgba(255,255,255,0.5);">⚡ Powered by QueueApp</p></div>
+                    </div>
+                </div>
+            `);
+            setTimeout(() => handleRoute(), 3000);
         }
         
-        async function allocateTable(restaurantId, queueNumber) {
+        // Restaurant Admin Dashboard
+        function showRestaurantAdmin(restaurantId) {
+            const restaurant = DB.restaurants[restaurantId];
+            if (!restaurant) return;
+            const waiting = restaurant.queue.filter(q => q.status === 'waiting');
+            const allocated = restaurant.queue.filter(q => q.status === 'allocated');
+            const currentPlan = restaurant.plan || 'free';
+            const planStatus = restaurant.planStatus || 'active';
+            const planBadge = `<span class="badge ${currentPlan === 'premium' && planStatus === 'active' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>`;
+            
+            render(`
+                <div style="min-height: 100vh; background: var(--gray-100); padding: clamp(1rem, 3vw, 3rem);">
+                    <div class="container">
+                        <div class="card mb flex justify-between items-center flex-wrap gap-1">
+                            <div><h1 onclick="navigateHome()" style="cursor: pointer;">QueueApp</h1><p style="color: var(--gray-600);">${restaurant.name} - Admin ${planBadge}</p></div>
+                            <div class="flex gap-1">
+                                <button onclick="navigate('/pricing')" class="btn" style="background: #2563eb; color: white;">${currentPlan === 'free' && planStatus !== 'pending' ? 'Upgrade' : 'Manage Plan'}</button>
+                                <button onclick="logout('${restaurantId}')" class="btn btn-danger">Logout</button>
+                            </div>
+                        </div>
+                        ${planStatus === 'pending' ? '<div class="alert alert-warning mb">⏳ Premium upgrade pending verification.</div>' : ''}
+                        <div class="grid grid-2 mb">
+                            <div class="card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--primary);">${waiting.length}</div><p style="color: var(--gray-600);">Customers Waiting</p></div>
+                            <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);"><div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--success);">${allocated.length}</div><p style="color: var(--gray-600);">Tables Occupied</p></div>
+                        </div>
+                        <div class="card mb">
+                            <h2 style="margin-bottom: 1rem;">Waiting Queue</h2>
+                            <div class="space-y">
+                                ${waiting.length > 0 ? waiting.map(w => `
+                                    <div class="card flex justify-between items-center flex-wrap gap-1" style="background: var(--gray-50);">
+                                        <div><div style="font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 700;">${w.queueNumber}</div><p style="color: var(--gray-600);">${w.name} • ${w.phone} • ${w.guests} guests</p></div>
+                                        <div class="flex gap-1 items-center">
+                                            <input type="number" id="table-${w.queueNumber}" placeholder="Table #" style="width: clamp(80px, 15vw, 100px);" min="1">
+                                            <button onclick="allocateTable('${restaurantId}', '${w.queueNumber}')" class="btn btn-success">Seat</button>
+                                        </div>
+                                    </div>
+                                `).join('') : '<p class="text-center" style="color: var(--gray-600); padding: 2rem;">No customers in queue</p>'}
+                            </div>
+                        </div>
+                        <div class="flex gap-1 flex-wrap">
+                            <button onclick="navigate('/r/${restaurantId}/display')" class="btn" style="background: #2563eb; color: white;">📺 Display Screen</button>
+                            <button onclick="navigate('/r/${restaurantId}/join')" class="btn" style="background: #9333ea; color: white;">📱 Customer Entry</button>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        function allocateTable(restaurantId, queueNumber) {
             const tableNo = document.getElementById(`table-${queueNumber}`).value;
-            
-            if (!tableNo || tableNo < 1) { 
-                alert('⚠️ Please enter a valid table number'); 
-                return; 
-            }
-            
-            try {
-                // Save to Firestore (syncs to all devices)
-                const result = await FirebaseDB.allocateTable(restaurantId, queueNumber, tableNo);
-                
-                if (result.success) {
-                    // Also backup to localStorage
-                    DB.allocateTable(restaurantId, queueNumber, tableNo);
-                    
-                    alert(`✅ Table ${tableNo} allocated to ${queueNumber}!`);
-                    
-                    // Data will auto-refresh via real-time listener
-                    // No need to call handleRoute() - the onSnapshot will trigger
-                } else {
-                    throw new Error(result.error);
-                }
-            } catch (error) {
-                console.error('Allocate table error:', error);
-                alert(`❌ Failed to allocate table: ${error.message}`);
-            }
+            if (!tableNo || tableNo < 1) { alert('⚠️ Please enter a valid table number'); return; }
+            DB.allocateTable(restaurantId, queueNumber, tableNo);
+            alert(`✅ Table ${tableNo} allocated to ${queueNumber}!`);
+            handleRoute();
         }
         
         function logout(restaurantId) {
