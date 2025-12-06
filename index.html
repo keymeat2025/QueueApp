@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,124 +10,225 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
         /* ============================================
-           RESPONSIVE QUEUEAPP - OPTIMIZED FOR ALL SCREENS
-           Mobile | Tablet | Desktop | TV/Display
+           ENHANCED RESPONSIVE QUEUEAPP
+           Fluid Layouts | Adaptive Grids | Mobile-First
         ============================================ */
         
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
         
         :root {
-            --primary: #f97316; --primary-dark: #ea580c; --secondary: #ec4899;
-            --success: #22c55e; --warning: #eab308; --danger: #dc2626;
-            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
-            --gray-600: #4b5563; --gray-700: #374151; --gray-900: #111827; --white: #ffffff;
+            --primary: #f97316; 
+            --primary-dark: #ea580c; 
+            --secondary: #ec4899;
+            --success: #22c55e; 
+            --warning: #eab308; 
+            --danger: #dc2626;
+            --gray-50: #f9fafb; 
+            --gray-100: #f3f4f6; 
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563; 
+            --gray-700: #374151; 
+            --gray-900: #111827; 
+            --white: #ffffff;
+            
+            /* Fluid spacing system */
+            --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+            --space-sm: clamp(0.5rem, 1vw, 1rem);
+            --space-md: clamp(1rem, 2vw, 2rem);
+            --space-lg: clamp(1.5rem, 3vw, 3rem);
+            --space-xl: clamp(2rem, 4vw, 4rem);
+            
+            /* Fluid border radius */
+            --radius-sm: clamp(0.375rem, 0.75vw, 0.75rem);
+            --radius-md: clamp(0.5rem, 1vw, 1rem);
+            --radius-lg: clamp(1rem, 2vw, 2rem);
         }
         
         /* ============================================
-           BASE STYLES - MOBILE FIRST
+           BASE STYLES - MOBILE FIRST APPROACH
         ============================================ */
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
             line-height: 1.6; 
             color: var(--gray-900); 
             background: var(--gray-50); 
             font-size: 16px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            word-wrap: break-word; /* Prevent text overflow */
         }
         
-        h1 { font-size: clamp(1.5rem, 5vw, 3.5rem); font-weight: 700; line-height: 1.2; }
-        h2 { font-size: clamp(1.25rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.3; }
-        h3 { font-size: clamp(1.1rem, 3vw, 2rem); font-weight: 600; line-height: 1.4; }
+        /* Fluid Typography */
+        h1 { 
+            font-size: clamp(1.5rem, 4vw + 0.5rem, 3.5rem); 
+            font-weight: 700; 
+            line-height: 1.2; 
+            word-wrap: break-word;
+        }
         
+        h2 { 
+            font-size: clamp(1.25rem, 3vw + 0.5rem, 2.5rem); 
+            font-weight: 700; 
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+        
+        h3 { 
+            font-size: clamp(1.1rem, 2vw + 0.5rem, 2rem); 
+            font-weight: 600; 
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        p {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* Container - Fluid with safe areas */
         .container { 
             width: 100%; 
             max-width: 1400px; 
             margin: 0 auto; 
-            padding: 0 clamp(1rem, 3vw, 2rem);
+            padding-left: max(var(--space-md), env(safe-area-inset-left));
+            padding-right: max(var(--space-md), env(safe-area-inset-right));
         }
         
+        /* Navigation - Fully Responsive */
         nav { 
             background: var(--white); 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-            padding: clamp(0.75rem, 2vw, 1.5rem);
+            padding: var(--space-sm) 0;
             position: sticky; 
             top: 0; 
-            z-index: 100; 
+            z-index: 100;
+            width: 100%;
         }
         
         nav .nav-content { 
             display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-wrap: wrap; 
-            gap: 1rem;
+            flex-direction: column;
+            gap: var(--space-sm);
+            align-items: stretch;
         }
         
         nav h1 { 
             color: var(--primary); 
             cursor: pointer; 
-            font-size: clamp(1.25rem, 3vw, 2rem);
+            font-size: clamp(1.25rem, 2.5vw + 0.5rem, 2rem);
+            text-align: center;
         }
         
         nav .nav-buttons { 
             display: flex; 
-            gap: clamp(0.5rem, 1.5vw, 1rem);
+            gap: var(--space-sm);
             flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
         }
         
+        nav .nav-buttons > * {
+            flex: 1 1 auto;
+            min-width: max-content;
+        }
+        
+        /* Buttons - Touch-friendly, fully responsive */
         button, .btn { 
-            padding: clamp(0.5rem, 1.5vw, 1rem) clamp(1rem, 3vw, 2rem);
-            min-height: 44px; /* Touch-friendly */
+            padding: clamp(0.625rem, 1.5vw, 1rem) clamp(1rem, 2.5vw, 2rem);
+            min-height: 44px; /* Touch target size */
             border: none; 
-            border-radius: clamp(0.5rem, 1vw, 1rem);
-            font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+            border-radius: var(--radius-md);
+            font-size: clamp(0.875rem, 1.25vw + 0.25rem, 1.125rem);
             font-weight: 600; 
             cursor: pointer; 
             transition: all 0.3s ease; 
             text-decoration: none; 
-            display: inline-block; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
+            white-space: nowrap;
+            max-width: 100%;
+            word-wrap: break-word;
         }
         
-        button:hover, .btn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        button:active, .btn:active { 
+            transform: scale(0.98); 
         }
         
-        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
-        .btn-secondary { background: var(--gray-600); color: var(--white); }
-        .btn-success { background: var(--success); color: var(--white); }
-        .btn-danger { background: var(--danger); color: var(--white); }
-        .btn-warning { background: var(--warning); color: var(--white); }
+        @media (hover: hover) {
+            button:hover, .btn:hover { 
+                transform: translateY(-2px); 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            }
+        }
         
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); 
+            color: var(--white); 
+        }
+        
+        .btn-secondary { 
+            background: var(--gray-600); 
+            color: var(--white); 
+        }
+        
+        .btn-success { 
+            background: var(--success); 
+            color: var(--white); 
+        }
+        
+        .btn-danger { 
+            background: var(--danger); 
+            color: var(--white); 
+        }
+        
+        .btn-warning { 
+            background: var(--warning); 
+            color: var(--white); 
+        }
+        
+        /* Cards - Responsive padding and spacing */
         .card { 
             background: var(--white); 
-            border-radius: clamp(1rem, 2vw, 2rem);
-            padding: clamp(1.5rem, 3vw, 3rem);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
             box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
-            margin-bottom: clamp(1rem, 2vw, 2rem);
+            margin-bottom: var(--space-md);
+            width: 100%;
+            overflow: hidden; /* Prevent overflow */
+            word-wrap: break-word;
         }
         
+        /* Grid System - Fully Adaptive */
         .grid { 
             display: grid; 
-            gap: clamp(1rem, 2vw, 2rem);
-            margin-bottom: clamp(1rem, 2vw, 2rem);
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+            width: 100%;
         }
         
-        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
-        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
-        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); }
+        /* Default: 1 column on mobile */
+        .grid-2, .grid-3, .grid-4 { 
+            grid-template-columns: 1fr;
+        }
         
+        /* Form Elements - Touch-friendly */
         input, select, textarea { 
             width: 100%; 
-            padding: clamp(0.75rem, 2vw, 1.25rem);
-            min-height: 44px; /* Touch-friendly */
+            padding: clamp(0.75rem, 1.5vw, 1.25rem);
+            min-height: 44px; /* Touch target */
             border: 2px solid var(--gray-200); 
-            border-radius: clamp(0.5rem, 1vw, 1rem);
-            font-size: max(16px, clamp(0.875rem, 1.5vw, 1.125rem)); /* Prevents iOS zoom */
-            margin-bottom: clamp(0.75rem, 1.5vw, 1.5rem);
+            border-radius: var(--radius-md);
+            font-size: max(16px, 1rem); /* Prevents iOS zoom */
+            margin-bottom: var(--space-md);
             transition: border 0.3s ease;
+            font-family: inherit;
         }
         
         input:focus, select:focus, textarea:focus { 
@@ -136,12 +236,14 @@
             border-color: var(--primary); 
         }
         
+        /* Badges - Responsive */
         .badge { 
             display: inline-block; 
             padding: clamp(0.25rem, 0.5vw, 0.5rem) clamp(0.5rem, 1vw, 1rem);
             border-radius: 999px; 
             font-size: clamp(0.75rem, 1vw, 0.875rem);
             font-weight: 700;
+            white-space: nowrap;
         }
         
         .badge-primary { background: var(--primary); color: var(--white); }
@@ -149,35 +251,46 @@
         .badge-danger { background: var(--danger); color: var(--white); }
         .badge-secondary { background: var(--gray-600); color: var(--white); }
         
-        .bg-gradient { background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
-        .bg-gradient-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
+        /* Gradients */
+        .bg-gradient { 
+            background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); 
+        }
         
+        .bg-gradient-primary { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); 
+            color: var(--white); 
+        }
+        
+        /* Display Screen - Fully Responsive */
         .display-screen { 
             background: linear-gradient(135deg, #1f2937 0%, #111827 100%); 
             color: var(--white); 
             min-height: 100vh; 
-            padding: clamp(1rem, 3vw, 4rem);
+            padding: var(--space-lg);
         }
         
         .display-screen h1 { 
-            font-size: clamp(2rem, 6vw, 6rem);
-            margin-bottom: clamp(1rem, 3vw, 3rem);
+            font-size: clamp(1.5rem, 5vw + 0.5rem, 6rem);
+            margin-bottom: var(--space-lg);
         }
         
         .display-screen h2 { 
-            font-size: clamp(1.5rem, 4vw, 4rem);
+            font-size: clamp(1.25rem, 4vw + 0.5rem, 4rem);
         }
         
         .display-screen .queue-number { 
-            font-size: clamp(3rem, 10vw, 12rem);
+            font-size: clamp(2.5rem, 8vw + 1rem, 12rem);
             font-weight: 900;
+            line-height: 1;
         }
         
+        /* Alerts - Responsive */
         .alert { 
-            padding: clamp(1rem, 2vw, 1.5rem);
-            border-radius: clamp(0.5rem, 1vw, 1rem);
-            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
             border: 2px solid;
+            word-wrap: break-word;
         }
         
         .alert-warning { background: #fef9c3; border-color: var(--warning); color: #854d0e; }
@@ -185,29 +298,44 @@
         .alert-success { background: #dcfce7; border-color: var(--success); color: #166534; }
         .alert-info { background: #dbeafe; border-color: #2563eb; color: #1e40af; }
         
+        /* Details/Summary */
         details summary { 
-            transition: all 0.3s ease; 
-            list-style: none; 
             cursor: pointer;
+            padding: var(--space-sm);
+            transition: all 0.3s ease;
         }
         
-        details[open] summary { color: var(--primary); }
-        details[open] summary span { transform: rotate(90deg); display: inline-block; }
-        details summary::-webkit-details-marker { display: none; }
+        details[open] summary { 
+            color: var(--primary); 
+        }
         
+        details summary::-webkit-details-marker { 
+            display: none; 
+        }
+        
+        /* Utility Classes */
         .text-center { text-align: center; }
-        .flex { display: flex; }
-        .flex-wrap { flex-wrap: wrap; }
+        
+        .flex { 
+            display: flex; 
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+        
         .items-center { align-items: center; }
         .justify-between { justify-content: space-between; }
         .justify-center { justify-content: center; }
-        .gap-1 { gap: clamp(0.5rem, 1vw, 1rem); }
-        .w-full { width: 100%; }
-        .hidden { display: none; }
-        .space-y > * + * { margin-top: clamp(0.75rem, 1.5vw, 1.5rem); }
-        .mb { margin-bottom: clamp(1rem, 2vw, 2rem); }
-        .mt { margin-top: clamp(1rem, 2vw, 2rem); }
+        .w-full { width: 100%; max-width: 100%; }
+        .hidden { display: none !important; }
         
+        .space-y > * + * { 
+            margin-top: var(--space-md); 
+        }
+        
+        .mb { margin-bottom: var(--space-md); }
+        .mt { margin-top: var(--space-md); }
+        
+        /* Loading Screen */
         .loading-screen { 
             min-height: 100vh; 
             display: flex; 
@@ -215,14 +343,16 @@
             justify-content: center; 
             flex-direction: column; 
             background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%);
+            padding: var(--space-lg);
         }
         
         .loading-icon { 
-            font-size: clamp(3rem, 8vw, 6rem);
-            margin-bottom: clamp(1rem, 2vw, 2rem);
+            font-size: clamp(3rem, 10vw, 6rem);
+            margin-bottom: var(--space-md);
             animation: pulse 2s ease-in-out infinite;
         }
         
+        /* Animations */
         @keyframes pulse { 
             0%, 100% { opacity: 1; } 
             50% { opacity: 0.5; } 
@@ -233,12 +363,14 @@
             50% { transform: scale(1.1); } 
         }
         
+        /* Progress Bar - Responsive */
         .progress-bar { 
             background: var(--gray-200); 
-            height: 30px; 
+            height: clamp(24px, 4vw, 30px); 
             border-radius: 999px; 
             overflow: hidden; 
             position: relative;
+            width: 100%;
         }
         
         .progress-fill { 
@@ -249,285 +381,94 @@
             color: white; 
             font-weight: 700; 
             transition: width 0.3s ease;
+            font-size: clamp(0.75rem, 1.5vw, 1rem);
         }
         
+        /* QR Container - Responsive */
         .qr-container { 
             background: white; 
-            padding: 2rem; 
-            border-radius: 1rem; 
+            padding: var(--space-md); 
+            border-radius: var(--radius-lg); 
             display: inline-block; 
             box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            max-width: 100%;
         }
         
+        .qr-container canvas,
+        .qr-container img {
+            max-width: 100%;
+            height: auto !important;
+            width: 100% !important;
+        }
+        
+        /* QR Badge */
         .qr-badge { 
             position: absolute; 
             top: -10px; 
             right: -10px; 
             background: var(--success); 
             color: white; 
-            padding: 0.5rem 1rem; 
+            padding: var(--space-xs) var(--space-sm); 
             border-radius: 999px; 
-            font-size: 0.75rem; 
+            font-size: clamp(0.625rem, 1vw, 0.75rem); 
             font-weight: 700; 
             animation: pulse 2s infinite;
+            white-space: nowrap;
         }
         
         /* ============================================
-           DISPLAY SCREEN QR CODE POSITIONING & CONTROLS
+           TABLET BREAKPOINT (min-width: 640px)
         ============================================ */
-        .display-qr-fixed {
-            position: fixed;
-            z-index: 1000;
-            cursor: move;
-            transition: opacity 0.3s ease;
-        }
-        
-        .display-qr-fixed.dragging {
-            opacity: 0.8;
-            cursor: grabbing;
-        }
-        
-        .display-qr-fixed.hidden {
-            display: none;
-        }
-        
-        /* QR Controls Panel */
-        .qr-controls {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 1rem;
-            border-radius: 1rem;
-            z-index: 2000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            min-width: 220px;
-        }
-        
-        .qr-controls.minimized {
-            padding: 0.5rem;
-            min-width: auto;
-        }
-        
-        .qr-controls.minimized .qr-controls-content {
-            display: none;
-        }
-        
-        .qr-controls h3 {
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            color: var(--primary);
-        }
-        
-        .qr-control-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin: 0.25rem;
-            transition: all 0.2s ease;
-            display: inline-block;
-        }
-        
-        .qr-control-btn:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
-        }
-        
-        .qr-control-btn.active {
-            background: var(--success);
-        }
-        
-        .qr-control-btn.small {
-            padding: 0.35rem 0.75rem;
-            font-size: 0.75rem;
-        }
-        
-        .qr-size-control {
-            margin: 0.75rem 0;
-        }
-        
-        .qr-size-control label {
-            display: block;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-            color: rgba(255,255,255,0.9);
-        }
-        
-        .qr-size-slider {
-            width: 100%;
-            margin: 0.5rem 0;
-        }
-        
-        .qr-toggle-btn {
-            background: rgba(249, 115, 22, 0.9);
-            color: white;
-            border: none;
-            padding: 0.75rem;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.25rem;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .qr-toggle-btn:hover {
-            background: rgba(249, 115, 22, 1);
-            transform: scale(1.1);
-        }
-        
-        .control-group {
-            margin-bottom: 0.75rem;
-        }
-        
-        .control-group:last-child {
-            margin-bottom: 0;
-        }
-        
-        /* Mobile: QR at bottom, smaller size */
-        @media (max-width: 767px) {
-            .display-qr-fixed {
-                bottom: 1rem;
-                right: 1rem;
-                left: 1rem;
-                max-width: 100%;
+        @media (min-width: 640px) {
+            nav .nav-content { 
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
             }
             
-            .display-qr-fixed .qr-card {
-                padding: 1rem !important;
+            nav h1 { 
+                text-align: left;
             }
             
-            .display-qr-fixed #display-qr {
-                width: 150px !important;
-                height: 150px !important;
-                margin: 0 auto;
+            nav .nav-buttons {
+                width: auto;
+                justify-content: flex-end;
             }
             
-            .display-qr-fixed .qr-text {
-                font-size: 0.875rem !important;
-            }
-        }
-        
-        /* Tablet: QR at top-right, medium size */
-        @media (min-width: 768px) and (max-width: 1280px) {
-            .display-qr-fixed {
-                top: 1rem;
-                right: 1rem;
-                max-width: 280px;
+            nav .nav-buttons > * {
+                flex: 0 1 auto;
             }
             
-            .display-qr-fixed .qr-card {
-                padding: 1.5rem !important;
-            }
-            
-            .display-qr-fixed #display-qr {
-                width: 180px !important;
-                height: 180px !important;
-            }
-        }
-        
-        /* Desktop Small: QR at top-right, standard size */
-        @media (min-width: 1281px) and (max-width: 1919px) {
-            .display-qr-fixed {
-                top: 1.5rem;
-                right: 1.5rem;
-                max-width: 320px;
-            }
-            
-            .display-qr-fixed .qr-card {
-                padding: 1.75rem !important;
-            }
-        }
-        
-        /* TV/Large Display: QR at top-right, larger */
-        @media (min-width: 1920px) {
-            .display-qr-fixed {
-                top: 2rem;
-                right: 2rem;
-                max-width: 380px;
-            }
-            
-            .display-qr-fixed .qr-card {
-                padding: 2rem !important;
-            }
-        }
-        
-        /* Ultra-wide: Even larger QR */
-        @media (min-width: 2560px) {
-            .display-qr-fixed {
-                top: 3rem;
-                right: 3rem;
-                max-width: 450px;
-            }
-            
-            .display-qr-fixed .qr-card {
-                padding: 2.5rem !important;
-            }
-        }
-        
-        /* ============================================
-           MOBILE PHONES (max-width: 767px)
-        ============================================ */
-        @media (max-width: 767px) {
-            nav .nav-buttons { 
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .grid-2, .grid-3, .grid-4 { 
-                grid-template-columns: 1fr;
-            }
-            
-            .display-screen h1 { 
-                font-size: clamp(1.5rem, 6vw, 2.5rem);
-            }
-            
-            .display-screen h2 { 
-                font-size: clamp(1.25rem, 5vw, 2rem);
-            }
-            
-            .display-screen .queue-number { 
-                font-size: clamp(2.5rem, 12vw, 5rem);
-            }
-            
-            /* Add bottom padding to prevent QR overlap */
-            .display-screen .container {
-                padding-bottom: 200px;
-            }
-        }
-        
-        /* ============================================
-           TABLETS (768px - 1024px)
-        ============================================ */
-        @media (min-width: 768px) and (max-width: 1024px) {
-            .grid-3, .grid-4 { 
+            .grid-2 { 
                 grid-template-columns: repeat(2, 1fr);
             }
             
-            .display-screen .queue-number { 
-                font-size: clamp(4rem, 10vw, 8rem);
+            .flex {
+                flex-wrap: nowrap;
             }
         }
         
         /* ============================================
-           DESKTOP (min-width: 1025px)
+           DESKTOP BREAKPOINT (min-width: 1024px)
         ============================================ */
-        @media (min-width: 1025px) {
+        @media (min-width: 1024px) {
             .grid-3 { 
                 grid-template-columns: repeat(3, 1fr);
             }
             
             .grid-4 { 
                 grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        /* ============================================
+           LARGE DESKTOP (min-width: 1280px)
+        ============================================ */
+        @media (min-width: 1280px) {
+            :root {
+                --space-md: 2rem;
+                --space-lg: 3rem;
+                --space-xl: 4rem;
             }
         }
         
@@ -540,7 +481,7 @@
             }
             
             .display-screen .queue-number { 
-                font-size: 15rem;
+                font-size: clamp(10rem, 12vw, 15rem);
             }
             
             button, .btn {
@@ -561,7 +502,7 @@
             }
             
             .display-screen .queue-number { 
-                font-size: 20rem;
+                font-size: clamp(15rem, 15vw, 20rem);
             }
             
             button, .btn {
@@ -570,27 +511,114 @@
         }
         
         /* ============================================
+           SMALL MOBILE DEVICES (max-width: 374px)
+        ============================================ */
+        @media (max-width: 374px) {
+            :root {
+                --space-md: 0.75rem;
+                --space-lg: 1.25rem;
+            }
+            
+            nav .nav-buttons {
+                flex-direction: column;
+            }
+            
+            nav .nav-buttons > * {
+                width: 100%;
+            }
+            
+            .card {
+                padding: var(--space-md);
+            }
+            
+            button, .btn {
+                font-size: 0.875rem;
+                padding: 0.625rem 1rem;
+            }
+        }
+        
+        /* ============================================
            PRINT STYLES
         ============================================ */
         @media print { 
-            body * { visibility: hidden; }
-            .print-qr, .print-qr * { visibility: visible; }
+            body * { 
+                visibility: hidden; 
+            }
+            
+            .print-qr, .print-qr * { 
+                visibility: visible; 
+            }
+            
             .print-qr { 
                 position: absolute; 
                 left: 0; 
                 top: 0; 
                 width: 100%;
             }
+            
+            nav, button, .btn {
+                display: none !important;
+            }
         }
         
         /* ============================================
-           ACCESSIBILITY
+           ACCESSIBILITY & MOTION
         ============================================ */
         @media (prefers-reduced-motion: reduce) {
-            * {
+            *,
+            *::before,
+            *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        
+        /* Focus visible for keyboard navigation */
+        *:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            button, .btn {
+                border: 2px solid currentColor;
+            }
+            
+            .card {
+                border: 1px solid var(--gray-600);
+            }
+        }
+        
+        /* ============================================
+           SPECIAL RESPONSIVE HANDLING
+        ============================================ */
+        
+        /* Prevent layout shift */
+        img, canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Responsive tables */
+        table {
+            width: 100%;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        /* Responsive iframes/embeds */
+        iframe, embed, object {
+            max-width: 100%;
+        }
+        
+        /* Safe area insets for notched devices */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(0px, env(safe-area-inset-left));
+                padding-right: max(0px, env(safe-area-inset-right));
             }
         }
     </style>
@@ -635,26 +663,13 @@
             element.innerHTML = '';
             const qrUrl = getTodayQRCode(restaurantId);
             
-            // Determine QR code size based on screen width
-            let qrSize = 256; // Default size
-            const screenWidth = window.innerWidth;
-            
-            if (screenWidth < 768) {
-                qrSize = 150; // Mobile
-            } else if (screenWidth < 1280) {
-                qrSize = 180; // Tablet
-            } else if (screenWidth < 1920) {
-                qrSize = 220; // Desktop
-            } else if (screenWidth < 2560) {
-                qrSize = 256; // Large display
-            } else {
-                qrSize = 300; // Ultra-wide
-            }
+            // Responsive QR code size based on viewport
+            const size = Math.min(256, window.innerWidth * 0.4, window.innerHeight * 0.3);
             
             new QRCode(element, {
                 text: qrUrl,
-                width: qrSize,
-                height: qrSize,
+                width: size,
+                height: size,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
@@ -916,7 +931,6 @@
                         planExpiryDate: expiryDate.getTime()
                     };
                     
-                    // Add audit data if provided
                     if (auditData) {
                         updateData['paymentProof.approvedAt'] = firebase.firestore.FieldValue.serverTimestamp();
                         updateData['paymentProof.approvedBy'] = auditData.approvedBy || 'platform_admin';
@@ -938,7 +952,6 @@
                         'paymentProof.rejectionReason': reason
                     };
                     
-                    // Add audit data if provided
                     if (auditData) {
                         updateData['paymentProof.rejectedBy'] = auditData.rejectedBy || 'platform_admin';
                         updateData['paymentProof.rejectedTimestamp'] = auditData.rejectedTimestamp;
@@ -1137,6 +1150,24 @@
         
         window.onhashchange = handleRoute;
         
+        // Resize QR codes on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Regenerate QR codes with new size
+                const qrElements = document.querySelectorAll('[id$="-qr"]');
+                qrElements.forEach(el => {
+                    if (el.id === 'daily-qr' || el.id === 'display-qr' || el.id === 'payment-qr') {
+                        const restaurantId = window.location.hash.split('/')[2];
+                        if (restaurantId && el.innerHTML) {
+                            generateQRCode(el.id, restaurantId);
+                        }
+                    }
+                });
+            }, 250);
+        });
+        
         // Legal Content
         function getTermsContent() {
             return `<h3>1. Acceptance</h3><p>By using QueueApp, you agree to these Terms.</p>
@@ -1186,7 +1217,7 @@
                             <div class="card text-center"><div style="font-size: 4rem; margin-bottom: 1rem;">📺</div><h3>Live Display</h3><p style="color: var(--gray-600);">Real-time updates</p></div>
                             <div class="card text-center"><div style="font-size: 4rem; margin-bottom: 1rem;">📊</div><h3>Analytics</h3><p style="color: var(--gray-600);">Track customer flow</p></div>
                         </div>
-                        <button onclick="navigate('/signup')" class="btn btn-primary" style="font-size: 1.5rem; padding: 1.5rem 3rem;">Start Free Forever</button>
+                        <button onclick="navigate('/signup')" class="btn btn-primary" style="font-size: clamp(1.125rem, 2vw, 1.5rem); padding: clamp(1rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3rem);">Start Free Forever</button>
                         <p style="margin-top: 1rem; color: var(--gray-600);">500 customers/month free • No credit card</p>
                     </main>
                     <footer style="background: white; border-top: 2px solid var(--gray-200); padding: 2rem 0; margin-top: 4rem;">
@@ -1212,7 +1243,7 @@
             const planStatus = restaurant?.planStatus || 'active';
             
             const navButtons = loggedIn 
-                ? `<div class="flex gap-1 flex-wrap items-center">
+                ? `<div class="flex items-center" style="gap: var(--space-sm);">
                      <span style="font-weight: 600;">${restaurant.name}</span>
                      <span class="badge ${currentPlan === 'premium' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>
                      <button onclick="navigate('/r/${restaurantId}/admin')" class="btn btn-secondary">Dashboard</button>
@@ -1232,13 +1263,13 @@
                 <div class="bg-gradient" style="min-height: 100vh;">
                     <nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1>${navButtons}</div></nav>
                     <div class="container" style="padding: 2rem 0;">
-                        <div class="text-center mb"><h1>Simple Pricing</h1><p style="font-size: 1.25rem; color: var(--gray-600);">Start free. Upgrade anytime.</p></div>
+                        <div class="text-center mb"><h1>Simple Pricing</h1><p style="font-size: clamp(1rem, 2vw, 1.25rem); color: var(--gray-600);">Start free. Upgrade anytime.</p></div>
                         <div class="grid grid-2" style="max-width: 1200px; margin: 0 auto;">
                             <div class="card">
                                 <div class="text-center">
                                     <p style="color: var(--success); font-weight: 700; font-size: 0.875rem; margin-bottom: 1rem;">FREE FOREVER</p>
                                     <h3>Free</h3>
-                                    <div style="font-size: 4rem; font-weight: 900; margin: 1rem 0;">₹0<span style="font-size: 1.5rem; color: var(--gray-600);">/mo</span></div>
+                                    <div style="font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; margin: 1rem 0;">₹0<span style="font-size: clamp(1rem, 2vw, 1.5rem); color: var(--gray-600);">/mo</span></div>
                                     <p style="color: var(--gray-600); font-size: 0.875rem; margin-bottom: 2rem;">500 customers/month</p>
                                 </div>
                                 <div class="space-y">
@@ -1248,13 +1279,13 @@
                                     <p>✓ Basic analytics</p>
                                 </div>
                             </div>
-                            <div class="card bg-gradient-primary" style="transform: scale(1.05);">
+                            <div class="card bg-gradient-primary" style="transform: scale(1.02);">
                                 <div class="text-center">
                                     <p style="font-size: 0.875rem; margin-bottom: 0.5rem; opacity: 0.9;">MOST POPULAR</p>
                                     <h3>Premium</h3>
                                     <div style="margin: 1rem 0;">
-                                        <div style="font-size: 2rem; font-weight: 700; text-decoration: line-through; opacity: 0.6;">₹2,999</div>
-                                        <div style="font-size: 4rem; font-weight: 900;">₹1,999<span style="font-size: 1.5rem; opacity: 0.8;">/mo</span></div>
+                                        <div style="font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; text-decoration: line-through; opacity: 0.6;">₹2,999</div>
+                                        <div style="font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900;">₹1,999<span style="font-size: clamp(1rem, 2vw, 1.5rem); opacity: 0.8;">/mo</span></div>
                                     </div>
                                     <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 0.5rem 1rem; border-radius: 999px; margin-bottom: 1rem;">
                                         <span style="font-size: 0.875rem; font-weight: 700;">🎉 SAVE ₹1,000!</span>
@@ -1281,10 +1312,10 @@
             if (!restaurant) { render(`<div class="container text-center" style="padding-top: 4rem;"><h1 style="color: var(--danger);">Not found</h1></div>`); return; }
 
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%); padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%); padding: var(--space-lg);">
                     <div class="card" style="max-width: 800px; margin: 0 auto;">
                         <div style="text-align: center; margin-bottom: 1rem;">
-                            <div style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 0.75rem 2rem; border-radius: 999px; font-size: 1rem; font-weight: 700; animation: pulse 2s infinite; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                            <div style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 0.75rem 2rem; border-radius: 999px; font-size: clamp(0.875rem, 1.5vw, 1rem); font-weight: 700; animation: pulse 2s infinite; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
                                 🎉 FIRST TIME OFFER - 33% OFF!
                             </div>
                         </div>
@@ -1293,8 +1324,8 @@
                         <div class="card bg-gradient-primary text-center mb">
                             <p>Total Amount</p>
                             <div style="position: relative; display: inline-block;">
-                                <div style="font-size: 3rem; font-weight: 900; text-decoration: line-through; opacity: 0.5;">₹2,999</div>
-                                <div style="font-size: 6rem; font-weight: 900; color: white; text-shadow: 0 4px 12px rgba(0,0,0,0.2);">₹1,999</div>
+                                <div style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; text-decoration: line-through; opacity: 0.5;">₹2,999</div>
+                                <div style="font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; color: white; text-shadow: 0 4px 12px rgba(0,0,0,0.2);">₹1,999</div>
                             </div>
                             <p style="opacity: 0.9;">per month • 30 days</p>
                             <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 0.5rem 1rem; border-radius: 999px; margin-top: 0.5rem;">
@@ -1303,24 +1334,26 @@
                         </div>
                         <div class="card text-center" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 3px solid var(--primary);">
                             <div style="display: inline-block; background: var(--primary); color: white; padding: 0.5rem 1.5rem; border-radius: 999px; font-size: 0.875rem; font-weight: 700; margin-bottom: 1rem;">SECURED PAYMENT</div>
-                            <p style="font-weight: 600; font-size: 1.25rem; color: var(--gray-700); margin-bottom: 0.5rem;">Pay to</p>
-                            <p style="font-size: 2rem; font-weight: 900; color: var(--primary); margin-bottom: 1rem;">QueueApp</p>
-                            <div style="background: white; display: inline-block; padding: 1rem; border-radius: 1rem; margin-bottom: 0.5rem;">
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gray-900);">Amount: <span style="color: var(--success);">₹1,999</span></div>
+                            <p style="font-weight: 600; font-size: clamp(1rem, 2vw, 1.25rem); color: var(--gray-700); margin-bottom: 0.5rem;">Pay to</p>
+                            <p style="font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; color: var(--primary); margin-bottom: 1rem;">QueueApp</p>
+                            <div style="background: white; display: inline-block; padding: 1rem; border-radius: 1rem; margin-bottom: 0.5rem; max-width: 100%;">
+                                <div style="font-size: clamp(1.25rem, 2.5vw, 1.5rem); font-weight: 700; color: var(--gray-900);">Amount: <span style="color: var(--success);">₹1,999</span></div>
                             </div>
                         </div>
                         <div class="card text-center" style="background: var(--gray-50);">
                             <p style="font-weight: 600; margin-bottom: 1rem;">Scan QR Code to Pay</p>
-                            <div id="payment-qr" style="display: inline-block; padding: 1rem; background: white; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+                            <div style="display: flex; justify-content: center; width: 100%;">
+                                <div id="payment-qr" style="display: inline-block; padding: 1rem; background: white; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 100%;"></div>
+                            </div>
                             <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: 1rem;">Or pay directly with your UPI app</p>
-                            <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
-                                <a href="upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}" class="btn" style="background: #5f259f; color: white; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                            <div class="flex justify-center" style="margin-top: 1rem;">
+                                <a href="upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}" class="btn" style="background: #5f259f; color: white; text-decoration: none; flex: 1; max-width: 200px;">
                                     <span style="font-size: 1.5rem;">📱</span> PhonePe
                                 </a>
-                                <a href="tez://upi/pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}" class="btn" style="background: #1a73e8; color: white; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                                <a href="tez://upi/pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}" class="btn" style="background: #1a73e8; color: white; text-decoration: none; flex: 1; max-width: 200px;">
                                     <span style="font-size: 1.5rem;">💳</span> GPay
                                 </a>
-                                <a href="paytmmp://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}" class="btn" style="background: #00baf2; color: white; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                                <a href="paytmmp://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}" class="btn" style="background: #00baf2; color: white; text-decoration: none; flex: 1; max-width: 200px;">
                                     <span style="font-size: 1.5rem;">💰</span> Paytm
                                 </a>
                             </div>
@@ -1337,13 +1370,20 @@
 
             setTimeout(() => {
                 const upiString = `upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}`;
-                new QRCode(document.getElementById('payment-qr'), { text: upiString, width: 200, height: 200 });
+                generateQRCode('payment-qr', restaurantId);
+                // Override with payment QR
+                const element = document.getElementById('payment-qr');
+                if (element) {
+                    element.innerHTML = '';
+                    const size = Math.min(200, window.innerWidth * 0.4);
+                    new QRCode(element, { text: upiString, width: size, height: size });
+                }
             }, 100);
         }
 
         function showUploadScreenshot(restaurantId) {
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: var(--space-lg);">
                     <div class="card" style="max-width: 800px; margin: 0 auto;">
                         <h2 class="text-center">Upload Payment Proof</h2>
                         <div class="space-y">
@@ -1353,7 +1393,7 @@
                                 <button type="button" class="btn btn-primary" style="pointer-events: none;">📷 Choose Screenshot</button>
                             </div>
                             <div id="screenshotPreview" class="hidden mt">
-                                <img id="previewImage" class="w-full" style="border: 2px solid var(--gray-200); border-radius: 1rem;" />
+                                <img id="previewImage" class="w-full" style="border: 2px solid var(--gray-200); border-radius: 1rem; max-height: 400px; object-fit: contain;" />
                             </div>
                             <button onclick="submitPaymentProof('${restaurantId}')" class="btn btn-success w-full">Submit</button>
                         </div>
@@ -1381,25 +1421,16 @@
 
             const reader = new FileReader();
             reader.onload = async function(e) {
-                // Generate unique internal transaction ID for audit
                 const internalTxnId = 'TXN-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
-                // Get restaurant details for audit
                 const restaurant = DB.restaurants[restaurantId];
                 
-                // Comprehensive audit data
                 const auditData = {
-                    // Transaction IDs
                     internalTransactionId: internalTxnId,
                     utrNumber: transactionId,
-                    
-                    // Payment details
                     screenshot: e.target.result,
                     amount: 1999,
                     currency: 'INR',
                     paymentMethod: 'UPI',
-                    
-                    // Customer details (from existing data)
                     customerDetails: {
                         restaurantId: restaurantId,
                         restaurantName: restaurant?.name || 'N/A',
@@ -1408,15 +1439,9 @@
                         phone: restaurant?.phone || 'N/A',
                         city: restaurant?.city || 'N/A'
                     },
-                    
-                    // Timestamps
                     uploadedAt: new Date().toISOString(),
                     uploadedTimestamp: Date.now(),
-                    
-                    // Status tracking
                     status: 'pending',
-                    
-                    // Audit trail
                     auditTrail: [{
                         action: 'payment_proof_uploaded',
                         timestamp: new Date().toISOString(),
@@ -1438,7 +1463,7 @@
         // Auth Pages
         function showLogin() {
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%); display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="card" style="max-width: 500px; width: 100%;">
                         <h2 class="text-center mb">Restaurant Login</h2>
                         <div class="space-y">
@@ -1491,7 +1516,7 @@
         
         function showRestaurantLogin(restaurantId) {
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%); display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="card" style="max-width: 500px; width: 100%;">
                         <h2 class="text-center mb">Login Required</h2>
                         <input type="tel" id="restaurantLoginPhone" placeholder="Phone" maxlength="10">
@@ -1514,7 +1539,7 @@
         
         function showSignup() {
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="card" style="max-width: 700px; width: 100%;">
                         <h2 class="text-center mb">Register Restaurant</h2>
                         <div class="space-y">
@@ -1523,7 +1548,7 @@
                             <input type="email" id="email" placeholder="Email">
                             <input type="tel" id="phone" placeholder="Phone (10 digits)" maxlength="10">
                             <input type="text" id="city" placeholder="Location (e.g., Mumbai - Andheri)">
-                            <div class="flex gap-1">
+                            <div class="flex items-center" style="gap: var(--space-sm);">
                                 <input type="checkbox" id="agreeTerms">
                                 <label for="agreeTerms" style="font-size: 0.875rem;">I agree to Terms & Privacy</label>
                             </div>
@@ -1575,7 +1600,6 @@
         async function showJoinQueue(restaurantId) {
             let restaurant = DB.restaurants[restaurantId];
             
-            // Only fetch from Firebase if restaurant doesn't exist in localStorage (rare case)
             if (!restaurant) {
                 const result = await FirebaseDB.getRestaurant(restaurantId);
                 if (result.success) {
@@ -1590,7 +1614,7 @@
             }
             
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="card" style="max-width: 500px; width: 100%;">
                         <h2 class="text-center mb">Join Queue</h2>
                         <p class="text-center mb" style="color: var(--gray-600);">${restaurant.name}</p>
@@ -1629,13 +1653,11 @@
                 const result = await FirebaseDB.addToQueue(restaurantId, { name, phone, guests });
                 
                 if (result.success) {
-                    // Update local storage with the SAME queue number from Firebase
                     const restaurant = DB.restaurants[restaurantId];
                     if (restaurant) {
                         const today = new Date().toISOString().slice(0, 10);
                         const currentMonth = new Date().toISOString().slice(0, 7);
                         
-                        // Initialize analytics if needed
                         if (!restaurant.analytics) {
                             restaurant.analytics = { 
                                 currentMonth, 
@@ -1645,24 +1667,21 @@
                             };
                         }
                         
-                        // Add queue item with Firebase queue number
                         restaurant.queue.push({ 
                             name, 
                             phone, 
                             guests,
-                            queueNumber: result.queueNumber,  // Use Firebase queue number
+                            queueNumber: result.queueNumber,
                             status: 'waiting', 
                             joinedAt: new Date().toISOString() 
                         });
                         
-                        // Update analytics
                         restaurant.analytics.customersThisMonth += 1;
                         restaurant.analytics.dailyStats[today] = (restaurant.analytics.dailyStats[today] || 0) + 1;
                         
                         DB.save();
                     }
                     
-                    // Show success with loading before navigating to status
                     showLoadingSuccess(restaurantId, result.queueNumber, result.customersThisMonth, result.limit);
                 } else if (result.error === 'LIMIT_REACHED') {
                     showUpgradeModal(restaurantId, result);
@@ -1680,18 +1699,18 @@
         
         function showLoadingSuccess(restaurantId, queueNumber, customersThisMonth, limit) {
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: white; padding: 2rem;">
-                    <div class="text-center">
-                        <div style="font-size: 8rem; margin-bottom: 2rem; animation: pulse 1.5s infinite;">✅</div>
-                        <h1 style="margin-bottom: 2rem; font-size: 3rem;">You're In!</h1>
-                        <div class="card" style="background: white; color: var(--gray-900); max-width: 500px; margin: 0 auto 2rem;">
-                            <div style="font-size: 6rem; font-weight: 900; color: var(--success); margin-bottom: 1rem;">${queueNumber}</div>
-                            <p style="font-size: 1.5rem; font-weight: 600;">Your Queue Number</p>
+                <div style="min-height: 100vh; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: white; padding: var(--space-lg);">
+                    <div class="text-center" style="width: 100%; max-width: 600px;">
+                        <div style="font-size: clamp(4rem, 12vw, 8rem); margin-bottom: 2rem; animation: pulse 1.5s infinite;">✅</div>
+                        <h1 style="margin-bottom: 2rem; font-size: clamp(2rem, 5vw, 3rem);">You're In!</h1>
+                        <div class="card" style="background: white; color: var(--gray-900); margin: 0 auto 2rem;">
+                            <div style="font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; color: var(--success); margin-bottom: 1rem;">${queueNumber}</div>
+                            <p style="font-size: clamp(1.25rem, 2.5vw, 1.5rem); font-weight: 600;">Your Queue Number</p>
                             ${limit !== 'unlimited' ? `<p style="font-size: 0.875rem; color: var(--gray-600); margin-top: 1rem;">Usage: ${customersThisMonth}/${limit} this month</p>` : ''}
                         </div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 1rem; max-width: 500px; margin: 0 auto;">
-                            <p style="font-size: 1.25rem; margin-bottom: 1rem;">📺 Watch the display for your number</p>
-                            <p style="font-size: 1rem; opacity: 0.9;">Loading your status in <span id="countdown" style="font-weight: 900;">3</span> seconds...</p>
+                        <div style="background: rgba(255,255,255,0.2); padding: var(--space-lg); border-radius: 1rem; max-width: 500px; margin: 0 auto;">
+                            <p style="font-size: clamp(1rem, 2vw, 1.25rem); margin-bottom: 1rem;">📺 Watch the display for your number</p>
+                            <p style="font-size: clamp(0.875rem, 1.5vw, 1rem); opacity: 0.9;">Loading your status in <span id="countdown" style="font-weight: 900;">3</span> seconds...</p>
                         </div>
                     </div>
                 </div>
@@ -1712,18 +1731,18 @@
         
         function showUpgradeModal(restaurantId, result) {
             render(`
-                <div style="min-height: 100vh; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="min-height: 100vh; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="card" style="max-width: 600px; border: 3px solid var(--warning);">
                         <div class="text-center">
-                            <div style="font-size: 5rem;">🚫</div>
+                            <div style="font-size: clamp(3rem, 8vw, 5rem);">🚫</div>
                             <h2 style="color: var(--warning); margin: 1rem 0;">Monthly Limit Reached</h2>
-                            <p style="font-size: 1.25rem; margin-bottom: 1rem;">Free plan limit of <strong>500 customers/month</strong> reached.</p>
+                            <p style="font-size: clamp(1rem, 2vw, 1.25rem); margin-bottom: 1rem;">Free plan limit of <strong>500 customers/month</strong> reached.</p>
                             <div class="card" style="background: #fef9c3; margin: 2rem 0;">
-                                <div style="font-size: 3rem; font-weight: 900; color: var(--warning);">${result.customersUsed} / ${result.limit}</div>
+                                <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--warning);">${result.customersUsed} / ${result.limit}</div>
                                 <p>Customers this month</p>
                             </div>
                             <p style="margin-bottom: 2rem; color: var(--gray-600);">Restaurant needs Premium for unlimited customers.</p>
-                            <div class="flex gap-1" style="justify-content: center;">
+                            <div class="flex justify-center">
                                 <button onclick="navigate('/r/${restaurantId}/join')" class="btn btn-secondary">← Back</button>
                                 <button onclick="navigate('/pricing')" class="btn btn-primary">Learn More</button>
                             </div>
@@ -1734,24 +1753,20 @@
         }
         
         async function showQueueStatus(restaurantId, queueNumber) {
-            // Show loading first
             render(`
-                <div style="min-height: 100vh; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; padding: 2rem;">
+                <div style="min-height: 100vh; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; padding: var(--space-lg);">
                     <div class="text-center">
-                        <div style="font-size: 4rem; margin-bottom: 1rem; animation: pulse 2s infinite;">⏳</div>
+                        <div style="font-size: clamp(3rem, 8vw, 4rem); margin-bottom: 1rem; animation: pulse 2s infinite;">⏳</div>
                         <h2>Loading your queue status...</h2>
                     </div>
                 </div>
             `);
             
-            // Wait for 3-second countdown to complete + extra 500ms buffer
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            // Try local storage first (most common case - no Firebase read)
             let restaurant = DB.restaurants[restaurantId];
             let myQueue = restaurant?.queue.find(q => q.queueNumber === queueNumber);
             
-            // Only fetch from Firebase if absolutely necessary (1 read maximum)
             if (!myQueue) {
                 const result = await FirebaseDB.getRestaurant(restaurantId);
                 if (result.success) {
@@ -1769,22 +1784,24 @@
                 render(`<div class="container text-center" style="padding-top: 4rem;">
                     <h1>Queue Number Not Found</h1>
                     <p style="color: var(--gray-600); margin: 2rem 0;">Queue #${queueNumber} not found. It may have been served or the queue was reset.</p>
-                    <button onclick="navigate('/r/${restaurantId}/join')" class="btn btn-primary mt">Join Queue Again</button>
-                    <button onclick="navigate('/r/${restaurantId}/display')" class="btn btn-secondary mt">View Display</button>
+                    <div class="flex justify-center">
+                        <button onclick="navigate('/r/${restaurantId}/join')" class="btn btn-primary mt">Join Queue Again</button>
+                        <button onclick="navigate('/r/${restaurantId}/display')" class="btn btn-secondary mt">View Display</button>
+                    </div>
                 </div>`); 
                 return; 
             }
             
             if (myQueue.status === 'allocated') {
-                render(`<div style="min-height: 100vh; background: var(--success); display: flex; align-items: center; justify-content: center; color: white; padding: 2rem;">
-                    <div class="text-center">
+                render(`<div style="min-height: 100vh; background: var(--success); display: flex; align-items: center; justify-content: center; color: white; padding: var(--space-lg);">
+                    <div class="text-center" style="width: 100%; max-width: 600px;">
                         <h1 style="margin-bottom: 2rem;">🎉 Table Ready!</h1>
                         <div class="card" style="background: white; color: var(--gray-900);">
-                            <div style="font-size: 12rem; font-weight: 900; color: var(--success);">${myQueue.tableNo}</div>
-                            <p style="font-size: 2rem; margin-bottom: 1rem;">Queue: ${queueNumber}</p>
+                            <div style="font-size: clamp(6rem, 15vw, 12rem); font-weight: 900; color: var(--success);">${myQueue.tableNo}</div>
+                            <p style="font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 1rem;">Queue: ${queueNumber}</p>
                             <div style="padding: 1rem; background: var(--gray-50); border-radius: 1rem; margin-top: 1rem;">
-                                <p style="font-size: 1.5rem; font-weight: 600; color: var(--gray-700);">${myQueue.name}</p>
-                                <p style="font-size: 1rem; color: var(--gray-600);">${myQueue.guests} guest${myQueue.guests !== 1 ? 's' : ''}</p>
+                                <p style="font-size: clamp(1.25rem, 2.5vw, 1.5rem); font-weight: 600; color: var(--gray-700);">${myQueue.name}</p>
+                                <p style="font-size: clamp(0.875rem, 1.5vw, 1rem); color: var(--gray-600);">${myQueue.guests} guest${myQueue.guests !== 1 ? 's' : ''}</p>
                             </div>
                         </div>
                     </div>
@@ -1792,15 +1809,15 @@
             } else {
                 const waiting = restaurant.queue.filter(q => q.status === 'waiting');
                 const position = waiting.findIndex(q => q.queueNumber === queueNumber) + 1;
-                render(`<div style="min-height: 100vh; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; padding: 2rem;">
-                    <div class="text-center">
+                render(`<div style="min-height: 100vh; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; padding: var(--space-lg);">
+                    <div class="text-center" style="width: 100%; max-width: 600px;">
                         <h1 style="margin-bottom: 2rem;">Still in Queue</h1>
                         <div class="card" style="background: white; color: var(--gray-900);">
-                            <div style="font-size: 12rem; font-weight: 900; color: var(--primary);">${queueNumber}</div>
-                            <p style="font-size: 2rem; margin-bottom: 1rem;">Position: #${position}</p>
+                            <div style="font-size: clamp(6rem, 15vw, 12rem); font-weight: 900; color: var(--primary);">${queueNumber}</div>
+                            <p style="font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 1rem;">Position: #${position}</p>
                             <div style="padding: 1rem; background: var(--gray-50); border-radius: 1rem; margin-top: 1rem;">
-                                <p style="font-size: 1.5rem; font-weight: 600; color: var(--gray-700);">${myQueue.name}</p>
-                                <p style="font-size: 1rem; color: var(--gray-600);">${myQueue.guests} guest${myQueue.guests !== 1 ? 's' : ''}</p>
+                                <p style="font-size: clamp(1.25rem, 2.5vw, 1.5rem); font-weight: 600; color: var(--gray-700);">${myQueue.name}</p>
+                                <p style="font-size: clamp(0.875rem, 1.5vw, 1rem); color: var(--gray-600);">${myQueue.guests} guest${myQueue.guests !== 1 ? 's' : ''}</p>
                             </div>
                         </div>
                         <button onclick="navigate('/r/${restaurantId}/display')" class="btn btn-primary mt" style="background: white; color: var(--primary);">View Display</button>
@@ -1831,338 +1848,89 @@
                 
                 render(`
                     <div class="display-screen" style="position: relative;">
-                        <!-- QR Controls Panel -->
-                        <div class="qr-controls" id="qrControls">
-                            <button class="qr-toggle-btn" onclick="toggleQRControls()" style="position: absolute; top: 0.5rem; right: 0.5rem;">⚙️</button>
-                            <div class="qr-controls-content">
-                                <h3>🎛️ QR Settings</h3>
-                                
-                                <div class="control-group">
-                                    <label style="font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">Position:</label>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                                        <button class="qr-control-btn small" onclick="setQRPosition('top-left')">↖ Top Left</button>
-                                        <button class="qr-control-btn small" onclick="setQRPosition('top-right')">↗ Top Right</button>
-                                        <button class="qr-control-btn small" onclick="setQRPosition('bottom-left')">↙ Bottom Left</button>
-                                        <button class="qr-control-btn small" onclick="setQRPosition('bottom-right')">↘ Bottom Right</button>
-                                    </div>
-                                </div>
-                                
-                                <div class="control-group qr-size-control">
-                                    <label>Size: <span id="qrSizeLabel">250</span>px</label>
-                                    <input type="range" class="qr-size-slider" id="qrSizeSlider" min="150" max="450" value="250" step="10" oninput="updateQRSize(this.value)">
-                                </div>
-                                
-                                <div class="control-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                                    <button class="qr-control-btn" onclick="toggleQRVisibility()">👁️ Hide QR</button>
-                                    <button class="qr-control-btn" onclick="resetQRSettings()">🔄 Reset</button>
-                                </div>
-                                
-                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">
-                                    💡 Drag QR to move freely
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Draggable QR Code -->
-                        <div class="display-qr-fixed" id="displayQR" onmousedown="startDragQR(event)" ontouchstart="startDragQR(event)">
-                            <div class="qr-card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: 2rem; border-radius: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 5px solid var(--primary);">
+                        <div style="position: fixed; top: var(--space-md); right: var(--space-md); z-index: 1000; max-width: clamp(250px, 30vw, 350px);">
+                            <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: var(--space-lg); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 5px solid var(--primary);">
                                 <div style="text-align: center; margin-bottom: 1rem;">
-                                    <div class="qr-text" style="font-size: clamp(1.5rem, 2.5vw, 2.5rem); font-weight: 900; color: var(--primary); margin-bottom: 0.5rem; animation: pulse-badge 1.5s infinite;">👉 SCAN HERE 👈</div>
-                                    <div class="qr-text" style="font-size: clamp(1rem, 1.5vw, 1.5rem); font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;">Welcome! 🎉</div>
-                                    <div class="qr-text" style="font-size: clamp(0.875rem, 1.1vw, 1.1rem); color: var(--gray-700); line-height: 1.4;">Join our queue instantly with your phone</div>
+                                    <div style="font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 900; color: var(--primary); margin-bottom: 0.5rem; animation: pulse-badge 1.5s infinite;">👉 SCAN HERE 👈</div>
+                                    <div style="font-size: clamp(1rem, 2vw, 1.5rem); font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;">Welcome! 🎉</div>
+                                    <div style="font-size: clamp(0.875rem, 1.5vw, 1.1rem); color: var(--gray-700); line-height: 1.4;">Join our queue instantly with your phone</div>
                                 </div>
-                                <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; display: flex; justify-content: center;">
-                                    <div id="display-qr" style="background: white; display: inline-block;"></div>
+                                <div style="background: white; padding: var(--space-md); border-radius: var(--radius-lg); box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;">
+                                    <div id="display-qr" style="background: white;"></div>
                                 </div>
                                 <div style="text-align: center; margin-top: 1rem;">
-                                    <div class="qr-text" style="font-size: clamp(1rem, 1.3vw, 1.3rem); color: var(--primary); font-weight: 700;">📱 Open Camera & Scan</div>
-                                    <div class="qr-text" style="font-size: clamp(0.75rem, 1vw, 1rem); color: var(--gray-600); margin-top: 0.3rem;">No app needed!</div>
+                                    <div style="font-size: clamp(1rem, 2vw, 1.3rem); color: var(--primary); font-weight: 700;">📱 Open Camera & Scan</div>
+                                    <div style="font-size: clamp(0.75rem, 1.5vw, 1rem); color: var(--gray-600); margin-top: 0.3rem;">No app needed!</div>
                                 </div>
                             </div>
                         </div>
                         <div class="container">
                             <div class="text-center mb" style="padding-bottom: 2rem; border-bottom: 4px solid var(--primary);">
                                 <h1 style="color: var(--primary);">${restaurant.name}</h1>
-                                <p style="font-size: 2rem; color: rgba(255,255,255,0.7);">Queue Management</p>
-                                <div style="font-size: 3rem; color: var(--primary); font-weight: 700; margin-top: 0.5rem;">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-                                <div style="font-size: 1.25rem; color: #10b981; margin-top: 0.5rem;">🔥 Live</div>
+                                <p style="font-size: clamp(1.5rem, 3vw, 2rem); color: rgba(255,255,255,0.7);">Queue Management</p>
+                                <div style="font-size: clamp(2rem, 4vw, 3rem); color: var(--primary); font-weight: 700; margin-top: 0.5rem;">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                                <div style="font-size: clamp(1rem, 2vw, 1.25rem); color: #10b981; margin-top: 0.5rem;">🔥 Live</div>
                             </div>
                             
                             ${justCalled.length > 0 ? `
-                            <div class="card mb" style="background: linear-gradient(135deg, rgba(22, 163, 74, 0.9), rgba(21, 128, 61, 0.9)); border: 4px solid var(--success); padding: 4rem;">
-                                <h2 class="text-center" style="font-size: 5rem; margin-bottom: 2rem;"><span style="font-size: 8rem; animation: pulse 2s infinite;">🔔</span>NOW SERVING</h2>
-                                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                            <div class="card mb" style="background: linear-gradient(135deg, rgba(22, 163, 74, 0.9), rgba(21, 128, 61, 0.9)); border: 4px solid var(--success); padding: var(--space-xl);">
+                                <h2 class="text-center" style="font-size: clamp(3rem, 6vw, 5rem); margin-bottom: 2rem;"><span style="font-size: clamp(4rem, 8vw, 8rem); animation: pulse 2s infinite;">🔔</span>NOW SERVING</h2>
+                                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-md);">
                                     ${justCalled.map(a => `
-                                        <div class="card text-center" style="background: white; padding: 4rem; border: 4px solid white;">
-                                            <div style="font-size: 12rem; font-weight: 900; color: var(--success); line-height: 1;">${a.queueNumber}</div>
-                                            <div style="font-size: 6rem; font-weight: 800; color: var(--gray-900);">Table ${a.tableNo}</div>
-                                            <div style="font-size: 3rem; color: var(--gray-600);">${a.guests} ${a.guests === 1 ? 'guest' : 'guests'}</div>
+                                        <div class="card text-center" style="background: white; padding: var(--space-xl); border: 4px solid white;">
+                                            <div style="font-size: clamp(6rem, 12vw, 12rem); font-weight: 900; color: var(--success); line-height: 1;">${a.queueNumber}</div>
+                                            <div style="font-size: clamp(3rem, 6vw, 6rem); font-weight: 800; color: var(--gray-900);">Table ${a.tableNo}</div>
+                                            <div style="font-size: clamp(1.5rem, 3vw, 3rem); color: var(--gray-600);">${a.guests} ${a.guests === 1 ? 'guest' : 'guests'}</div>
                                         </div>
                                     `).join('')}
                                 </div>
                             </div>
-                            ` : `<div class="card text-center mb" style="background: rgba(55, 65, 81, 0.5); padding: 4rem;"><p style="font-size: 4rem; color: rgba(255,255,255,0.6);">⏳ Waiting...</p></div>`}
+                            ` : `<div class="card text-center mb" style="background: rgba(55, 65, 81, 0.5); padding: var(--space-xl);"><p style="font-size: clamp(2rem, 5vw, 4rem); color: rgba(255,255,255,0.6);">⏳ Waiting...</p></div>`}
                             
-                            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-                                <div class="card" style="background: rgba(249, 115, 22, 0.2); border: 3px solid var(--primary); padding: 3rem;">
-                                    <h2 class="text-center" style="color: var(--primary); margin-bottom: 2rem; font-size: 4rem;">⏳ Waiting (${waiting.length})</h2>
+                            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-md);">
+                                <div class="card" style="background: rgba(249, 115, 22, 0.2); border: 3px solid var(--primary); padding: var(--space-lg);">
+                                    <h2 class="text-center" style="color: var(--primary); margin-bottom: 2rem; font-size: clamp(2rem, 4vw, 4rem);">⏳ Waiting (${waiting.length})</h2>
                                     <div style="max-height: 60vh; overflow-y: auto;"><div class="space-y">
                                         ${waiting.length > 0 ? waiting.slice(0, 15).map((w, i) => `
-                                            <div class="card" style="background: ${i < 3 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(55, 65, 81, 0.8)'}; padding: 2rem; border: ${i < 3 ? '3px solid var(--primary)' : '2px solid rgba(156, 163, 175, 0.3)'};">
+                                            <div class="card" style="background: ${i < 3 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(55, 65, 81, 0.8)'}; padding: var(--space-md); border: ${i < 3 ? '3px solid var(--primary)' : '2px solid rgba(156, 163, 175, 0.3)'};">
                                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                                                    <div style="flex: 1;">
-                                                        <div style="font-size: 6rem; font-weight: 900; color: ${i < 3 ? '#ffffff' : 'var(--primary)'};">${w.queueNumber}</div>
-                                                        ${i < 3 ? '<div style="font-size: 1.5rem; color: #fef9c3; font-weight: 700;">🔜 NEXT</div>' : ''}
-                                                        <div style="font-size: 1.8rem; font-weight: 600; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.9)'}; margin-top: 0.5rem;">${w.name}</div>
-                                                        <div style="font-size: 1.3rem; color: ${i < 3 ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.6)'}; font-family: monospace;">${w.phone}</div>
-                                                        <div style="font-size: 1.5rem; color: ${i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)'}; margin-top: 0.3rem;">${w.guests} guest${w.guests !== 1 ? 's' : ''}</div>
+                                                    <div style="flex: 1; min-width: 200px;">
+                                                        <div style="font-size: clamp(3rem, 6vw, 6rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'var(--primary)'};">${w.queueNumber}</div>
+                                                        ${i < 3 ? '<div style="font-size: clamp(1rem, 2vw, 1.5rem); color: #fef9c3; font-weight: 700;">🔜 NEXT</div>' : ''}
+                                                        <div style="font-size: clamp(1rem, 2vw, 1.8rem); font-weight: 600; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.9)'}; margin-top: 0.5rem;">${w.name}</div>
+                                                        <div style="font-size: clamp(0.875rem, 1.5vw, 1.3rem); color: ${i < 3 ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.6)'}; font-family: monospace;">${w.phone}</div>
+                                                        <div style="font-size: clamp(1rem, 2vw, 1.5rem); color: ${i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)'}; margin-top: 0.3rem;">${w.guests} guest${w.guests !== 1 ? 's' : ''}</div>
                                                     </div>
                                                     <div style="text-align: right;">
-                                                        <div style="font-size: 5rem; font-weight: 900; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.7)'};">#${i + 1}</div>
+                                                        <div style="font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 900; color: ${i < 3 ? '#ffffff' : 'rgba(255,255,255,0.7)'};">#${i + 1}</div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        `).join('') : '<p class="text-center" style="color: rgba(255,255,255,0.6); font-size: 2rem; padding: 2rem;">No customers</p>'}
+                                        `).join('') : '<p class="text-center" style="color: rgba(255,255,255,0.6); font-size: clamp(1.5rem, 3vw, 2rem); padding: 2rem;">No customers</p>'}
                                     </div></div>
                                 </div>
                                 
-                                <div class="card" style="background: rgba(168, 85, 247, 0.2); border: 3px solid #9333ea; padding: 3rem;">
-                                    <h2 class="text-center" style="color: #c084fc; margin-bottom: 2rem; font-size: 3rem;">📊 Stats</h2>
-                                    <div class="grid grid-2" style="gap: 2rem;">
-                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: 2rem;">
-                                            <div style="font-size: 7rem; font-weight: 900; color: var(--primary);">${waiting.length}</div>
-                                            <div style="font-size: 1.5rem; color: white; margin-top: 0.5rem;">Waiting</div>
+                                <div class="card" style="background: rgba(168, 85, 247, 0.2); border: 3px solid #9333ea; padding: var(--space-lg);">
+                                    <h2 class="text-center" style="color: #c084fc; margin-bottom: 2rem; font-size: clamp(2rem, 4vw, 3rem);">📊 Stats</h2>
+                                    <div class="grid grid-2" style="gap: var(--space-md);">
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: var(--space-lg);">
+                                            <div style="font-size: clamp(3rem, 8vw, 7rem); font-weight: 900; color: var(--primary);">${waiting.length}</div>
+                                            <div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Waiting</div>
                                         </div>
-                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: 2rem;">
-                                            <div style="font-size: 7rem; font-weight: 900; color: var(--success);">${allocated.length}</div>
-                                            <div style="font-size: 1.5rem; color: white; margin-top: 0.5rem;">Seated</div>
+                                        <div class="card text-center" style="background: rgba(255, 255, 255, 0.1); padding: var(--space-lg);">
+                                            <div style="font-size: clamp(3rem, 8vw, 7rem); font-weight: 900; color: var(--success);">${allocated.length}</div>
+                                            <div style="font-size: clamp(1rem, 2vw, 1.5rem); color: white; margin-top: 0.5rem;">Seated</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-center mt" style="padding-top: 2rem; border-top: 2px solid rgba(255,255,255,0.2);"><p style="font-size: 2rem; color: rgba(255,255,255,0.5);">⚡ QueueApp</p></div>
+                            <div class="text-center mt" style="padding-top: 2rem; border-top: 2px solid rgba(255,255,255,0.2);"><p style="font-size: clamp(1.5rem, 3vw, 2rem); color: rgba(255,255,255,0.5);">⚡ QueueApp</p></div>
                         </div>
                     </div>
                 `);
                 
-                // Generate QR Code for display after render
-                setTimeout(() => {
-                    generateQRCode('display-qr', restaurantId);
-                    loadQRSettings(restaurantId);
-                }, 100);
+                setTimeout(() => generateQRCode('display-qr', restaurantId), 100);
             });
-        }
-        
-        // QR Code Customization Functions
-        let isDraggingQR = false;
-        let qrDragOffset = { x: 0, y: 0 };
-        
-        function toggleQRControls() {
-            const controls = document.getElementById('qrControls');
-            if (controls) {
-                controls.classList.toggle('minimized');
-            }
-        }
-        
-        function setQRPosition(position) {
-            const qrElement = document.getElementById('displayQR');
-            if (!qrElement) return;
-            
-            // Remove existing position styles
-            qrElement.style.top = '';
-            qrElement.style.bottom = '';
-            qrElement.style.left = '';
-            qrElement.style.right = '';
-            
-            // Set new position
-            const offset = '2rem';
-            switch(position) {
-                case 'top-left':
-                    qrElement.style.top = offset;
-                    qrElement.style.left = offset;
-                    break;
-                case 'top-right':
-                    qrElement.style.top = offset;
-                    qrElement.style.right = offset;
-                    break;
-                case 'bottom-left':
-                    qrElement.style.bottom = offset;
-                    qrElement.style.left = offset;
-                    break;
-                case 'bottom-right':
-                    qrElement.style.bottom = offset;
-                    qrElement.style.right = offset;
-                    break;
-            }
-            
-            saveQRSettings();
-        }
-        
-        function updateQRSize(size) {
-            document.getElementById('qrSizeLabel').textContent = size;
-            const qrElement = document.getElementById('displayQR');
-            if (qrElement) {
-                const scale = size / 250; // Base size is 250
-                qrElement.style.transform = `scale(${scale})`;
-                qrElement.style.transformOrigin = 'top left';
-            }
-            saveQRSettings();
-        }
-        
-        function toggleQRVisibility() {
-            const qrElement = document.getElementById('displayQR');
-            const btn = event.target;
-            if (qrElement) {
-                qrElement.classList.toggle('hidden');
-                btn.textContent = qrElement.classList.contains('hidden') ? '👁️ Show QR' : '👁️ Hide QR';
-                saveQRSettings();
-            }
-        }
-        
-        function resetQRSettings() {
-            const restaurantId = window.location.hash.split('/')[2];
-            if (confirm('Reset QR position and size to default?')) {
-                localStorage.removeItem(`qr_settings_${restaurantId}`);
-                location.reload();
-            }
-        }
-        
-        function startDragQR(e) {
-            // Don't drag if clicking on settings button
-            if (e.target.closest('.qr-toggle-btn')) return;
-            
-            isDraggingQR = true;
-            const qrElement = document.getElementById('displayQR');
-            qrElement.classList.add('dragging');
-            
-            const rect = qrElement.getBoundingClientRect();
-            
-            if (e.type === 'mousedown') {
-                qrDragOffset.x = e.clientX - rect.left;
-                qrDragOffset.y = e.clientY - rect.top;
-                document.addEventListener('mousemove', dragQR);
-                document.addEventListener('mouseup', stopDragQR);
-            } else if (e.type === 'touchstart') {
-                const touch = e.touches[0];
-                qrDragOffset.x = touch.clientX - rect.left;
-                qrDragOffset.y = touch.clientY - rect.top;
-                document.addEventListener('touchmove', dragQR);
-                document.addEventListener('touchend', stopDragQR);
-            }
-            
-            e.preventDefault();
-        }
-        
-        function dragQR(e) {
-            if (!isDraggingQR) return;
-            
-            const qrElement = document.getElementById('displayQR');
-            let clientX, clientY;
-            
-            if (e.type === 'mousemove') {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            } else if (e.type === 'touchmove') {
-                const touch = e.touches[0];
-                clientX = touch.clientX;
-                clientY = touch.clientY;
-            }
-            
-            // Calculate new position
-            let newLeft = clientX - qrDragOffset.x;
-            let newTop = clientY - qrDragOffset.y;
-            
-            // Keep within viewport bounds
-            const maxLeft = window.innerWidth - qrElement.offsetWidth;
-            const maxTop = window.innerHeight - qrElement.offsetHeight;
-            
-            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-            newTop = Math.max(0, Math.min(newTop, maxTop));
-            
-            // Remove preset positions
-            qrElement.style.top = newTop + 'px';
-            qrElement.style.left = newLeft + 'px';
-            qrElement.style.right = 'auto';
-            qrElement.style.bottom = 'auto';
-            
-            e.preventDefault();
-        }
-        
-        function stopDragQR(e) {
-            if (!isDraggingQR) return;
-            
-            isDraggingQR = false;
-            const qrElement = document.getElementById('displayQR');
-            qrElement.classList.remove('dragging');
-            
-            document.removeEventListener('mousemove', dragQR);
-            document.removeEventListener('mouseup', stopDragQR);
-            document.removeEventListener('touchmove', dragQR);
-            document.removeEventListener('touchend', stopDragQR);
-            
-            saveQRSettings();
-        }
-        
-        function saveQRSettings() {
-            const restaurantId = window.location.hash.split('/')[2];
-            const qrElement = document.getElementById('displayQR');
-            const sizeSlider = document.getElementById('qrSizeSlider');
-            
-            if (!qrElement) return;
-            
-            const settings = {
-                top: qrElement.style.top,
-                left: qrElement.style.left,
-                right: qrElement.style.right,
-                bottom: qrElement.style.bottom,
-                size: sizeSlider ? sizeSlider.value : 250,
-                hidden: qrElement.classList.contains('hidden'),
-                transform: qrElement.style.transform
-            };
-            
-            localStorage.setItem(`qr_settings_${restaurantId}`, JSON.stringify(settings));
-            console.log('✅ QR settings saved');
-        }
-        
-        function loadQRSettings(restaurantId) {
-            const savedSettings = localStorage.getItem(`qr_settings_${restaurantId}`);
-            
-            if (!savedSettings) {
-                // Apply default position (top-right)
-                setQRPosition('top-right');
-                return;
-            }
-            
-            try {
-                const settings = JSON.parse(savedSettings);
-                const qrElement = document.getElementById('displayQR');
-                const sizeSlider = document.getElementById('qrSizeSlider');
-                const sizeLabel = document.getElementById('qrSizeLabel');
-                
-                if (qrElement) {
-                    if (settings.top) qrElement.style.top = settings.top;
-                    if (settings.left) qrElement.style.left = settings.left;
-                    if (settings.right) qrElement.style.right = settings.right;
-                    if (settings.bottom) qrElement.style.bottom = settings.bottom;
-                    if (settings.transform) qrElement.style.transform = settings.transform;
-                    
-                    if (settings.hidden) {
-                        qrElement.classList.add('hidden');
-                        const hideBtn = document.querySelector('.qr-control-btn[onclick*="toggleQRVisibility"]');
-                        if (hideBtn) hideBtn.textContent = '👁️ Show QR';
-                    }
-                }
-                
-                if (sizeSlider && settings.size) {
-                    sizeSlider.value = settings.size;
-                    if (sizeLabel) sizeLabel.textContent = settings.size;
-                }
-                
-                console.log('✅ QR settings loaded');
-            } catch (error) {
-                console.error('Error loading QR settings:', error);
-                setQRPosition('top-right');
-            }
         }
         
         // Restaurant Admin - Real-time with QR Code
@@ -2184,7 +1952,6 @@
                 const waiting = restaurant.queue.filter(q => q.status === 'waiting');
                 const allocated = restaurant.queue.filter(q => q.status === 'allocated');
                 
-                // Get analytics
                 const analyticsResult = await FirebaseDB.getAnalytics(restaurantId);
                 const analytics = analyticsResult.success ? analyticsResult.analytics : {};
                 const customersThisMonth = analytics.customersThisMonth || 0;
@@ -2199,15 +1966,15 @@
                 const todayFormatted = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 
                 render(`
-                    <div style="min-height: 100vh; background: var(--gray-100); padding: 2rem;">
+                    <div style="min-height: 100vh; background: var(--gray-100); padding: var(--space-lg);">
                         <div class="container">
-                            <div class="card mb flex justify-between items-center flex-wrap gap-1">
-                                <div>
-                                    <h1 onclick="navigateHome()" style="cursor: pointer;">QueueApp</h1>
-                                    <p style="color: var(--gray-600);">${restaurant.name} ${planBadge}</p>
+                            <div class="card mb flex justify-between items-center">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h1 onclick="navigateHome()" style="cursor: pointer; word-wrap: break-word;">QueueApp</h1>
+                                    <p style="color: var(--gray-600); word-wrap: break-word;">${restaurant.name} ${planBadge}</p>
                                     <p style="color: #10b981; font-size: 0.875rem;">🔥 Live</p>
                                 </div>
-                                <div class="flex gap-1">
+                                <div class="flex" style="gap: var(--space-sm);">
                                     <button onclick="navigate('/pricing')" class="btn" style="background: #2563eb; color: white;">${currentPlan === 'free' && planStatus !== 'pending' ? 'Upgrade' : 'Plan'}</button>
                                     <button onclick="logout('${restaurantId}')" class="btn btn-danger">Logout</button>
                                 </div>
@@ -2215,7 +1982,7 @@
                             
                             ${planStatus === 'pending' ? `
                                 <div class="alert alert-warning mb">
-                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="flex items-center" style="gap: 1rem;">
                                         <div style="font-size: 2rem;">⏳</div>
                                         <div style="flex: 1;">
                                             <p style="font-weight: 700; margin-bottom: 0.25rem;">Premium Upgrade Pending Review</p>
@@ -2227,7 +1994,7 @@
                             
                             ${planStatus === 'rejected' && restaurant.paymentProof?.rejectionReason ? `
                                 <div class="alert alert-danger mb">
-                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="flex items-center" style="gap: 1rem;">
                                         <div style="font-size: 2rem;">❌</div>
                                         <div style="flex: 1;">
                                             <p style="font-weight: 700; margin-bottom: 0.5rem;">Premium Upgrade Rejected</p>
@@ -2235,16 +2002,16 @@
                                             <p style="font-size: 0.875rem; margin: 0;">Please contact support@queueapp.com or try upgrading again.</p>
                                         </div>
                                     </div>
-                                    <div style="margin-top: 1rem;">
+                                    <div style="margin-top: 1rem; display: flex; gap: var(--space-sm); flex-wrap: wrap;">
                                         <button onclick="navigate('/pricing')" class="btn btn-primary">Try Again</button>
-                                        <a href="mailto:support@queueapp.com?subject=Payment Rejection - ${restaurantId}&body=My payment was rejected. Transaction ID: ${restaurant.paymentProof?.transactionId || 'N/A'}" class="btn btn-secondary" style="margin-left: 0.5rem;">Contact Support</a>
+                                        <a href="mailto:support@queueapp.com?subject=Payment Rejection - ${restaurantId}&body=My payment was rejected. Transaction ID: ${restaurant.paymentProof?.transactionId || 'N/A'}" class="btn btn-secondary" style="text-decoration: none;">Contact Support</a>
                                     </div>
                                 </div>
                             ` : ''}
                             
                             ${currentPlan === 'premium' && planStatus === 'active' && restaurant.planExpiryDate && (restaurant.planExpiryDate - Date.now()) > 0 ? `
                                 <div class="alert alert-success mb">
-                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="flex items-center" style="gap: 1rem;">
                                         <div style="font-size: 2rem;">✅</div>
                                         <div style="flex: 1;">
                                             <p style="font-weight: 700; margin-bottom: 0.25rem;">Premium Plan Active</p>
@@ -2255,10 +2022,10 @@
                             ` : ''}
                             
                             <div class="alert alert-info mb">
-                                <div class="flex justify-between items-center flex-wrap gap-1">
-                                    <div>
-                                        <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">📅 Your Queue QR Code</div>
-                                        <p style="margin: 0;">${todayFormatted}</p>
+                                <div class="flex justify-between items-center">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: clamp(1rem, 2vw, 1.25rem); font-weight: 700; margin-bottom: 0.5rem;">📅 Your Queue QR Code</div>
+                                        <p style="margin: 0; font-size: clamp(0.875rem, 1.5vw, 1rem); word-wrap: break-word;">${todayFormatted}</p>
                                         <p style="margin: 0; font-size: 0.875rem; color: #1e40af;">🔄 Queue resets at midnight daily</p>
                                     </div>
                                     <div style="position: relative;">
@@ -2267,10 +2034,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex gap-1 mt" style="flex-wrap: wrap;">
-                                    <button onclick="printQRCode()" class="btn btn-secondary">🖨️ Print QR</button>
-                                    <button onclick="downloadQRCode('${restaurantId}')" class="btn btn-secondary">💾 Download QR</button>
-                                    <button onclick="copyQRLink('${restaurantId}')" class="btn" style="background: #2563eb; color: white;">🔗 Copy Link</button>
+                                <div class="flex mt">
+                                    <button onclick="printQRCode()" class="btn btn-secondary" style="flex: 1;">🖨️ Print QR</button>
+                                    <button onclick="downloadQRCode('${restaurantId}')" class="btn btn-secondary" style="flex: 1;">💾 Download</button>
+                                    <button onclick="copyQRLink('${restaurantId}')" class="btn" style="background: #2563eb; color: white; flex: 1;">🔗 Copy Link</button>
                                 </div>
                                 <div class="mt">
                                     <p style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">💡 How to use:</p>
@@ -2287,32 +2054,32 @@
                                 <h2 style="margin-bottom: 1rem;">📊 Monthly Usage</h2>
                                 <div class="grid grid-3">
                                     <div class="card text-center" style="background: white;">
-                                        <div style="font-size: 3rem; font-weight: 900; color: ${percentage > 80 ? 'var(--danger)' : 'var(--primary)'};">${customersThisMonth}</div>
+                                        <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: ${percentage > 80 ? 'var(--danger)' : 'var(--primary)'};">${customersThisMonth}</div>
                                         <p style="color: var(--gray-600);">This Month</p>
                                     </div>
                                     <div class="card text-center" style="background: white;">
-                                        <div style="font-size: 3rem; font-weight: 900; color: var(--gray-600);">${limit}</div>
+                                        <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--gray-600);">${limit}</div>
                                         <p style="color: var(--gray-600);">Limit</p>
                                     </div>
                                     <div class="card text-center" style="background: white;">
-                                        <div style="font-size: 3rem; font-weight: 900; color: ${percentage > 80 ? 'var(--danger)' : 'var(--success)'};">${500 - customersThisMonth}</div>
+                                        <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: ${percentage > 80 ? 'var(--danger)' : 'var(--success)'};">${500 - customersThisMonth}</div>
                                         <p style="color: var(--gray-600);">Remaining</p>
                                     </div>
                                 </div>
                                 <div class="progress-bar mt">
                                     <div class="progress-fill" style="background: ${percentage > 80 ? 'var(--danger)' : 'var(--success)'}; width: ${percentage}%;">${percentage}%</div>
                                 </div>
-                                ${percentage > 80 ? '<div class="alert alert-warning mt">⚠️ Approaching limit! <button onclick="navigate(\'/pricing\')" class="btn btn-primary" style="margin-left: 1rem;">Upgrade</button></div>' : ''}
+                                ${percentage > 80 ? '<div class="alert alert-warning mt" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;"><span>⚠️ Approaching limit!</span><button onclick="navigate(\'/pricing\')" class="btn btn-primary">Upgrade</button></div>' : ''}
                             </div>
                             ` : ''}
                             
                             <div class="grid grid-2 mb">
                                 <div class="card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);">
-                                    <div style="font-size: 3rem; font-weight: 900; color: var(--primary);">${waiting.length}</div>
+                                    <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--primary);">${waiting.length}</div>
                                     <p style="color: var(--gray-600);">Waiting</p>
                                 </div>
                                 <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
-                                    <div style="font-size: 3rem; font-weight: 900; color: var(--success);">${allocated.length}</div>
+                                    <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--success);">${allocated.length}</div>
                                     <p style="color: var(--gray-600);">Seated</p>
                                 </div>
                             </div>
@@ -2321,13 +2088,13 @@
                                 <h2 style="margin-bottom: 1rem;">Waiting Queue</h2>
                                 <div class="space-y">
                                     ${waiting.length > 0 ? waiting.map(w => `
-                                        <div class="card flex justify-between items-center flex-wrap gap-1" style="background: var(--gray-50);">
-                                            <div>
-                                                <div style="font-size: 1.5rem; font-weight: 700;">${w.queueNumber}</div>
-                                                <p style="color: var(--gray-600);">${w.name} • ${w.phone} • ${w.guests} guests</p>
+                                        <div class="card flex justify-between items-center" style="background: var(--gray-50);">
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div style="font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 700; word-wrap: break-word;">${w.queueNumber}</div>
+                                                <p style="color: var(--gray-600); font-size: clamp(0.875rem, 1.5vw, 1rem); word-wrap: break-word;">${w.name} • ${w.phone} • ${w.guests} guests</p>
                                             </div>
-                                            <div class="flex gap-1 items-center">
-                                                <input type="number" id="table-${w.queueNumber}" placeholder="Table #" style="width: 100px;" min="1">
+                                            <div class="flex items-center" style="gap: var(--space-sm);">
+                                                <input type="number" id="table-${w.queueNumber}" placeholder="Table #" style="width: 80px; min-width: 60px;" min="1">
                                                 <button onclick="allocateTable('${restaurantId}', '${w.queueNumber}')" class="btn btn-success">Seat</button>
                                             </div>
                                         </div>
@@ -2335,15 +2102,14 @@
                                 </div>
                             </div>
                             
-                            <div class="flex gap-1 flex-wrap">
-                                <button onclick="navigate('/r/${restaurantId}/display')" class="btn" style="background: #2563eb; color: white;">📺 Display</button>
-                                <button onclick="navigate('/r/${restaurantId}/join')" class="btn" style="background: #9333ea; color: white;">📱 Customer Entry</button>
+                            <div class="flex">
+                                <button onclick="navigate('/r/${restaurantId}/display')" class="btn" style="background: #2563eb; color: white; flex: 1;">📺 Display</button>
+                                <button onclick="navigate('/r/${restaurantId}/join')" class="btn" style="background: #9333ea; color: white; flex: 1;">📱 Customer Entry</button>
                             </div>
                         </div>
                     </div>
                 `);
                 
-                // Generate QR Code after render
                 setTimeout(() => generateQRCode('daily-qr', restaurantId), 100);
             });
         }
@@ -2383,7 +2149,7 @@
         // Platform Admin
         function showAdminPasswordPrompt() {
             render(`
-                <div style="min-height: 100vh; background: linear-gradient(135deg, #111827 0%, #1f2937 100%); display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #111827 0%, #1f2937 100%); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="card" style="max-width: 500px; width: 100%;">
                         <h2 class="text-center mb">🔐 Admin Login</h2>
                         <div class="space-y">
@@ -2441,35 +2207,30 @@
         let platformAdminListener = null;
         
         async function showPlatformAdmin() {
-            // Show loading first
             render(`
-                <div style="min-height: 100vh; background: var(--gray-100); display: flex; align-items: center; justify-content: center;">
+                <div style="min-height: 100vh; background: var(--gray-100); display: flex; align-items: center; justify-content: center; padding: var(--space-lg);">
                     <div class="text-center">
-                        <div style="font-size: 4rem; margin-bottom: 1rem; animation: pulse 2s infinite;">📊</div>
+                        <div style="font-size: clamp(3rem, 8vw, 4rem); margin-bottom: 1rem; animation: pulse 2s infinite;">📊</div>
                         <h2>Loading Platform Data...</h2>
                         <p style="color: var(--gray-600); margin-top: 0.5rem;">Setting up real-time sync...</p>
                     </div>
                 </div>
             `);
             
-            // Clean up old listener if exists
             if (platformAdminListener) {
                 platformAdminListener();
                 platformAdminListener = null;
             }
             
-            // Set up real-time listener for ALL restaurants
             platformAdminListener = db.collection('restaurants').onSnapshot((snapshot) => {
                 const updateTime = new Date().toLocaleTimeString();
                 console.log(`🔄 Platform admin: Real-time update at ${updateTime} (${snapshot.docs.length} restaurants)`);
                 
-                // Update localStorage with latest data
                 snapshot.docs.forEach(doc => {
                     DB.restaurants[doc.id] = doc.data();
                 });
                 DB.save();
                 
-                // Re-render dashboard with updated data
                 renderPlatformAdminDashboard();
             }, (error) => {
                 console.error('❌ Real-time listener error:', error);
@@ -2486,10 +2247,10 @@
             const totalRevenue = restaurants.filter(([_, r]) => r.plan === 'premium' && r.planStatus === 'active').length * 1999;
             
             render(`
-                <div style="min-height: 100vh; background: var(--gray-100); padding: 2rem;">
+                <div style="min-height: 100vh; background: var(--gray-100); padding: var(--space-lg);">
                     <div class="container">
-                        <div class="card mb flex justify-between items-center flex-wrap">
-                            <div>
+                        <div class="card mb flex justify-between items-center">
+                            <div style="flex: 1; min-width: 0;">
                                 <h1>🏢 Platform Admin</h1>
                                 <p style="color: var(--gray-600);">Manage all restaurants</p>
                                 <p style="color: #10b981; font-size: 0.875rem;">
@@ -2502,19 +2263,19 @@
                         
                         <div class="grid grid-4 mb">
                             <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
-                                <div style="font-size: 3rem; font-weight: 900; color: #2563eb;">${restaurants.length}</div>
+                                <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #2563eb;">${restaurants.length}</div>
                                 <p>Restaurants</p>
                             </div>
                             <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
-                                <div style="font-size: 3rem; font-weight: 900; color: var(--success);">${totalCustomers}</div>
+                                <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--success);">${totalCustomers}</div>
                                 <p>Customers</p>
                             </div>
                             <div class="card" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);">
-                                <div style="font-size: 3rem; font-weight: 900; color: #9333ea;">₹${totalRevenue.toLocaleString()}</div>
+                                <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #9333ea;">₹${totalRevenue.toLocaleString()}</div>
                                 <p>Revenue</p>
                             </div>
                             <div class="card" style="background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);">
-                                <div style="font-size: 3rem; font-weight: 900; color: var(--warning);">${pendingPayments.length}</div>
+                                <div style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: var(--warning);">${pendingPayments.length}</div>
                                 <p>Pending</p>
                             </div>
                         </div>
@@ -2532,15 +2293,15 @@
                                 <div class="space-y">
                                     ${pendingPayments.map(([id, r]) => `
                                         <div class="card" style="background: #fef9c3;">
-                                            <div class="flex justify-between items-start flex-wrap gap-1">
-                                                <div style="flex: 1;">
-                                                    <h3>${r.name}</h3>
-                                                    <p style="font-size: 0.875rem;">ID: ${id} • ${r.owner}</p>
-                                                    ${r.paymentProof?.internalTransactionId ? `<p style="font-size: 0.875rem; font-weight: 600; color: #2563eb;">TXN: ${r.paymentProof.internalTransactionId}</p>` : ''}
-                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.utrNumber || r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
+                                            <div class="flex justify-between items-start">
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <h3 style="word-wrap: break-word;">${r.name}</h3>
+                                                    <p style="font-size: 0.875rem; word-wrap: break-word;">ID: ${id} • ${r.owner}</p>
+                                                    ${r.paymentProof?.internalTransactionId ? `<p style="font-size: 0.875rem; font-weight: 600; color: #2563eb; word-wrap: break-word;">TXN: ${r.paymentProof.internalTransactionId}</p>` : ''}
+                                                    <p style="font-size: 0.875rem; word-wrap: break-word;">UTR: ${r.paymentProof?.utrNumber || r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
                                                     <p style="font-size: 0.75rem; color: var(--gray-600);">Submitted: ${r.paymentProof?.uploadedAt ? new Date(r.paymentProof.uploadedAt).toLocaleString() : 'N/A'}</p>
                                                 </div>
-                                                <div class="flex gap-1 flex-wrap">
+                                                <div class="flex" style="gap: var(--space-sm);">
                                                     <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
                                                     <button onclick="approvePayment('${id}')" class="btn btn-success">✓ Approve</button>
                                                     <button onclick="rejectPayment('${id}')" class="btn btn-danger">✗ Reject</button>
@@ -2558,16 +2319,16 @@
                                 <div class="space-y">
                                     ${restaurants.filter(([_, r]) => r.planStatus === 'rejected').map(([id, r]) => `
                                         <div class="card" style="background: #fee2e2;">
-                                            <div class="flex justify-between items-start flex-wrap gap-1">
-                                                <div style="flex: 1;">
-                                                    <h3>${r.name}</h3>
-                                                    <p style="font-size: 0.875rem;">ID: ${id} • ${r.owner}</p>
-                                                    ${r.paymentProof?.internalTransactionId ? `<p style="font-size: 0.875rem; font-weight: 600; color: #2563eb;">TXN: ${r.paymentProof.internalTransactionId}</p>` : ''}
-                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.utrNumber || r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
-                                                    <p style="font-size: 0.875rem; margin-top: 0.5rem;"><strong>Rejection Reason:</strong> ${r.paymentProof?.rejectionReason || 'No reason provided'}</p>
+                                            <div class="flex justify-between items-start">
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <h3 style="word-wrap: break-word;">${r.name}</h3>
+                                                    <p style="font-size: 0.875rem; word-wrap: break-word;">ID: ${id} • ${r.owner}</p>
+                                                    ${r.paymentProof?.internalTransactionId ? `<p style="font-size: 0.875rem; font-weight: 600; color: #2563eb; word-wrap: break-word;">TXN: ${r.paymentProof.internalTransactionId}</p>` : ''}
+                                                    <p style="font-size: 0.875rem; word-wrap: break-word;">UTR: ${r.paymentProof?.utrNumber || r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
+                                                    <p style="font-size: 0.875rem; margin-top: 0.5rem; word-wrap: break-word;"><strong>Rejection Reason:</strong> ${r.paymentProof?.rejectionReason || 'No reason provided'}</p>
                                                     <p style="font-size: 0.75rem; color: var(--gray-600);">Rejected by: ${r.paymentProof?.rejectedBy || 'Admin'} on ${r.paymentProof?.rejectedAt ? new Date(r.paymentProof.rejectedAt.seconds ? r.paymentProof.rejectedAt.seconds * 1000 : r.paymentProof.rejectedAt).toLocaleString() : 'N/A'}</p>
                                                 </div>
-                                                <div class="flex gap-1 flex-wrap">
+                                                <div class="flex">
                                                     <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
                                                 </div>
                                             </div>
@@ -2582,20 +2343,20 @@
                             <div class="space-y">
                                 ${restaurants.length > 0 ? restaurants.map(([id, r]) => `
                                     <div class="card" style="background: var(--gray-50);">
-                                        <div class="flex justify-between items-center flex-wrap gap-1">
-                                            <div>
-                                                <h3>${r.name} ${r.plan === 'premium' && r.planStatus === 'active' ? '<span class="badge badge-primary">PREMIUM</span>' : r.planStatus === 'pending' ? '<span class="badge badge-warning">PENDING</span>' : '<span class="badge badge-secondary">FREE</span>'}</h3>
-                                                <p style="font-size: 0.875rem;">ID: ${id} • ${r.city} • ${r.queue?.length || 0} customers</p>
+                                        <div class="flex justify-between items-center">
+                                            <div style="flex: 1; min-width: 0;">
+                                                <h3 style="word-wrap: break-word;">${r.name} ${r.plan === 'premium' && r.planStatus === 'active' ? '<span class="badge badge-primary">PREMIUM</span>' : r.planStatus === 'pending' ? '<span class="badge badge-warning">PENDING</span>' : '<span class="badge badge-secondary">FREE</span>'}</h3>
+                                                <p style="font-size: 0.875rem; word-wrap: break-word;">ID: ${id} • ${r.city} • ${r.queue?.length || 0} customers</p>
                                             </div>
-                                            <div class="flex gap-1">
+                                            <div class="flex" style="gap: var(--space-sm);">
                                                 <button onclick="navigate('/r/${id}/admin')" class="btn btn-secondary">Admin</button>
                                                 <button onclick="navigate('/r/${id}/display')" class="btn" style="background: #2563eb; color: white;">Display</button>
                                             </div>
                                         </div>
                                     </div>
                                 `).join('') : `
-                                    <div class="card text-center" style="background: var(--gray-50); padding: 4rem;">
-                                        <div style="font-size: 4rem; margin-bottom: 1rem;">🏪</div>
+                                    <div class="card text-center" style="background: var(--gray-50); padding: var(--space-xl);">
+                                        <div style="font-size: clamp(3rem, 8vw, 4rem); margin-bottom: 1rem;">🏪</div>
                                         <h3 style="color: var(--gray-600);">No Restaurants Yet</h3>
                                         <p style="color: var(--gray-500); margin-top: 0.5rem;">Restaurants will appear here once they sign up</p>
                                     </div>
@@ -2623,7 +2384,6 @@
             const confirmMsg = `✓ Approve Premium for ${restaurant?.name}?\n\nTransaction ID: ${paymentInfo?.internalTransactionId || 'N/A'}\nUTR: ${paymentInfo?.utrNumber || paymentInfo?.transactionId || 'N/A'}\nAmount: ₹${paymentInfo?.amount || 1999}\n\nThis will activate unlimited customers for 30 days.`;
             
             if (confirm(confirmMsg)) {
-                // Add approval audit trail
                 const approvalData = {
                     approvedAt: new Date().toISOString(),
                     approvedTimestamp: Date.now(),
@@ -2631,7 +2391,6 @@
                     approvalReason: 'Payment verified and approved'
                 };
                 
-                // Add to audit trail
                 if (!restaurant.paymentProof.auditTrail) {
                     restaurant.paymentProof.auditTrail = [];
                 }
@@ -2642,7 +2401,6 @@
                     details: 'Premium plan activated for 30 days'
                 });
                 
-                // Merge approval data
                 Object.assign(restaurant.paymentProof, approvalData);
                 DB.save();
                 
@@ -2664,7 +2422,6 @@
             if (confirm(`Reject payment with reason: "${reason}"?`)) {
                 const restaurant = DB.restaurants[restaurantId];
                 
-                // Add rejection audit trail
                 const rejectionData = {
                     rejectedAt: new Date().toISOString(),
                     rejectedTimestamp: Date.now(),
@@ -2672,7 +2429,6 @@
                     rejectionReason: reason.trim()
                 };
                 
-                // Add to audit trail
                 if (restaurant.paymentProof && !restaurant.paymentProof.auditTrail) {
                     restaurant.paymentProof.auditTrail = [];
                 }
@@ -2693,7 +2449,6 @@
         }
         
         async function adminLogout() {
-            // Clean up real-time listener
             if (platformAdminListener) {
                 platformAdminListener();
                 platformAdminListener = null;
@@ -2730,18 +2485,6 @@
         window.copyQRLink = copyQRLink;
         window.generateQRCode = generateQRCode;
         window.showLoadingSuccess = showLoadingSuccess;
-        
-        // QR Customization Functions
-        window.toggleQRControls = toggleQRControls;
-        window.setQRPosition = setQRPosition;
-        window.updateQRSize = updateQRSize;
-        window.toggleQRVisibility = toggleQRVisibility;
-        window.resetQRSettings = resetQRSettings;
-        window.startDragQR = startDragQR;
-        window.dragQR = dragQR;
-        window.stopDragQR = stopDragQR;
-        window.saveQRSettings = saveQRSettings;
-        window.loadQRSettings = loadQRSettings;
         
         // Firebase Auth Listener
         FirebaseAdmin.onAuthStateChanged((user) => {
