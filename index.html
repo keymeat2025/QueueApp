@@ -272,11 +272,124 @@
         }
         
         /* ============================================
-           DISPLAY SCREEN QR CODE POSITIONING
+           DISPLAY SCREEN QR CODE POSITIONING & CONTROLS
         ============================================ */
         .display-qr-fixed {
             position: fixed;
             z-index: 1000;
+            cursor: move;
+            transition: opacity 0.3s ease;
+        }
+        
+        .display-qr-fixed.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+        }
+        
+        .display-qr-fixed.hidden {
+            display: none;
+        }
+        
+        /* QR Controls Panel */
+        .qr-controls {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            z-index: 2000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            min-width: 220px;
+        }
+        
+        .qr-controls.minimized {
+            padding: 0.5rem;
+            min-width: auto;
+        }
+        
+        .qr-controls.minimized .qr-controls-content {
+            display: none;
+        }
+        
+        .qr-controls h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+        
+        .qr-control-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0.25rem;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+        
+        .qr-control-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+        
+        .qr-control-btn.active {
+            background: var(--success);
+        }
+        
+        .qr-control-btn.small {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        
+        .qr-size-control {
+            margin: 0.75rem 0;
+        }
+        
+        .qr-size-control label {
+            display: block;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .qr-size-slider {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        
+        .qr-toggle-btn {
+            background: rgba(249, 115, 22, 0.9);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .qr-toggle-btn:hover {
+            background: rgba(249, 115, 22, 1);
+            transform: scale(1.1);
+        }
+        
+        .control-group {
+            margin-bottom: 0.75rem;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
         }
         
         /* Mobile: QR at bottom, smaller size */
@@ -1717,7 +1830,40 @@
                 
                 render(`
                     <div class="display-screen" style="position: relative;">
-                        <div class="display-qr-fixed">
+                        <!-- QR Controls Panel -->
+                        <div class="qr-controls" id="qrControls">
+                            <button class="qr-toggle-btn" onclick="toggleQRControls()" style="position: absolute; top: 0.5rem; right: 0.5rem;">⚙️</button>
+                            <div class="qr-controls-content">
+                                <h3>🎛️ QR Settings</h3>
+                                
+                                <div class="control-group">
+                                    <label style="font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">Position:</label>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                        <button class="qr-control-btn small" onclick="setQRPosition('top-left')">↖ Top Left</button>
+                                        <button class="qr-control-btn small" onclick="setQRPosition('top-right')">↗ Top Right</button>
+                                        <button class="qr-control-btn small" onclick="setQRPosition('bottom-left')">↙ Bottom Left</button>
+                                        <button class="qr-control-btn small" onclick="setQRPosition('bottom-right')">↘ Bottom Right</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="control-group qr-size-control">
+                                    <label>Size: <span id="qrSizeLabel">250</span>px</label>
+                                    <input type="range" class="qr-size-slider" id="qrSizeSlider" min="150" max="450" value="250" step="10" oninput="updateQRSize(this.value)">
+                                </div>
+                                
+                                <div class="control-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                    <button class="qr-control-btn" onclick="toggleQRVisibility()">👁️ Hide QR</button>
+                                    <button class="qr-control-btn" onclick="resetQRSettings()">🔄 Reset</button>
+                                </div>
+                                
+                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">
+                                    💡 Drag QR to move freely
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Draggable QR Code -->
+                        <div class="display-qr-fixed" id="displayQR" onmousedown="startDragQR(event)" ontouchstart="startDragQR(event)">
                             <div class="qr-card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: 2rem; border-radius: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 5px solid var(--primary);">
                                 <div style="text-align: center; margin-bottom: 1rem;">
                                     <div class="qr-text" style="font-size: clamp(1.5rem, 2.5vw, 2.5rem); font-weight: 900; color: var(--primary); margin-bottom: 0.5rem; animation: pulse-badge 1.5s infinite;">👉 SCAN HERE 👈</div>
@@ -1799,8 +1945,223 @@
                 `);
                 
                 // Generate QR Code for display after render
-                setTimeout(() => generateQRCode('display-qr', restaurantId), 100);
+                setTimeout(() => {
+                    generateQRCode('display-qr', restaurantId);
+                    loadQRSettings(restaurantId);
+                }, 100);
             });
+        }
+        
+        // QR Code Customization Functions
+        let isDraggingQR = false;
+        let qrDragOffset = { x: 0, y: 0 };
+        
+        function toggleQRControls() {
+            const controls = document.getElementById('qrControls');
+            if (controls) {
+                controls.classList.toggle('minimized');
+            }
+        }
+        
+        function setQRPosition(position) {
+            const qrElement = document.getElementById('displayQR');
+            if (!qrElement) return;
+            
+            // Remove existing position styles
+            qrElement.style.top = '';
+            qrElement.style.bottom = '';
+            qrElement.style.left = '';
+            qrElement.style.right = '';
+            
+            // Set new position
+            const offset = '2rem';
+            switch(position) {
+                case 'top-left':
+                    qrElement.style.top = offset;
+                    qrElement.style.left = offset;
+                    break;
+                case 'top-right':
+                    qrElement.style.top = offset;
+                    qrElement.style.right = offset;
+                    break;
+                case 'bottom-left':
+                    qrElement.style.bottom = offset;
+                    qrElement.style.left = offset;
+                    break;
+                case 'bottom-right':
+                    qrElement.style.bottom = offset;
+                    qrElement.style.right = offset;
+                    break;
+            }
+            
+            saveQRSettings();
+        }
+        
+        function updateQRSize(size) {
+            document.getElementById('qrSizeLabel').textContent = size;
+            const qrElement = document.getElementById('displayQR');
+            if (qrElement) {
+                const scale = size / 250; // Base size is 250
+                qrElement.style.transform = `scale(${scale})`;
+                qrElement.style.transformOrigin = 'top left';
+            }
+            saveQRSettings();
+        }
+        
+        function toggleQRVisibility() {
+            const qrElement = document.getElementById('displayQR');
+            const btn = event.target;
+            if (qrElement) {
+                qrElement.classList.toggle('hidden');
+                btn.textContent = qrElement.classList.contains('hidden') ? '👁️ Show QR' : '👁️ Hide QR';
+                saveQRSettings();
+            }
+        }
+        
+        function resetQRSettings() {
+            const restaurantId = window.location.hash.split('/')[2];
+            if (confirm('Reset QR position and size to default?')) {
+                localStorage.removeItem(`qr_settings_${restaurantId}`);
+                location.reload();
+            }
+        }
+        
+        function startDragQR(e) {
+            // Don't drag if clicking on settings button
+            if (e.target.closest('.qr-toggle-btn')) return;
+            
+            isDraggingQR = true;
+            const qrElement = document.getElementById('displayQR');
+            qrElement.classList.add('dragging');
+            
+            const rect = qrElement.getBoundingClientRect();
+            
+            if (e.type === 'mousedown') {
+                qrDragOffset.x = e.clientX - rect.left;
+                qrDragOffset.y = e.clientY - rect.top;
+                document.addEventListener('mousemove', dragQR);
+                document.addEventListener('mouseup', stopDragQR);
+            } else if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                qrDragOffset.x = touch.clientX - rect.left;
+                qrDragOffset.y = touch.clientY - rect.top;
+                document.addEventListener('touchmove', dragQR);
+                document.addEventListener('touchend', stopDragQR);
+            }
+            
+            e.preventDefault();
+        }
+        
+        function dragQR(e) {
+            if (!isDraggingQR) return;
+            
+            const qrElement = document.getElementById('displayQR');
+            let clientX, clientY;
+            
+            if (e.type === 'mousemove') {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            } else if (e.type === 'touchmove') {
+                const touch = e.touches[0];
+                clientX = touch.clientX;
+                clientY = touch.clientY;
+            }
+            
+            // Calculate new position
+            let newLeft = clientX - qrDragOffset.x;
+            let newTop = clientY - qrDragOffset.y;
+            
+            // Keep within viewport bounds
+            const maxLeft = window.innerWidth - qrElement.offsetWidth;
+            const maxTop = window.innerHeight - qrElement.offsetHeight;
+            
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+            
+            // Remove preset positions
+            qrElement.style.top = newTop + 'px';
+            qrElement.style.left = newLeft + 'px';
+            qrElement.style.right = 'auto';
+            qrElement.style.bottom = 'auto';
+            
+            e.preventDefault();
+        }
+        
+        function stopDragQR(e) {
+            if (!isDraggingQR) return;
+            
+            isDraggingQR = false;
+            const qrElement = document.getElementById('displayQR');
+            qrElement.classList.remove('dragging');
+            
+            document.removeEventListener('mousemove', dragQR);
+            document.removeEventListener('mouseup', stopDragQR);
+            document.removeEventListener('touchmove', dragQR);
+            document.removeEventListener('touchend', stopDragQR);
+            
+            saveQRSettings();
+        }
+        
+        function saveQRSettings() {
+            const restaurantId = window.location.hash.split('/')[2];
+            const qrElement = document.getElementById('displayQR');
+            const sizeSlider = document.getElementById('qrSizeSlider');
+            
+            if (!qrElement) return;
+            
+            const settings = {
+                top: qrElement.style.top,
+                left: qrElement.style.left,
+                right: qrElement.style.right,
+                bottom: qrElement.style.bottom,
+                size: sizeSlider ? sizeSlider.value : 250,
+                hidden: qrElement.classList.contains('hidden'),
+                transform: qrElement.style.transform
+            };
+            
+            localStorage.setItem(`qr_settings_${restaurantId}`, JSON.stringify(settings));
+            console.log('✅ QR settings saved');
+        }
+        
+        function loadQRSettings(restaurantId) {
+            const savedSettings = localStorage.getItem(`qr_settings_${restaurantId}`);
+            
+            if (!savedSettings) {
+                // Apply default position (top-right)
+                setQRPosition('top-right');
+                return;
+            }
+            
+            try {
+                const settings = JSON.parse(savedSettings);
+                const qrElement = document.getElementById('displayQR');
+                const sizeSlider = document.getElementById('qrSizeSlider');
+                const sizeLabel = document.getElementById('qrSizeLabel');
+                
+                if (qrElement) {
+                    if (settings.top) qrElement.style.top = settings.top;
+                    if (settings.left) qrElement.style.left = settings.left;
+                    if (settings.right) qrElement.style.right = settings.right;
+                    if (settings.bottom) qrElement.style.bottom = settings.bottom;
+                    if (settings.transform) qrElement.style.transform = settings.transform;
+                    
+                    if (settings.hidden) {
+                        qrElement.classList.add('hidden');
+                        const hideBtn = document.querySelector('.qr-control-btn[onclick*="toggleQRVisibility"]');
+                        if (hideBtn) hideBtn.textContent = '👁️ Show QR';
+                    }
+                }
+                
+                if (sizeSlider && settings.size) {
+                    sizeSlider.value = settings.size;
+                    if (sizeLabel) sizeLabel.textContent = settings.size;
+                }
+                
+                console.log('✅ QR settings loaded');
+            } catch (error) {
+                console.error('Error loading QR settings:', error);
+                setQRPosition('top-right');
+            }
         }
         
         // Restaurant Admin - Real-time with QR Code
@@ -2368,6 +2729,18 @@
         window.copyQRLink = copyQRLink;
         window.generateQRCode = generateQRCode;
         window.showLoadingSuccess = showLoadingSuccess;
+        
+        // QR Customization Functions
+        window.toggleQRControls = toggleQRControls;
+        window.setQRPosition = setQRPosition;
+        window.updateQRSize = updateQRSize;
+        window.toggleQRVisibility = toggleQRVisibility;
+        window.resetQRSettings = resetQRSettings;
+        window.startDragQR = startDragQR;
+        window.dragQR = dragQR;
+        window.stopDragQR = stopDragQR;
+        window.saveQRSettings = saveQRSettings;
+        window.loadQRSettings = loadQRSettings;
         
         // Firebase Auth Listener
         FirebaseAdmin.onAuthStateChanged((user) => {
