@@ -1,65 +1,199 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>QueueApp - Smart Queue Management</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
+        /* ============================================
+           RESPONSIVE QUEUEAPP - OPTIMIZED FOR ALL SCREENS
+           Mobile | Tablet | Desktop | TV/Display
+        ============================================ */
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         :root {
             --primary: #f97316; --primary-dark: #ea580c; --secondary: #ec4899;
             --success: #22c55e; --warning: #eab308; --danger: #dc2626;
             --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
             --gray-600: #4b5563; --gray-700: #374151; --gray-900: #111827; --white: #ffffff;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: var(--gray-900); background: var(--gray-50); font-size: 16px; }
-        h1 { font-size: clamp(1.5rem, 4vw, 3.5rem); font-weight: 700; }
-        h2 { font-size: clamp(1.25rem, 3vw, 2.5rem); font-weight: 700; }
-        h3 { font-size: clamp(1.1rem, 2.5vw, 2rem); font-weight: 600; }
-        .container { width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem); }
-        nav { background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: clamp(0.75rem, 2vw, 1.5rem); position: sticky; top: 0; z-index: 100; }
-        nav .nav-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        nav h1 { color: var(--primary); cursor: pointer; font-size: clamp(1.25rem, 3vw, 2rem); }
-        nav .nav-buttons { display: flex; gap: clamp(0.5rem, 1.5vw, 1rem); flex-wrap: wrap; }
-        button, .btn { padding: clamp(0.5rem, 1.5vw, 1rem) clamp(1rem, 3vw, 2rem); border: none; border-radius: clamp(0.5rem, 1vw, 1rem); font-size: clamp(0.875rem, 1.5vw, 1.125rem); font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-block; text-align: center; }
-        button:hover, .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        
+        /* ============================================
+           BASE STYLES - MOBILE FIRST
+        ============================================ */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: var(--gray-900); 
+            background: var(--gray-50); 
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        h1 { font-size: clamp(1.5rem, 5vw, 3.5rem); font-weight: 700; line-height: 1.2; }
+        h2 { font-size: clamp(1.25rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.3; }
+        h3 { font-size: clamp(1.1rem, 3vw, 2rem); font-weight: 600; line-height: 1.4; }
+        
+        .container { 
+            width: 100%; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 0 clamp(1rem, 3vw, 2rem);
+        }
+        
+        nav { 
+            background: var(--white); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+        
+        nav .nav-content { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 1rem;
+        }
+        
+        nav h1 { 
+            color: var(--primary); 
+            cursor: pointer; 
+            font-size: clamp(1.25rem, 3vw, 2rem);
+        }
+        
+        nav .nav-buttons { 
+            display: flex; 
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            flex-wrap: wrap;
+        }
+        
+        button, .btn { 
+            padding: clamp(0.5rem, 1.5vw, 1rem) clamp(1rem, 3vw, 2rem);
+            min-height: 44px; /* Touch-friendly */
+            border: none; 
+            border-radius: clamp(0.5rem, 1vw, 1rem);
+            font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-decoration: none; 
+            display: inline-block; 
+            text-align: center;
+        }
+        
+        button:hover, .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+        
         .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
         .btn-secondary { background: var(--gray-600); color: var(--white); }
         .btn-success { background: var(--success); color: var(--white); }
         .btn-danger { background: var(--danger); color: var(--white); }
         .btn-warning { background: var(--warning); color: var(--white); }
-        .card { background: var(--white); border-radius: clamp(1rem, 2vw, 2rem); padding: clamp(1.5rem, 3vw, 3rem); box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: clamp(1rem, 2vw, 2rem); }
-        .grid { display: grid; gap: clamp(1rem, 2vw, 2rem); margin-bottom: clamp(1rem, 2vw, 2rem); }
+        
+        .card { 
+            background: var(--white); 
+            border-radius: clamp(1rem, 2vw, 2rem);
+            padding: clamp(1.5rem, 3vw, 3rem);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            margin-bottom: clamp(1rem, 2vw, 2rem);
+        }
+        
+        .grid { 
+            display: grid; 
+            gap: clamp(1rem, 2vw, 2rem);
+            margin-bottom: clamp(1rem, 2vw, 2rem);
+        }
+        
         .grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
         .grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
         .grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); }
-        input, select, textarea { width: 100%; padding: clamp(0.75rem, 2vw, 1.25rem); border: 2px solid var(--gray-200); border-radius: clamp(0.5rem, 1vw, 1rem); font-size: clamp(0.875rem, 1.5vw, 1.125rem); margin-bottom: clamp(0.75rem, 1.5vw, 1.5rem); transition: border 0.3s ease; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-        .badge { display: inline-block; padding: clamp(0.25rem, 0.5vw, 0.5rem) clamp(0.5rem, 1vw, 1rem); border-radius: 999px; font-size: clamp(0.75rem, 1vw, 0.875rem); font-weight: 700; }
+        
+        input, select, textarea { 
+            width: 100%; 
+            padding: clamp(0.75rem, 2vw, 1.25rem);
+            min-height: 44px; /* Touch-friendly */
+            border: 2px solid var(--gray-200); 
+            border-radius: clamp(0.5rem, 1vw, 1rem);
+            font-size: max(16px, clamp(0.875rem, 1.5vw, 1.125rem)); /* Prevents iOS zoom */
+            margin-bottom: clamp(0.75rem, 1.5vw, 1.5rem);
+            transition: border 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus { 
+            outline: none; 
+            border-color: var(--primary); 
+        }
+        
+        .badge { 
+            display: inline-block; 
+            padding: clamp(0.25rem, 0.5vw, 0.5rem) clamp(0.5rem, 1vw, 1rem);
+            border-radius: 999px; 
+            font-size: clamp(0.75rem, 1vw, 0.875rem);
+            font-weight: 700;
+        }
+        
         .badge-primary { background: var(--primary); color: var(--white); }
         .badge-warning { background: var(--warning); color: var(--white); }
         .badge-danger { background: var(--danger); color: var(--white); }
         .badge-secondary { background: var(--gray-600); color: var(--white); }
+        
         .bg-gradient { background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
         .bg-gradient-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
-        .display-screen { background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: var(--white); min-height: 100vh; padding: clamp(1rem, 3vw, 4rem); }
-        .display-screen h1 { font-size: clamp(2rem, 6vw, 6rem); margin-bottom: clamp(1rem, 3vw, 3rem); }
-        .display-screen h2 { font-size: clamp(1.5rem, 4vw, 4rem); }
-        .display-screen .queue-number { font-size: clamp(3rem, 10vw, 12rem); font-weight: 900; }
-        .alert { padding: clamp(1rem, 2vw, 1.5rem); border-radius: clamp(0.5rem, 1vw, 1rem); margin-bottom: clamp(1rem, 2vw, 1.5rem); border: 2px solid; }
+        
+        .display-screen { 
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%); 
+            color: var(--white); 
+            min-height: 100vh; 
+            padding: clamp(1rem, 3vw, 4rem);
+        }
+        
+        .display-screen h1 { 
+            font-size: clamp(2rem, 6vw, 6rem);
+            margin-bottom: clamp(1rem, 3vw, 3rem);
+        }
+        
+        .display-screen h2 { 
+            font-size: clamp(1.5rem, 4vw, 4rem);
+        }
+        
+        .display-screen .queue-number { 
+            font-size: clamp(3rem, 10vw, 12rem);
+            font-weight: 900;
+        }
+        
+        .alert { 
+            padding: clamp(1rem, 2vw, 1.5rem);
+            border-radius: clamp(0.5rem, 1vw, 1rem);
+            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+            border: 2px solid;
+        }
+        
         .alert-warning { background: #fef9c3; border-color: var(--warning); color: #854d0e; }
         .alert-danger { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
         .alert-success { background: #dcfce7; border-color: var(--success); color: #166534; }
         .alert-info { background: #dbeafe; border-color: #2563eb; color: #1e40af; }
-        details summary { transition: all 0.3s ease; list-style: none; cursor: pointer; }
+        
+        details summary { 
+            transition: all 0.3s ease; 
+            list-style: none; 
+            cursor: pointer;
+        }
+        
         details[open] summary { color: var(--primary); }
         details[open] summary span { transform: rotate(90deg); display: inline-block; }
         details summary::-webkit-details-marker { display: none; }
+        
         .text-center { text-align: center; }
         .flex { display: flex; }
         .flex-wrap { flex-wrap: wrap; }
@@ -72,22 +206,184 @@
         .space-y > * + * { margin-top: clamp(0.75rem, 1.5vw, 1.5rem); }
         .mb { margin-bottom: clamp(1rem, 2vw, 2rem); }
         .mt { margin-top: clamp(1rem, 2vw, 2rem); }
-        .loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
-        .loading-icon { font-size: clamp(3rem, 8vw, 6rem); margin-bottom: clamp(1rem, 2vw, 2rem); animation: pulse 2s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes pulse-badge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .progress-bar { background: var(--gray-200); height: 30px; border-radius: 999px; overflow: hidden; position: relative; }
-        .progress-fill { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; transition: width 0.3s ease; }
-        .qr-container { background: white; padding: 2rem; border-radius: 1rem; display: inline-block; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-        .qr-badge { position: absolute; top: -10px; right: -10px; background: var(--success); color: white; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; animation: pulse 2s infinite; }
-        @keyframes pulse-badge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @media (max-width: 640px) { nav .nav-buttons { width: 100%; justify-content: center; } .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
-        @media (min-width: 1920px) { body { font-size: 20px; } .display-screen .queue-number { font-size: 15rem; } }
-        @media (min-width: 2560px) { body { font-size: 24px; } .container { max-width: 2000px; } .display-screen .queue-number { font-size: 20rem; } }
+        
+        .loading-screen { 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-direction: column; 
+            background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%);
+        }
+        
+        .loading-icon { 
+            font-size: clamp(3rem, 8vw, 6rem);
+            margin-bottom: clamp(1rem, 2vw, 2rem);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        
+        @keyframes pulse-badge { 
+            0%, 100% { transform: scale(1); } 
+            50% { transform: scale(1.1); } 
+        }
+        
+        .progress-bar { 
+            background: var(--gray-200); 
+            height: 30px; 
+            border-radius: 999px; 
+            overflow: hidden; 
+            position: relative;
+        }
+        
+        .progress-fill { 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: 700; 
+            transition: width 0.3s ease;
+        }
+        
+        .qr-container { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 1rem; 
+            display: inline-block; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        .qr-badge { 
+            position: absolute; 
+            top: -10px; 
+            right: -10px; 
+            background: var(--success); 
+            color: white; 
+            padding: 0.5rem 1rem; 
+            border-radius: 999px; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            animation: pulse 2s infinite;
+        }
+        
+        /* ============================================
+           MOBILE PHONES (max-width: 767px)
+        ============================================ */
+        @media (max-width: 767px) {
+            nav .nav-buttons { 
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .grid-2, .grid-3, .grid-4 { 
+                grid-template-columns: 1fr;
+            }
+            
+            .display-screen h1 { 
+                font-size: clamp(1.5rem, 6vw, 2.5rem);
+            }
+            
+            .display-screen h2 { 
+                font-size: clamp(1.25rem, 5vw, 2rem);
+            }
+            
+            .display-screen .queue-number { 
+                font-size: clamp(2.5rem, 12vw, 5rem);
+            }
+        }
+        
+        /* ============================================
+           TABLETS (768px - 1024px)
+        ============================================ */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .grid-3, .grid-4 { 
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .display-screen .queue-number { 
+                font-size: clamp(4rem, 10vw, 8rem);
+            }
+        }
+        
+        /* ============================================
+           DESKTOP (min-width: 1025px)
+        ============================================ */
+        @media (min-width: 1025px) {
+            .grid-3 { 
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .grid-4 { 
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        /* ============================================
+           TV & COMMERCIAL DISPLAYS (min-width: 1920px)
+        ============================================ */
+        @media (min-width: 1920px) {
+            body { 
+                font-size: 20px;
+            }
+            
+            .display-screen .queue-number { 
+                font-size: 15rem;
+            }
+            
+            button, .btn {
+                min-height: 60px;
+            }
+        }
+        
+        /* ============================================
+           ULTRA-LARGE DISPLAYS (min-width: 2560px)
+        ============================================ */
+        @media (min-width: 2560px) {
+            body { 
+                font-size: 24px;
+            }
+            
+            .container { 
+                max-width: 2000px;
+            }
+            
+            .display-screen .queue-number { 
+                font-size: 20rem;
+            }
+            
+            button, .btn {
+                min-height: 70px;
+            }
+        }
+        
+        /* ============================================
+           PRINT STYLES
+        ============================================ */
         @media print { 
             body * { visibility: hidden; }
             .print-qr, .print-qr * { visibility: visible; }
-            .print-qr { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-qr { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%;
+            }
+        }
+        
+        /* ============================================
+           ACCESSIBILITY
+        ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
