@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,6 +42,7 @@
         .badge { display: inline-block; padding: clamp(0.25rem, 0.5vw, 0.5rem) clamp(0.5rem, 1vw, 1rem); border-radius: 999px; font-size: clamp(0.75rem, 1vw, 0.875rem); font-weight: 700; }
         .badge-primary { background: var(--primary); color: var(--white); }
         .badge-warning { background: var(--warning); color: var(--white); }
+        .badge-danger { background: var(--danger); color: var(--white); }
         .badge-secondary { background: var(--gray-600); color: var(--white); }
         .bg-gradient { background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%); }
         .bg-gradient-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: var(--white); }
@@ -400,11 +400,12 @@
                 }
             },
             
-            async rejectPremium(restaurantId) {
+            async rejectPremium(restaurantId, reason) {
                 try {
                     await db.collection('restaurants').doc(restaurantId).update({
                         planStatus: 'rejected',
-                        'paymentProof.rejectedAt': firebase.firestore.FieldValue.serverTimestamp()
+                        'paymentProof.rejectedAt': firebase.firestore.FieldValue.serverTimestamp(),
+                        'paymentProof.rejectionReason': reason
                     });
                     return { success: true };
                 } catch (error) {
@@ -502,11 +503,14 @@
                 }
                 return false;
             },
-            rejectPremium(restaurantId) {
+            rejectPremium(restaurantId, reason) {
                 const restaurant = this.restaurants[restaurantId];
                 if (restaurant) { 
                     restaurant.planStatus = 'rejected'; 
-                    if (restaurant.paymentProof) restaurant.paymentProof.rejectedAt = Date.now(); 
+                    if (restaurant.paymentProof) {
+                        restaurant.paymentProof.rejectedAt = Date.now();
+                        restaurant.paymentProof.rejectionReason = reason;
+                    }
                     this.save(); 
                     return true; 
                 }
@@ -1352,7 +1356,7 @@
                 
                 const currentPlan = restaurant.plan || 'free';
                 const planStatus = restaurant.planStatus || 'active';
-                const planBadge = `<span class="badge ${currentPlan === 'premium' && planStatus === 'active' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : currentPlan.toUpperCase()}</span>`;
+                const planBadge = `<span class="badge ${currentPlan === 'premium' && planStatus === 'active' ? 'badge-primary' : planStatus === 'pending' ? 'badge-warning' : planStatus === 'rejected' ? 'badge badge-danger' : 'badge-secondary'}">${planStatus === 'pending' ? 'PENDING' : planStatus === 'rejected' ? 'REJECTED' : currentPlan.toUpperCase()}</span>`;
                 
                 const today = new Date().toISOString().slice(0, 10);
                 const todayFormatted = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -1372,7 +1376,46 @@
                                 </div>
                             </div>
                             
-                            ${planStatus === 'pending' ? '<div class="alert alert-warning mb">⏳ Premium upgrade pending</div>' : ''}
+                            ${planStatus === 'pending' ? `
+                                <div class="alert alert-warning mb">
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <div style="font-size: 2rem;">⏳</div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 700; margin-bottom: 0.25rem;">Premium Upgrade Pending Review</p>
+                                            <p style="font-size: 0.875rem; margin: 0;">Your payment is being verified. This usually takes 2-24 hours.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${planStatus === 'rejected' && restaurant.paymentProof?.rejectionReason ? `
+                                <div class="alert alert-danger mb">
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <div style="font-size: 2rem;">❌</div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 700; margin-bottom: 0.5rem;">Premium Upgrade Rejected</p>
+                                            <p style="font-size: 0.875rem; margin-bottom: 0.5rem;"><strong>Reason:</strong> ${restaurant.paymentProof.rejectionReason}</p>
+                                            <p style="font-size: 0.875rem; margin: 0;">Please contact support@queueapp.com or try upgrading again.</p>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 1rem;">
+                                        <button onclick="navigate('/pricing')" class="btn btn-primary">Try Again</button>
+                                        <a href="mailto:support@queueapp.com?subject=Payment Rejection - ${restaurantId}&body=My payment was rejected. Transaction ID: ${restaurant.paymentProof?.transactionId || 'N/A'}" class="btn btn-secondary" style="margin-left: 0.5rem;">Contact Support</a>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${currentPlan === 'premium' && planStatus === 'active' && restaurant.planExpiryDate && (restaurant.planExpiryDate - Date.now()) > 0 ? `
+                                <div class="alert alert-success mb">
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <div style="font-size: 2rem;">✅</div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 700; margin-bottom: 0.25rem;">Premium Plan Active</p>
+                                            <p style="font-size: 0.875rem; margin: 0;">Enjoy unlimited customers! Plan expires on ${new Date(restaurant.planExpiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
                             
                             <div class="alert alert-info mb">
                                 <div class="flex justify-between items-center flex-wrap gap-1">
@@ -1622,12 +1665,36 @@
                                                 <div style="flex: 1;">
                                                     <h3>${r.name}</h3>
                                                     <p style="font-size: 0.875rem;">ID: ${id} • ${r.owner}</p>
-                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.transactionId || 'N/A'}</p>
+                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
                                                 </div>
                                                 <div class="flex gap-1 flex-wrap">
                                                     <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
                                                     <button onclick="approvePayment('${id}')" class="btn btn-success">✓ Approve</button>
                                                     <button onclick="rejectPayment('${id}')" class="btn btn-danger">✗ Reject</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${restaurants.filter(([_, r]) => r.planStatus === 'rejected').length > 0 ? `
+                            <div class="card mb" style="border: 2px solid var(--danger);">
+                                <h2 style="color: var(--danger); margin-bottom: 1rem;">❌ Rejected Payments (${restaurants.filter(([_, r]) => r.planStatus === 'rejected').length})</h2>
+                                <div class="space-y">
+                                    ${restaurants.filter(([_, r]) => r.planStatus === 'rejected').map(([id, r]) => `
+                                        <div class="card" style="background: #fee2e2;">
+                                            <div class="flex justify-between items-start flex-wrap gap-1">
+                                                <div style="flex: 1;">
+                                                    <h3>${r.name}</h3>
+                                                    <p style="font-size: 0.875rem;">ID: ${id} • ${r.owner}</p>
+                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
+                                                    <p style="font-size: 0.875rem; margin-top: 0.5rem;"><strong>Rejection Reason:</strong> ${r.paymentProof?.rejectionReason || 'No reason provided'}</p>
+                                                    <p style="font-size: 0.75rem; color: var(--gray-600);">Rejected: ${r.paymentProof?.rejectedAt ? new Date(r.paymentProof.rejectedAt.seconds ? r.paymentProof.rejectedAt.seconds * 1000 : r.paymentProof.rejectedAt).toLocaleString() : 'N/A'}</p>
+                                                </div>
+                                                <div class="flex gap-1 flex-wrap">
+                                                    <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1676,19 +1743,31 @@
         }
         
         function approvePayment(restaurantId) {
-            if (confirm('Approve Premium?')) {
+            const restaurant = DB.restaurants[restaurantId];
+            const paymentInfo = restaurant?.paymentProof;
+            
+            const confirmMsg = `✓ Approve Premium for ${restaurant?.name}?\n\nTransaction ID: ${paymentInfo?.transactionId || 'N/A'}\nAmount: ₹${paymentInfo?.amount || 1999}\n\nThis will activate unlimited customers for 30 days.`;
+            
+            if (confirm(confirmMsg)) {
                 FirebaseDB.approvePremium(restaurantId);
                 DB.approvePremium(restaurantId);
-                alert('✅ Premium activated!');
+                alert('✅ Premium activated! Restaurant owner can now use unlimited customers.');
                 handleRoute();
             }
         }
         
         function rejectPayment(restaurantId) {
-            if (confirm('Reject payment?')) {
-                FirebaseDB.rejectPremium(restaurantId);
-                DB.rejectPremium(restaurantId);
-                alert('❌ Rejected');
+            const reason = prompt('❌ Rejection Reason:\n\nPlease provide a reason for rejecting this payment (e.g., "Amount mismatch", "Invalid screenshot", "Payment not received")');
+            
+            if (!reason || reason.trim() === '') {
+                alert('⚠️ Rejection reason is required');
+                return;
+            }
+            
+            if (confirm(`Reject payment with reason: "${reason}"?`)) {
+                FirebaseDB.rejectPremium(restaurantId, reason.trim());
+                DB.rejectPremium(restaurantId, reason.trim());
+                alert('❌ Payment rejected. Restaurant owner will see the reason.');
                 handleRoute();
             }
         }
