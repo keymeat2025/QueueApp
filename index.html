@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -703,7 +702,13 @@
                                 <div class="text-center">
                                     <p style="font-size: 0.875rem; margin-bottom: 0.5rem; opacity: 0.9;">MOST POPULAR</p>
                                     <h3>Premium</h3>
-                                    <div style="font-size: 4rem; font-weight: 900; margin: 1rem 0;">₹2,999<span style="font-size: 1.5rem; opacity: 0.8;">/mo</span></div>
+                                    <div style="margin: 1rem 0;">
+                                        <div style="font-size: 2rem; font-weight: 700; text-decoration: line-through; opacity: 0.6;">₹2,999</div>
+                                        <div style="font-size: 4rem; font-weight: 900;">₹1,999<span style="font-size: 1.5rem; opacity: 0.8;">/mo</span></div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 0.5rem 1rem; border-radius: 999px; margin-bottom: 1rem;">
+                                        <span style="font-size: 0.875rem; font-weight: 700;">🎉 SAVE ₹1,000!</span>
+                                    </div>
                                     <p style="opacity: 0.9; margin-bottom: 2rem;">Unlimited customers</p>
                                 </div>
                                 <div class="space-y">
@@ -728,28 +733,48 @@
             render(`
                 <div style="min-height: 100vh; background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%); padding: 2rem;">
                     <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <div style="text-align: center; margin-bottom: 1rem;">
+                            <div style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 0.75rem 2rem; border-radius: 999px; font-size: 1rem; font-weight: 700; animation: pulse 2s infinite; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                                🎉 FIRST TIME OFFER - 33% OFF!
+                            </div>
+                        </div>
                         <h2>Upgrade to Premium</h2>
                         <p style="color: var(--gray-600);">${restaurant.name}</p>
                         <div class="card bg-gradient-primary text-center mb">
                             <p>Total Amount</p>
-                            <div style="font-size: 5rem; font-weight: 900;">₹2,999</div>
+                            <div style="position: relative; display: inline-block;">
+                                <div style="font-size: 3rem; font-weight: 900; text-decoration: line-through; opacity: 0.5;">₹2,999</div>
+                                <div style="font-size: 6rem; font-weight: 900; color: white; text-shadow: 0 4px 12px rgba(0,0,0,0.2);">₹1,999</div>
+                            </div>
                             <p style="opacity: 0.9;">per month • 30 days</p>
+                            <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 0.5rem 1rem; border-radius: 999px; margin-top: 0.5rem;">
+                                <span style="font-weight: 700;">💰 Save ₹1,000/month!</span>
+                            </div>
+                        </div>
+                        <div class="card text-center" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 3px solid var(--primary);">
+                            <div style="display: inline-block; background: var(--primary); color: white; padding: 0.5rem 1.5rem; border-radius: 999px; font-size: 0.875rem; font-weight: 700; margin-bottom: 1rem;">SECURED PAYMENT</div>
+                            <p style="font-weight: 600; font-size: 1.25rem; color: var(--gray-700); margin-bottom: 0.5rem;">Pay to</p>
+                            <p style="font-size: 2rem; font-weight: 900; color: var(--primary); margin-bottom: 1rem;">QueueApp</p>
+                            <div style="background: white; display: inline-block; padding: 1rem; border-radius: 1rem; margin-bottom: 0.5rem;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gray-900);">Amount: <span style="color: var(--success);">₹1,999</span></div>
+                            </div>
                         </div>
                         <div class="card text-center" style="background: var(--gray-50);">
-                            <p style="color: var(--gray-600);">UPI ID</p>
-                            <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); font-family: monospace;">sriramvasudev@okhdfcbank</p>
+                            <p style="font-weight: 600; margin-bottom: 1rem;">Scan QR Code to Pay</p>
+                            <div id="payment-qr" style="display: inline-block; padding: 1rem; background: white; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+                            <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: 1rem;">Scan with any UPI app (GPay, PhonePe, Paytm)</p>
                         </div>
-                        <div class="card text-center" style="background: var(--gray-50);">
-                            <p style="font-weight: 600; margin-bottom: 1rem;">Scan QR Code</p>
-                            <div id="payment-qr" style="display: inline-block; padding: 1rem; background: white; border-radius: 1rem;"></div>
+                        <div class="alert alert-success" style="text-align: center;">
+                            <p style="font-weight: 700; margin-bottom: 0.5rem;">⏰ Limited Time Offer!</p>
+                            <p style="font-size: 0.875rem; margin: 0;">This special price is available for first-time Premium upgrades only</p>
                         </div>
-                        <button onclick="navigate('/payment/${restaurantId}/upload')" class="btn btn-success w-full">I've Paid → Upload Screenshot</button>
+                        <button onclick="navigate('/payment/${restaurantId}/upload')" class="btn btn-success w-full">I've Paid ₹1,999 → Upload Screenshot</button>
                     </div>
                 </div>
             `);
 
             setTimeout(() => {
-                const upiString = `upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=2999&cu=INR&tn=QueueApp-${restaurantId}`;
+                const upiString = `upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}`;
                 new QRCode(document.getElementById('payment-qr'), { text: upiString, width: 200, height: 200 });
             }, 100);
         }
@@ -794,8 +819,8 @@
 
             const reader = new FileReader();
             reader.onload = async function(e) {
-                await FirebaseDB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId, amount: 2999 });
-                DB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId, amount: 2999 });
+                await FirebaseDB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId, amount: 1999 });
+                DB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId, amount: 1999 });
                 alert('✅ Submitted! Verification takes 2-24 hours.');
                 navigate(`/r/${restaurantId}/admin`);
             };
