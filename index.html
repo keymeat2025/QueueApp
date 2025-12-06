@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -385,29 +384,46 @@
                 }
             },
             
-            async approvePremium(restaurantId) {
+            async approvePremium(restaurantId, auditData) {
                 try {
                     const expiryDate = new Date();
                     expiryDate.setDate(expiryDate.getDate() + 30);
                     
-                    await db.collection('restaurants').doc(restaurantId).update({
+                    const updateData = {
                         plan: 'premium',
                         planStatus: 'active',
                         planExpiryDate: expiryDate.getTime()
-                    });
+                    };
+                    
+                    // Add audit data if provided
+                    if (auditData) {
+                        updateData['paymentProof.approvedAt'] = firebase.firestore.FieldValue.serverTimestamp();
+                        updateData['paymentProof.approvedBy'] = auditData.approvedBy || 'platform_admin';
+                        updateData['paymentProof.approvalReason'] = auditData.approvalReason || 'Approved';
+                    }
+                    
+                    await db.collection('restaurants').doc(restaurantId).update(updateData);
                     return { success: true };
                 } catch (error) {
                     return { success: false, error: error.message };
                 }
             },
             
-            async rejectPremium(restaurantId, reason) {
+            async rejectPremium(restaurantId, reason, auditData) {
                 try {
-                    await db.collection('restaurants').doc(restaurantId).update({
+                    const updateData = {
                         planStatus: 'rejected',
                         'paymentProof.rejectedAt': firebase.firestore.FieldValue.serverTimestamp(),
                         'paymentProof.rejectionReason': reason
-                    });
+                    };
+                    
+                    // Add audit data if provided
+                    if (auditData) {
+                        updateData['paymentProof.rejectedBy'] = auditData.rejectedBy || 'platform_admin';
+                        updateData['paymentProof.rejectedTimestamp'] = auditData.rejectedTimestamp;
+                    }
+                    
+                    await db.collection('restaurants').doc(restaurantId).update(updateData);
                     return { success: true };
                 } catch (error) {
                     return { success: false, error: error.message };
@@ -837,9 +853,53 @@
 
             const reader = new FileReader();
             reader.onload = async function(e) {
-                await FirebaseDB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId, amount: 1999 });
-                DB.savePaymentProof(restaurantId, { screenshot: e.target.result, transactionId, amount: 1999 });
-                alert('✅ Submitted! Verification takes 2-24 hours.');
+                // Generate unique internal transaction ID for audit
+                const internalTxnId = 'TXN-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                
+                // Get restaurant details for audit
+                const restaurant = DB.restaurants[restaurantId];
+                
+                // Comprehensive audit data
+                const auditData = {
+                    // Transaction IDs
+                    internalTransactionId: internalTxnId,
+                    utrNumber: transactionId,
+                    
+                    // Payment details
+                    screenshot: e.target.result,
+                    amount: 1999,
+                    currency: 'INR',
+                    paymentMethod: 'UPI',
+                    
+                    // Customer details (from existing data)
+                    customerDetails: {
+                        restaurantId: restaurantId,
+                        restaurantName: restaurant?.name || 'N/A',
+                        ownerName: restaurant?.owner || 'N/A',
+                        email: restaurant?.email || 'N/A',
+                        phone: restaurant?.phone || 'N/A',
+                        city: restaurant?.city || 'N/A'
+                    },
+                    
+                    // Timestamps
+                    uploadedAt: new Date().toISOString(),
+                    uploadedTimestamp: Date.now(),
+                    
+                    // Status tracking
+                    status: 'pending',
+                    
+                    // Audit trail
+                    auditTrail: [{
+                        action: 'payment_proof_uploaded',
+                        timestamp: new Date().toISOString(),
+                        by: 'restaurant_owner',
+                        details: 'Payment proof submitted for verification'
+                    }]
+                };
+                
+                await FirebaseDB.savePaymentProof(restaurantId, auditData);
+                DB.savePaymentProof(restaurantId, auditData);
+                alert('✅ Submitted! Verification takes 2-24 hours.\n\nTransaction ID: ' + internalTxnId);
                 navigate(`/r/${restaurantId}/admin`);
             };
             reader.readAsDataURL(fileInput.files[0]);
@@ -1666,7 +1726,9 @@
                                                 <div style="flex: 1;">
                                                     <h3>${r.name}</h3>
                                                     <p style="font-size: 0.875rem;">ID: ${id} • ${r.owner}</p>
-                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
+                                                    ${r.paymentProof?.internalTransactionId ? `<p style="font-size: 0.875rem; font-weight: 600; color: #2563eb;">TXN: ${r.paymentProof.internalTransactionId}</p>` : ''}
+                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.utrNumber || r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
+                                                    <p style="font-size: 0.75rem; color: var(--gray-600);">Submitted: ${r.paymentProof?.uploadedAt ? new Date(r.paymentProof.uploadedAt).toLocaleString() : 'N/A'}</p>
                                                 </div>
                                                 <div class="flex gap-1 flex-wrap">
                                                     <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
@@ -1690,9 +1752,10 @@
                                                 <div style="flex: 1;">
                                                     <h3>${r.name}</h3>
                                                     <p style="font-size: 0.875rem;">ID: ${id} • ${r.owner}</p>
-                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
+                                                    ${r.paymentProof?.internalTransactionId ? `<p style="font-size: 0.875rem; font-weight: 600; color: #2563eb;">TXN: ${r.paymentProof.internalTransactionId}</p>` : ''}
+                                                    <p style="font-size: 0.875rem;">UTR: ${r.paymentProof?.utrNumber || r.paymentProof?.transactionId || 'N/A'} • Amount: ₹${r.paymentProof?.amount || 1999}</p>
                                                     <p style="font-size: 0.875rem; margin-top: 0.5rem;"><strong>Rejection Reason:</strong> ${r.paymentProof?.rejectionReason || 'No reason provided'}</p>
-                                                    <p style="font-size: 0.75rem; color: var(--gray-600);">Rejected: ${r.paymentProof?.rejectedAt ? new Date(r.paymentProof.rejectedAt.seconds ? r.paymentProof.rejectedAt.seconds * 1000 : r.paymentProof.rejectedAt).toLocaleString() : 'N/A'}</p>
+                                                    <p style="font-size: 0.75rem; color: var(--gray-600);">Rejected by: ${r.paymentProof?.rejectedBy || 'Admin'} on ${r.paymentProof?.rejectedAt ? new Date(r.paymentProof.rejectedAt.seconds ? r.paymentProof.rejectedAt.seconds * 1000 : r.paymentProof.rejectedAt).toLocaleString() : 'N/A'}</p>
                                                 </div>
                                                 <div class="flex gap-1 flex-wrap">
                                                     <button onclick="viewScreenshot('${id}')" class="btn" style="background: #2563eb; color: white;">View</button>
@@ -1747,10 +1810,33 @@
             const restaurant = DB.restaurants[restaurantId];
             const paymentInfo = restaurant?.paymentProof;
             
-            const confirmMsg = `✓ Approve Premium for ${restaurant?.name}?\n\nTransaction ID: ${paymentInfo?.transactionId || 'N/A'}\nAmount: ₹${paymentInfo?.amount || 1999}\n\nThis will activate unlimited customers for 30 days.`;
+            const confirmMsg = `✓ Approve Premium for ${restaurant?.name}?\n\nTransaction ID: ${paymentInfo?.internalTransactionId || 'N/A'}\nUTR: ${paymentInfo?.utrNumber || paymentInfo?.transactionId || 'N/A'}\nAmount: ₹${paymentInfo?.amount || 1999}\n\nThis will activate unlimited customers for 30 days.`;
             
             if (confirm(confirmMsg)) {
-                FirebaseDB.approvePremium(restaurantId);
+                // Add approval audit trail
+                const approvalData = {
+                    approvedAt: new Date().toISOString(),
+                    approvedTimestamp: Date.now(),
+                    approvedBy: sessionStorage.getItem('adminEmail') || 'platform_admin',
+                    approvalReason: 'Payment verified and approved'
+                };
+                
+                // Add to audit trail
+                if (!restaurant.paymentProof.auditTrail) {
+                    restaurant.paymentProof.auditTrail = [];
+                }
+                restaurant.paymentProof.auditTrail.push({
+                    action: 'payment_approved',
+                    timestamp: new Date().toISOString(),
+                    by: approvalData.approvedBy,
+                    details: 'Premium plan activated for 30 days'
+                });
+                
+                // Merge approval data
+                Object.assign(restaurant.paymentProof, approvalData);
+                DB.save();
+                
+                FirebaseDB.approvePremium(restaurantId, approvalData);
                 DB.approvePremium(restaurantId);
                 alert('✅ Premium activated! Restaurant owner can now use unlimited customers.');
                 handleRoute();
@@ -1766,7 +1852,30 @@
             }
             
             if (confirm(`Reject payment with reason: "${reason}"?`)) {
-                FirebaseDB.rejectPremium(restaurantId, reason.trim());
+                const restaurant = DB.restaurants[restaurantId];
+                
+                // Add rejection audit trail
+                const rejectionData = {
+                    rejectedAt: new Date().toISOString(),
+                    rejectedTimestamp: Date.now(),
+                    rejectedBy: sessionStorage.getItem('adminEmail') || 'platform_admin',
+                    rejectionReason: reason.trim()
+                };
+                
+                // Add to audit trail
+                if (restaurant.paymentProof && !restaurant.paymentProof.auditTrail) {
+                    restaurant.paymentProof.auditTrail = [];
+                }
+                if (restaurant.paymentProof) {
+                    restaurant.paymentProof.auditTrail.push({
+                        action: 'payment_rejected',
+                        timestamp: new Date().toISOString(),
+                        by: rejectionData.rejectedBy,
+                        details: 'Reason: ' + reason.trim()
+                    });
+                }
+                
+                FirebaseDB.rejectPremium(restaurantId, reason.trim(), rejectionData);
                 DB.rejectPremium(restaurantId, reason.trim());
                 alert('❌ Payment rejected. Restaurant owner will see the reason.');
                 handleRoute();
