@@ -272,6 +272,95 @@
         }
         
         /* ============================================
+           DISPLAY SCREEN QR CODE POSITIONING
+        ============================================ */
+        .display-qr-fixed {
+            position: fixed;
+            z-index: 1000;
+        }
+        
+        /* Mobile: QR at bottom, smaller size */
+        @media (max-width: 767px) {
+            .display-qr-fixed {
+                bottom: 1rem;
+                right: 1rem;
+                left: 1rem;
+                max-width: 100%;
+            }
+            
+            .display-qr-fixed .qr-card {
+                padding: 1rem !important;
+            }
+            
+            .display-qr-fixed #display-qr {
+                width: 150px !important;
+                height: 150px !important;
+                margin: 0 auto;
+            }
+            
+            .display-qr-fixed .qr-text {
+                font-size: 0.875rem !important;
+            }
+        }
+        
+        /* Tablet: QR at top-right, medium size */
+        @media (min-width: 768px) and (max-width: 1280px) {
+            .display-qr-fixed {
+                top: 1rem;
+                right: 1rem;
+                max-width: 280px;
+            }
+            
+            .display-qr-fixed .qr-card {
+                padding: 1.5rem !important;
+            }
+            
+            .display-qr-fixed #display-qr {
+                width: 180px !important;
+                height: 180px !important;
+            }
+        }
+        
+        /* Desktop Small: QR at top-right, standard size */
+        @media (min-width: 1281px) and (max-width: 1919px) {
+            .display-qr-fixed {
+                top: 1.5rem;
+                right: 1.5rem;
+                max-width: 320px;
+            }
+            
+            .display-qr-fixed .qr-card {
+                padding: 1.75rem !important;
+            }
+        }
+        
+        /* TV/Large Display: QR at top-right, larger */
+        @media (min-width: 1920px) {
+            .display-qr-fixed {
+                top: 2rem;
+                right: 2rem;
+                max-width: 380px;
+            }
+            
+            .display-qr-fixed .qr-card {
+                padding: 2rem !important;
+            }
+        }
+        
+        /* Ultra-wide: Even larger QR */
+        @media (min-width: 2560px) {
+            .display-qr-fixed {
+                top: 3rem;
+                right: 3rem;
+                max-width: 450px;
+            }
+            
+            .display-qr-fixed .qr-card {
+                padding: 2.5rem !important;
+            }
+        }
+        
+        /* ============================================
            MOBILE PHONES (max-width: 767px)
         ============================================ */
         @media (max-width: 767px) {
@@ -294,6 +383,11 @@
             
             .display-screen .queue-number { 
                 font-size: clamp(2.5rem, 12vw, 5rem);
+            }
+            
+            /* Add bottom padding to prevent QR overlap */
+            .display-screen .container {
+                padding-bottom: 200px;
             }
         }
         
@@ -427,10 +521,26 @@
             element.innerHTML = '';
             const qrUrl = getTodayQRCode(restaurantId);
             
+            // Determine QR code size based on screen width
+            let qrSize = 256; // Default size
+            const screenWidth = window.innerWidth;
+            
+            if (screenWidth < 768) {
+                qrSize = 150; // Mobile
+            } else if (screenWidth < 1280) {
+                qrSize = 180; // Tablet
+            } else if (screenWidth < 1920) {
+                qrSize = 220; // Desktop
+            } else if (screenWidth < 2560) {
+                qrSize = 256; // Large display
+            } else {
+                qrSize = 300; // Ultra-wide
+            }
+            
             new QRCode(element, {
                 text: qrUrl,
-                width: 256,
-                height: 256,
+                width: qrSize,
+                height: qrSize,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
@@ -1607,19 +1717,19 @@
                 
                 render(`
                     <div class="display-screen" style="position: relative;">
-                        <div style="position: fixed; top: 2rem; right: 2rem; z-index: 1000; max-width: 350px;">
-                            <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: 2rem; border-radius: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 5px solid var(--primary);">
+                        <div class="display-qr-fixed">
+                            <div class="qr-card" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: 2rem; border-radius: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 5px solid var(--primary);">
                                 <div style="text-align: center; margin-bottom: 1rem;">
-                                    <div style="font-size: 2.5rem; font-weight: 900; color: var(--primary); margin-bottom: 0.5rem; animation: pulse-badge 1.5s infinite;">👉 SCAN HERE 👈</div>
-                                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;">Welcome! 🎉</div>
-                                    <div style="font-size: 1.1rem; color: var(--gray-700); line-height: 1.4;">Join our queue instantly with your phone</div>
+                                    <div class="qr-text" style="font-size: clamp(1.5rem, 2.5vw, 2.5rem); font-weight: 900; color: var(--primary); margin-bottom: 0.5rem; animation: pulse-badge 1.5s infinite;">👉 SCAN HERE 👈</div>
+                                    <div class="qr-text" style="font-size: clamp(1rem, 1.5vw, 1.5rem); font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;">Welcome! 🎉</div>
+                                    <div class="qr-text" style="font-size: clamp(0.875rem, 1.1vw, 1.1rem); color: var(--gray-700); line-height: 1.4;">Join our queue instantly with your phone</div>
                                 </div>
-                                <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;">
-                                    <div id="display-qr" style="background: white;"></div>
+                                <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; display: flex; justify-content: center;">
+                                    <div id="display-qr" style="background: white; display: inline-block;"></div>
                                 </div>
                                 <div style="text-align: center; margin-top: 1rem;">
-                                    <div style="font-size: 1.3rem; color: var(--primary); font-weight: 700;">📱 Open Camera & Scan</div>
-                                    <div style="font-size: 1rem; color: var(--gray-600); margin-top: 0.3rem;">No app needed!</div>
+                                    <div class="qr-text" style="font-size: clamp(1rem, 1.3vw, 1.3rem); color: var(--primary); font-weight: 700;">📱 Open Camera & Scan</div>
+                                    <div class="qr-text" style="font-size: clamp(0.75rem, 1vw, 1rem); color: var(--gray-600); margin-top: 0.3rem;">No app needed!</div>
                                 </div>
                             </div>
                         </div>
