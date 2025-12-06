@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1557,11 +1556,33 @@
             return FirebaseAdmin.getCurrentUser() && sessionStorage.getItem('adminAuth') === 'yes';
         }
         
-        function showPlatformAdmin() {
+        async function showPlatformAdmin() {
+            // Show loading first
+            render(`
+                <div style="min-height: 100vh; background: var(--gray-100); display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center">
+                        <div style="font-size: 4rem; margin-bottom: 1rem; animation: pulse 2s infinite;">📊</div>
+                        <h2>Loading Platform Data...</h2>
+                    </div>
+                </div>
+            `);
+            
+            // Fetch all restaurants from Firebase
+            const result = await FirebaseDB.getAllRestaurants();
+            
+            if (result.success) {
+                // Update localStorage with Firebase data
+                DB.restaurants = result.data;
+                DB.save();
+                console.log('✅ Loaded restaurants from Firebase:', Object.keys(result.data).length);
+            } else {
+                console.error('❌ Failed to load restaurants:', result.error);
+            }
+            
             const restaurants = Object.entries(DB.restaurants);
             const pendingPayments = restaurants.filter(([_, r]) => r.planStatus === 'pending');
-            const totalCustomers = restaurants.reduce((sum, [_, r]) => sum + r.queue.length, 0);
-            const totalRevenue = restaurants.filter(([_, r]) => r.plan === 'premium' && r.planStatus === 'active').length * 2999;
+            const totalCustomers = restaurants.reduce((sum, [_, r]) => sum + (r.queue?.length || 0), 0);
+            const totalRevenue = restaurants.filter(([_, r]) => r.plan === 'premium' && r.planStatus === 'active').length * 1999;
             
             render(`
                 <div style="min-height: 100vh; background: var(--gray-100); padding: 2rem;">
@@ -1617,12 +1638,12 @@
                         <div class="card">
                             <h2 style="margin-bottom: 1rem;">All Restaurants</h2>
                             <div class="space-y">
-                                ${restaurants.map(([id, r]) => `
+                                ${restaurants.length > 0 ? restaurants.map(([id, r]) => `
                                     <div class="card" style="background: var(--gray-50);">
                                         <div class="flex justify-between items-center flex-wrap gap-1">
                                             <div>
                                                 <h3>${r.name} ${r.plan === 'premium' && r.planStatus === 'active' ? '<span class="badge badge-primary">PREMIUM</span>' : r.planStatus === 'pending' ? '<span class="badge badge-warning">PENDING</span>' : '<span class="badge badge-secondary">FREE</span>'}</h3>
-                                                <p style="font-size: 0.875rem;">ID: ${id} • ${r.city} • ${r.queue.length} customers</p>
+                                                <p style="font-size: 0.875rem;">ID: ${id} • ${r.city} • ${r.queue?.length || 0} customers</p>
                                             </div>
                                             <div class="flex gap-1">
                                                 <button onclick="navigate('/r/${id}/admin')" class="btn btn-secondary">Admin</button>
@@ -1630,7 +1651,13 @@
                                             </div>
                                         </div>
                                     </div>
-                                `).join('')}
+                                `).join('') : `
+                                    <div class="card text-center" style="background: var(--gray-50); padding: 4rem;">
+                                        <div style="font-size: 4rem; margin-bottom: 1rem;">🏪</div>
+                                        <h3 style="color: var(--gray-600);">No Restaurants Yet</h3>
+                                        <p style="color: var(--gray-500); margin-top: 0.5rem;">Restaurants will appear here once they sign up</p>
+                                    </div>
+                                `}
                             </div>
                         </div>
                     </div>
