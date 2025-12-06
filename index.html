@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -591,6 +590,13 @@
         function handleRoute() {
             const hash = window.location.hash.slice(1) || '/';
             const parts = hash.split('/').filter(Boolean);
+            
+            // Clean up platform admin listener if navigating away from admin
+            if (hash !== '/admin' && platformAdminListener) {
+                platformAdminListener();
+                platformAdminListener = null;
+                console.log('✅ Platform admin listener cleaned up (route change)');
+            }
             
             if (hash === '/' || hash === '') showHome();
             else if (hash === '/pricing') showPricing();
@@ -1662,6 +1668,9 @@
             return FirebaseAdmin.getCurrentUser() && sessionStorage.getItem('adminAuth') === 'yes';
         }
         
+        // Global listener cleanup
+        let platformAdminListener = null;
+        
         async function showPlatformAdmin() {
             // Show loading first
             render(`
@@ -1669,22 +1678,39 @@
                     <div class="text-center">
                         <div style="font-size: 4rem; margin-bottom: 1rem; animation: pulse 2s infinite;">📊</div>
                         <h2>Loading Platform Data...</h2>
+                        <p style="color: var(--gray-600); margin-top: 0.5rem;">Setting up real-time sync...</p>
                     </div>
                 </div>
             `);
             
-            // Fetch all restaurants from Firebase
-            const result = await FirebaseDB.getAllRestaurants();
-            
-            if (result.success) {
-                // Update localStorage with Firebase data
-                DB.restaurants = result.data;
-                DB.save();
-                console.log('✅ Loaded restaurants from Firebase:', Object.keys(result.data).length);
-            } else {
-                console.error('❌ Failed to load restaurants:', result.error);
+            // Clean up old listener if exists
+            if (platformAdminListener) {
+                platformAdminListener();
+                platformAdminListener = null;
             }
             
+            // Set up real-time listener for ALL restaurants
+            platformAdminListener = db.collection('restaurants').onSnapshot((snapshot) => {
+                const updateTime = new Date().toLocaleTimeString();
+                console.log(`🔄 Platform admin: Real-time update at ${updateTime} (${snapshot.docs.length} restaurants)`);
+                
+                // Update localStorage with latest data
+                snapshot.docs.forEach(doc => {
+                    DB.restaurants[doc.id] = doc.data();
+                });
+                DB.save();
+                
+                // Re-render dashboard with updated data
+                renderPlatformAdminDashboard();
+            }, (error) => {
+                console.error('❌ Real-time listener error:', error);
+                alert('⚠️ Real-time sync error. Please refresh the page.');
+            });
+            
+            console.log('✅ Real-time listener set up for platform admin at', new Date().toLocaleTimeString());
+        }
+        
+        function renderPlatformAdminDashboard() {
             const restaurants = Object.entries(DB.restaurants);
             const pendingPayments = restaurants.filter(([_, r]) => r.planStatus === 'pending');
             const totalCustomers = restaurants.reduce((sum, [_, r]) => sum + (r.queue?.length || 0), 0);
@@ -1694,7 +1720,14 @@
                 <div style="min-height: 100vh; background: var(--gray-100); padding: 2rem;">
                     <div class="container">
                         <div class="card mb flex justify-between items-center flex-wrap">
-                            <div><h1>🏢 Platform Admin</h1><p style="color: var(--gray-600);">Manage all restaurants</p></div>
+                            <div>
+                                <h1>🏢 Platform Admin</h1>
+                                <p style="color: var(--gray-600);">Manage all restaurants</p>
+                                <p style="color: #10b981; font-size: 0.875rem;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; margin-right: 0.5rem;"></span>
+                                    Live Sync Active • Auto-updates
+                                </p>
+                            </div>
                             <button onclick="adminLogout()" class="btn btn-danger">Logout</button>
                         </div>
                         
@@ -1715,6 +1748,13 @@
                                 <div style="font-size: 3rem; font-weight: 900; color: var(--warning);">${pendingPayments.length}</div>
                                 <p>Pending</p>
                             </div>
+                        </div>
+                        
+                        <div class="alert alert-info mb" style="text-align: center;">
+                            <p style="font-size: 0.875rem; margin: 0;">
+                                <strong>Last Updated:</strong> ${new Date().toLocaleTimeString()} • 
+                                Data syncs automatically in real-time
+                            </p>
                         </div>
                         
                         ${pendingPayments.length > 0 ? `
@@ -1884,6 +1924,13 @@
         }
         
         async function adminLogout() {
+            // Clean up real-time listener
+            if (platformAdminListener) {
+                platformAdminListener();
+                platformAdminListener = null;
+                console.log('✅ Platform admin listener cleaned up');
+            }
+            
             await FirebaseAdmin.signOut();
             sessionStorage.removeItem('adminAuth');
             sessionStorage.removeItem('adminEmail');
