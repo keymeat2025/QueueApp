@@ -1,5 +1,4 @@
-
-
+      
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -955,7 +954,16 @@
         
         window.FirebaseDB = FirebaseDB;
         
-        // Local Storage (Backup)
+        // Internet Connection Check
+        function checkInternetConnection() {
+            if (!navigator.onLine) {
+                alert('⚠️ No Internet Connection\n\nPlease connect to the internet to continue.');
+                return false;
+            }
+            return true;
+        }
+        
+        // Local Storage (Cache Only - Not for Auth)
         const DB = {
             restaurants: JSON.parse(localStorage.getItem('restaurants') || '{}'),
             save() { localStorage.setItem('restaurants', JSON.stringify(this.restaurants)); },
@@ -1014,10 +1022,6 @@
                     return true; 
                 } 
                 return false; 
-            },
-            login(restaurantId, phone) { 
-                const restaurant = this.restaurants[restaurantId]; 
-                return restaurant && restaurant.phone === phone; 
             },
             savePaymentProof(restaurantId, paymentData) {
                 const restaurant = this.restaurants[restaurantId];
@@ -1454,39 +1458,54 @@
         }
         
         async function handleLogin(event) {
+            if (!checkInternetConnection()) return;
+            
             const restaurantId = document.getElementById('loginRestaurantId').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
-            if (!restaurantId || !phone) { alert('⚠️ Fill all fields'); return; }
+            
+            if (!restaurantId || !phone) { 
+                alert('⚠️ Fill all fields'); 
+                return; 
+            }
             
             const btn = event.target;
             btn.textContent = 'Logging in...';
             btn.disabled = true;
             
             try {
+                console.log('🔍 Attempting login from Firebase...');
+                
+                // ALWAYS fetch from Firebase (works on any device)
                 const result = await FirebaseDB.getRestaurant(restaurantId);
                 
-                if (result.success && result.data.phone === phone) {
-                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-                    DB.restaurants[restaurantId] = result.data;
-                    DB.save();
-                    setTimeout(() => navigate(`/r/${restaurantId}/admin`), 100);
-                } else if (DB.login(restaurantId, phone)) {
-                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-                    setTimeout(() => navigate(`/r/${restaurantId}/admin`), 100);
-                } else {
-                    alert('❌ Invalid credentials');
+                if (!result.success) {
+                    alert('❌ Restaurant ID not found');
                     btn.textContent = 'Login';
                     btn.disabled = false;
+                    return;
                 }
+                
+                // Verify phone number (trim both for comparison)
+                if (result.data.phone.trim() !== phone.trim()) {
+                    alert('❌ Invalid phone number');
+                    btn.textContent = 'Login';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Success! Update local cache and login
+                DB.restaurants[restaurantId] = result.data;
+                DB.save();
+                sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
+                
+                console.log('✅ Login successful from Firebase');
+                setTimeout(() => navigate(`/r/${restaurantId}/admin`), 100);
+                
             } catch (error) {
-                if (DB.login(restaurantId, phone)) {
-                    sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
-                    setTimeout(() => navigate(`/r/${restaurantId}/admin`), 100);
-                } else {
-                    alert(`❌ Error: ${error.message}`);
-                    btn.textContent = 'Login';
-                    btn.disabled = false;
-                }
+                console.error('❌ Login error:', error);
+                alert(`❌ Login failed: ${error.message}\n\nPlease check your internet connection and try again.`);
+                btn.textContent = 'Login';
+                btn.disabled = false;
             }
         }
         
@@ -1502,14 +1521,43 @@
             `);
         }
         
-        function handleRestaurantLogin(restaurantId) {
+        async function handleRestaurantLogin(restaurantId) {
+            if (!checkInternetConnection()) return;
+            
             const phone = document.getElementById('restaurantLoginPhone').value.trim();
-            if (!phone) { alert('Enter phone'); return; }
-            if (DB.login(restaurantId, phone)) { 
-                sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true'); 
-                handleRoute(); 
-            } else { 
-                alert('❌ Invalid'); 
+            
+            if (!phone) { 
+                alert('⚠️ Enter phone number'); 
+                return; 
+            }
+            
+            try {
+                console.log('🔍 Fetching restaurant data from Firebase...');
+                
+                // Fetch from Firebase
+                const result = await FirebaseDB.getRestaurant(restaurantId);
+                
+                if (!result.success) {
+                    alert('❌ Restaurant not found');
+                    return;
+                }
+                
+                if (result.data.phone.trim() !== phone.trim()) {
+                    alert('❌ Invalid phone number');
+                    return;
+                }
+                
+                // Success!
+                DB.restaurants[restaurantId] = result.data;
+                DB.save();
+                sessionStorage.setItem(`loggedIn_${restaurantId}`, 'true');
+                
+                console.log('✅ Login successful');
+                handleRoute();
+                
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                alert(`❌ Error: ${error.message}\n\nPlease check your internet connection.`);
             }
         }
         
@@ -1537,6 +1585,8 @@
         }
         
         async function handleSignup(event) {
+            if (!checkInternetConnection()) return;
+            
             const name = document.getElementById('restaurantName').value.trim();
             const owner = document.getElementById('ownerName').value.trim();
             const email = document.getElementById('email').value.trim();
@@ -2731,6 +2781,7 @@
         window.copyQRLink = copyQRLink;
         window.generateQRCode = generateQRCode;
         window.showLoadingSuccess = showLoadingSuccess;
+        window.checkInternetConnection = checkInternetConnection;
         
         // QR Customization Functions
         window.toggleQRControls = toggleQRControls;
