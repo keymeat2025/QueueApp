@@ -401,6 +401,142 @@
             width: 100% !important;
         }
         
+        /* QR Controls - Responsive */
+        .qr-controls {
+            background: var(--gray-50);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-md);
+        }
+        
+        .qr-size-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: var(--space-sm);
+            margin-top: var(--space-sm);
+        }
+        
+        .qr-size-btn {
+            padding: var(--space-sm);
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-sm);
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+        }
+        
+        .qr-size-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .qr-size-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .color-picker-wrapper {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: var(--space-sm);
+        }
+        
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .color-option.active {
+            border-color: var(--primary);
+            transform: scale(1.2);
+        }
+        
+        .color-option:hover {
+            transform: scale(1.15);
+        }
+        
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        
+        .qr-preview-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        
+        .qr-settings-panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-top: var(--space-md);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+        
+        .setting-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .setting-control {
+            flex: 2;
+            min-width: 200px;
+        }
+        
+        .slider-container {
+            width: 100%;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: var(--gray-200);
+            outline: none;
+            margin: 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+        }
+        
         /* QR Badge */
         .qr-badge { 
             position: absolute; 
@@ -649,6 +785,15 @@
         
         console.log('🔥 Firebase initialized');
         
+        // QR Code Settings
+        window.qrSettings = {
+            size: 256,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            margin: 0,
+            correctLevel: 'H'
+        };
+        
         // Daily QR Code Generator
         function getTodayQRCode(restaurantId) {
             const baseUrl = window.location.origin + window.location.pathname;
@@ -656,38 +801,104 @@
             return qrUrl;
         }
         
-        function generateQRCode(elementId, restaurantId) {
+        function generateQRCode(elementId, restaurantId, customSettings = {}) {
             const element = document.getElementById(elementId);
             if (!element) return;
             
             element.innerHTML = '';
             const qrUrl = getTodayQRCode(restaurantId);
             
-            // Responsive QR code size based on viewport
-            const size = Math.min(256, window.innerWidth * 0.4, window.innerHeight * 0.3);
+            // Merge custom settings with global settings
+            const settings = { ...window.qrSettings, ...customSettings };
+            
+            // Use custom size or responsive default
+            let size = settings.size;
+            if (!customSettings.size) {
+                size = Math.min(256, window.innerWidth * 0.4, window.innerHeight * 0.3);
+            }
+            
+            const correctLevelMap = {
+                'L': QRCode.CorrectLevel.L,
+                'M': QRCode.CorrectLevel.M,
+                'Q': QRCode.CorrectLevel.Q,
+                'H': QRCode.CorrectLevel.H
+            };
             
             new QRCode(element, {
                 text: qrUrl,
                 width: size,
                 height: size,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+                colorDark: settings.colorDark,
+                colorLight: settings.colorLight,
+                correctLevel: correctLevelMap[settings.correctLevel] || QRCode.CorrectLevel.H
             });
+        }
+        
+        function updateQRSettings(elementId, restaurantId, newSettings) {
+            Object.assign(window.qrSettings, newSettings);
+            generateQRCode(elementId, restaurantId, window.qrSettings);
+        }
+        
+        function setQRSize(elementId, restaurantId, size) {
+            updateQRSettings(elementId, restaurantId, { size });
+            document.querySelectorAll('.qr-size-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-size="${size}"]`)?.classList.add('active');
+            const sizeValue = document.getElementById('qrSizeValue');
+            if (sizeValue) sizeValue.textContent = `${size}px`;
+        }
+        
+        function setQRColor(elementId, restaurantId, colorType, color) {
+            const settings = {};
+            settings[colorType] = color;
+            updateQRSettings(elementId, restaurantId, settings);
+        }
+        
+        function toggleQRSettings() {
+            const panel = document.getElementById('qrSettingsPanel');
+            if (panel) {
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
         }
         
         function printQRCode() {
             window.print();
         }
         
-        function downloadQRCode(restaurantId) {
+        function downloadQRCode(restaurantId, customName = null) {
             const canvas = document.querySelector('#daily-qr canvas');
-            if (!canvas) return;
+            if (!canvas) {
+                alert('⚠️ QR code not found. Please wait for it to load.');
+                return;
+            }
             
             const link = document.createElement('a');
-            link.download = `QueueApp-QR-${new Date().toISOString().slice(0, 10)}.png`;
-            link.href = canvas.toDataURL();
+            const filename = customName || `QueueApp-QR-${restaurantId}-${new Date().toISOString().slice(0, 10)}.png`;
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
             link.click();
+        }
+        
+        function downloadQRCustomSize(restaurantId, size) {
+            // Create temporary element
+            const tempDiv = document.createElement('div');
+            tempDiv.id = 'temp-qr';
+            tempDiv.style.display = 'none';
+            document.body.appendChild(tempDiv);
+            
+            // Generate QR with custom size
+            generateQRCode('temp-qr', restaurantId, { size });
+            
+            // Wait for generation and download
+            setTimeout(() => {
+                const canvas = tempDiv.querySelector('canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = `QueueApp-QR-${restaurantId}-${size}px.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+                document.body.removeChild(tempDiv);
+            }, 100);
         }
         
         // Firebase Admin Auth
@@ -1155,13 +1366,13 @@
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                // Regenerate QR codes with new size
+                // Regenerate QR codes with current settings
                 const qrElements = document.querySelectorAll('[id$="-qr"]');
                 qrElements.forEach(el => {
-                    if (el.id === 'daily-qr' || el.id === 'display-qr' || el.id === 'payment-qr') {
+                    if ((el.id === 'daily-qr' || el.id === 'display-qr' || el.id === 'payment-qr') && el.innerHTML) {
                         const restaurantId = window.location.hash.split('/')[2];
-                        if (restaurantId && el.innerHTML) {
-                            generateQRCode(el.id, restaurantId);
+                        if (restaurantId) {
+                            generateQRCode(el.id, restaurantId, window.qrSettings);
                         }
                     }
                 });
@@ -1370,13 +1581,18 @@
 
             setTimeout(() => {
                 const upiString = `upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${restaurantId}`;
-                generateQRCode('payment-qr', restaurantId);
-                // Override with payment QR
                 const element = document.getElementById('payment-qr');
                 if (element) {
                     element.innerHTML = '';
                     const size = Math.min(200, window.innerWidth * 0.4);
-                    new QRCode(element, { text: upiString, width: size, height: size });
+                    new QRCode(element, { 
+                        text: upiString, 
+                        width: size, 
+                        height: size,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
                 }
             }, 100);
         }
@@ -2029,19 +2245,138 @@
                                         <p style="margin: 0; font-size: 0.875rem; color: #1e40af;">🔄 Queue resets at midnight daily</p>
                                     </div>
                                     <div style="position: relative;">
-                                        <div class="qr-container">
-                                            <div id="daily-qr"></div>
+                                        <div class="qr-preview-wrapper">
+                                            <div class="qr-container">
+                                                <div id="daily-qr"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- QR Settings Panel -->
+                                <div id="qrSettingsPanel" style="display: none;">
+                                    <div class="qr-settings-panel">
+                                        <h3 style="margin-bottom: 1rem;">⚙️ QR Code Settings</h3>
+                                        
+                                        <!-- Size Selection -->
+                                        <div class="setting-row">
+                                            <div class="setting-label">
+                                                📏 Size: <span id="qrSizeValue" style="color: var(--primary);">256px</span>
+                                            </div>
+                                            <div class="setting-control">
+                                                <input type="range" min="128" max="512" value="256" step="64" 
+                                                    onchange="setQRSize('daily-qr', '${restaurantId}', this.value)"
+                                                    oninput="document.getElementById('qrSizeValue').textContent = this.value + 'px'"
+                                                    class="slider-container">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Quick Size Buttons -->
+                                        <div class="setting-row">
+                                            <div class="setting-label">Quick Select:</div>
+                                            <div class="qr-size-selector">
+                                                <button class="qr-size-btn" data-size="128" onclick="setQRSize('daily-qr', '${restaurantId}', 128)">Small<br>128px</button>
+                                                <button class="qr-size-btn active" data-size="256" onclick="setQRSize('daily-qr', '${restaurantId}', 256)">Medium<br>256px</button>
+                                                <button class="qr-size-btn" data-size="384" onclick="setQRSize('daily-qr', '${restaurantId}', 384)">Large<br>384px</button>
+                                                <button class="qr-size-btn" data-size="512" onclick="setQRSize('daily-qr', '${restaurantId}', 512)">XLarge<br>512px</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Color Selection -->
+                                        <div class="setting-row">
+                                            <div class="setting-label">🎨 QR Color:</div>
+                                            <div class="color-picker-wrapper">
+                                                <div class="color-option active" style="background: #000000;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorDark', '#000000'); 
+                                                    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #1e40af;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorDark', '#1e40af'); 
+                                                    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #dc2626;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorDark', '#dc2626'); 
+                                                    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #059669;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorDark', '#059669'); 
+                                                    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #7c3aed;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorDark', '#7c3aed'); 
+                                                    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <input type="color" value="#000000" 
+                                                    onchange="setQRColor('daily-qr', '${restaurantId}', 'colorDark', this.value)" 
+                                                    title="Custom Color">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Background Color -->
+                                        <div class="setting-row">
+                                            <div class="setting-label">🎨 Background:</div>
+                                            <div class="color-picker-wrapper">
+                                                <div class="color-option active" style="background: #ffffff; border: 2px solid #e5e7eb;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorLight', '#ffffff'); 
+                                                    document.querySelectorAll('.color-picker-wrapper')[1].querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #fef3c7;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorLight', '#fef3c7'); 
+                                                    document.querySelectorAll('.color-picker-wrapper')[1].querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #dbeafe;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorLight', '#dbeafe'); 
+                                                    document.querySelectorAll('.color-picker-wrapper')[1].querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #dcfce7;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorLight', '#dcfce7'); 
+                                                    document.querySelectorAll('.color-picker-wrapper')[1].querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <div class="color-option" style="background: #fce7f3;" 
+                                                    onclick="setQRColor('daily-qr', '${restaurantId}', 'colorLight', '#fce7f3'); 
+                                                    document.querySelectorAll('.color-picker-wrapper')[1].querySelectorAll('.color-option').forEach(el => el.classList.remove('active')); 
+                                                    this.classList.add('active');"></div>
+                                                <input type="color" value="#ffffff" 
+                                                    onchange="setQRColor('daily-qr', '${restaurantId}', 'colorLight', this.value)" 
+                                                    title="Custom Background">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Download Options -->
+                                        <div class="setting-row">
+                                            <div class="setting-label">💾 Download:</div>
+                                            <div class="flex" style="gap: var(--space-sm); flex-wrap: wrap;">
+                                                <button onclick="downloadQRCustomSize('${restaurantId}', 256)" class="btn btn-secondary" style="flex: 1;">256px</button>
+                                                <button onclick="downloadQRCustomSize('${restaurantId}', 512)" class="btn btn-secondary" style="flex: 1;">512px</button>
+                                                <button onclick="downloadQRCustomSize('${restaurantId}', 1024)" class="btn btn-secondary" style="flex: 1;">1024px</button>
+                                                <button onclick="downloadQRCustomSize('${restaurantId}', 2048)" class="btn btn-secondary" style="flex: 1;">2048px</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info" style="margin-top: 1rem; margin-bottom: 0;">
+                                            <p style="font-size: 0.875rem; margin: 0;">💡 <strong>Tip:</strong> Use larger sizes (1024px+) for professional printing. Custom colors help match your brand!</p>
+                                        </div>
+                                        
+                                        <!-- Reset Button -->
+                                        <div class="flex mt" style="justify-content: center;">
+                                            <button onclick="window.qrSettings = {size: 256, colorDark: '#000000', colorLight: '#ffffff', margin: 0, correctLevel: 'H'}; generateQRCode('daily-qr', '${restaurantId}'); document.getElementById('qrSizeValue').textContent = '256px'; document.querySelectorAll('.qr-size-btn').forEach(btn => btn.classList.remove('active')); document.querySelector('[data-size=\\'256\\']').classList.add('active'); document.querySelectorAll('.color-option')[0].classList.add('active'); document.querySelectorAll('.color-picker-wrapper')[1].querySelectorAll('.color-option')[0].classList.add('active');" 
+                                                class="btn" style="background: var(--gray-600); color: white;">
+                                                🔄 Reset to Default
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="flex mt">
-                                    <button onclick="printQRCode()" class="btn btn-secondary" style="flex: 1;">🖨️ Print QR</button>
+                                    <button onclick="toggleQRSettings()" class="btn" style="background: #7c3aed; color: white; flex: 1;">⚙️ Customize QR</button>
+                                    <button onclick="printQRCode()" class="btn btn-secondary" style="flex: 1;">🖨️ Print</button>
                                     <button onclick="downloadQRCode('${restaurantId}')" class="btn btn-secondary" style="flex: 1;">💾 Download</button>
                                     <button onclick="copyQRLink('${restaurantId}')" class="btn" style="background: #2563eb; color: white; flex: 1;">🔗 Copy Link</button>
                                 </div>
                                 <div class="mt">
                                     <p style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">💡 How to use:</p>
                                     <ol style="font-size: 0.875rem; color: #1e40af; margin-left: 1.5rem;">
+                                        <li>Customize QR size and colors to match your brand</li>
                                         <li>Print/display this QR at your entrance</li>
                                         <li>Customers scan to join queue instantly</li>
                                         <li>Queue resets daily at midnight automatically</li>
@@ -2482,9 +2817,14 @@
         window.rejectPayment = rejectPayment;
         window.printQRCode = printQRCode;
         window.downloadQRCode = downloadQRCode;
+        window.downloadQRCustomSize = downloadQRCustomSize;
         window.copyQRLink = copyQRLink;
         window.generateQRCode = generateQRCode;
         window.showLoadingSuccess = showLoadingSuccess;
+        window.updateQRSettings = updateQRSettings;
+        window.setQRSize = setQRSize;
+        window.setQRColor = setQRColor;
+        window.toggleQRSettings = toggleQRSettings;
         
         // Firebase Auth Listener
         FirebaseAdmin.onAuthStateChanged((user) => {
