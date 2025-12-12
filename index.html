@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,516 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
-/* ===== RESET & ROOT VARIABLES ===== */
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
---primary:#f97316;
---primary-dark:#ea580c;
---secondary:#ec4899;
---success:#22c55e;
---warning:#eab308;
---danger:#dc2626;
---gray-50:#f9fafb;
---gray-100:#f3f4f6;
---gray-200:#e5e7eb;
---gray-600:#4b5563;
---gray-700:#374151;
---gray-900:#111827;
---white:#fff
-}
-
-/* ===== BASE MOBILE-FIRST STYLES ===== */
-body{
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-line-height:1.6;
-color:var(--gray-900);
-background:var(--gray-50);
-font-size:16px;
--webkit-font-smoothing:antialiased;
--moz-osx-font-smoothing:grayscale;
-overflow-x:hidden
-}
-
-h1{font-size:2rem;font-weight:700;line-height:1.2}
-h2{font-size:1.5rem;font-weight:700;line-height:1.3}
-h3{font-size:1.25rem;font-weight:600;line-height:1.4}
-p{font-size:1rem;line-height:1.6}
-
-/* ===== CONTAINER ===== */
-.container{
-width:100%;
-max-width:1400px;
-margin:0 auto;
-padding:0 1rem
-}
-
-/* ===== NAVIGATION ===== */
-nav{
-background:var(--white);
-box-shadow:0 2px 10px rgba(0,0,0,.1);
-padding:1rem;
-position:sticky;
-top:0;
-z-index:100
-}
-
-nav .nav-content{
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
-gap:0.75rem
-}
-
-nav h1{
-color:var(--primary);
-cursor:pointer;
-font-size:1.5rem
-}
-
-nav .nav-buttons{
-display:flex;
-gap:0.5rem;
-flex-wrap:wrap;
-align-items:center
-}
-
-/* ===== BUTTONS ===== */
-button,.btn{
-padding:0.75rem 1.25rem;
-min-height:48px;
-border:none;
-border-radius:0.75rem;
-font-size:1rem;
-font-weight:600;
-cursor:pointer;
-transition:all .3s ease;
-text-decoration:none;
-display:inline-block;
-text-align:center;
-line-height:1.5
-}
-
-button:hover,.btn:hover{
-transform:translateY(-2px);
-box-shadow:0 4px 12px rgba(0,0,0,.15)
-}
-
-button:active,.btn:active{
-transform:translateY(0)
-}
-
-.btn-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:var(--white)}
-.btn-secondary{background:var(--gray-600);color:var(--white)}
-.btn-success{background:var(--success);color:var(--white)}
-.btn-danger{background:var(--danger);color:var(--white)}
-.btn-warning{background:var(--warning);color:var(--white)}
-
-/* ===== CARDS ===== */
-.card{
-background:var(--white);
-border-radius:1rem;
-padding:1.5rem;
-box-shadow:0 2px 8px rgba(0,0,0,.08);
-margin-bottom:1rem
-}
-
-/* ===== GRID SYSTEM ===== */
-.grid{
-display:grid;
-gap:1rem;
-margin-bottom:1rem
-}
-
-.grid-2{grid-template-columns:1fr}
-.grid-3{grid-template-columns:1fr}
-.grid-4{grid-template-columns:repeat(2,1fr)}
-
-/* ===== FORM INPUTS ===== */
-input,select,textarea{
-width:100%;
-padding:0.875rem;
-min-height:48px;
-border:2px solid var(--gray-200);
-border-radius:0.75rem;
-font-size:16px;
-margin-bottom:1rem;
-transition:border .3s ease
-}
-
-input:focus,select:focus,textarea:focus{
-outline:none;
-border-color:var(--primary)
-}
-
-/* ===== BADGES ===== */
-.badge{
-display:inline-block;
-padding:0.35rem 0.75rem;
-border-radius:999px;
-font-size:0.875rem;
-font-weight:700
-}
-
-.badge-primary{background:var(--primary);color:var(--white)}
-.badge-warning{background:var(--warning);color:var(--white)}
-.badge-danger{background:var(--danger);color:var(--white)}
-.badge-secondary{background:var(--gray-600);color:var(--white)}
-
-/* ===== BACKGROUNDS ===== */
-.bg-gradient{background:linear-gradient(135deg,#fff7ed 0%,#fce7f3 100%)}
-.bg-gradient-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:var(--white)}
-
-/* ===== DISPLAY SCREEN ===== */
-.display-screen{
-background:linear-gradient(135deg,#1f2937 0%,#111827 100%);
-color:var(--white);
-min-height:100vh;
-padding:1.5rem;
-overflow-y:auto
-}
-
-.display-screen h1{
-font-size:2.5rem;
-margin-bottom:1.5rem
-}
-
-.display-screen h2{
-font-size:2rem
-}
-
-.display-screen .queue-number{
-font-size:5rem;
-font-weight:900;
-line-height:1
-}
-
-/* ===== ALERTS ===== */
-.alert{
-padding:1rem;
-border-radius:0.75rem;
-margin-bottom:1rem;
-border:2px solid
-}
-
-.alert-warning{background:#fef9c3;border-color:var(--warning);color:#854d0e}
-.alert-danger{background:#fee2e2;border-color:var(--danger);color:#991b1b}
-.alert-success{background:#dcfce7;border-color:var(--success);color:#166534}
-.alert-info{background:#dbeafe;border-color:#2563eb;color:#1e40af}
-
-/* ===== QR CODE DISPLAY ===== */
-.display-qr-fixed{
-position:fixed;
-top:1rem;
-right:1rem;
-z-index:1000;
-cursor:move;
-transition:opacity .3s ease;
-max-width:280px
-}
-
-.display-qr-fixed.dragging{
-opacity:.8;
-cursor:grabbing
-}
-
-.display-qr-fixed.hidden{
-display:none
-}
-
-/* ===== QR CONTROLS ===== */
-.qr-controls{
-position:fixed;
-top:1rem;
-left:1rem;
-background:rgba(0,0,0,.9);
-color:white;
-padding:1rem;
-border-radius:1rem;
-z-index:2000;
-box-shadow:0 8px 32px rgba(0,0,0,.5);
-min-width:220px
-}
-
-.qr-controls.minimized{
-padding:.5rem;
-min-width:auto
-}
-
-.qr-controls.minimized .qr-controls-content{
-display:none
-}
-
-.qr-controls h3{
-font-size:1rem;
-margin-bottom:.75rem;
-color:var(--primary)
-}
-
-.qr-control-btn{
-background:var(--primary);
-color:white;
-border:none;
-padding:.5rem 1rem;
-border-radius:.5rem;
-cursor:pointer;
-font-size:.875rem;
-font-weight:600;
-margin:.25rem;
-transition:all .2s ease;
-display:inline-block
-}
-
-.qr-control-btn:hover{
-background:var(--primary-dark);
-transform:scale(1.05)
-}
-
-.qr-control-btn.active{
-background:var(--success)
-}
-
-.qr-control-btn.small{
-padding:.35rem .75rem;
-font-size:.75rem
-}
-
-.qr-size-control{
-margin:.75rem 0
-}
-
-.qr-size-control label{
-display:block;
-font-size:.875rem;
-margin-bottom:.5rem;
-color:rgba(255,255,255,.9)
-}
-
-.qr-size-slider{
-width:100%;
-margin:.5rem 0
-}
-
-.qr-toggle-btn{
-background:rgba(249,115,22,.9);
-color:white;
-border:none;
-padding:.75rem;
-border-radius:50%;
-cursor:pointer;
-font-size:1.25rem;
-width:50px;
-height:50px;
-display:flex;
-align-items:center;
-justify-content:center;
-transition:all .3s ease
-}
-
-.qr-toggle-btn:hover{
-background:rgba(249,115,22,1);
-transform:scale(1.1)
-}
-
-.control-group{
-margin-bottom:.75rem
-}
-
-.control-group:last-child{
-margin-bottom:0
-}
-
-/* ===== MODAL ===== */
-.modal-overlay{
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:rgba(0,0,0,.8);
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:9999;
-padding:1rem;
-animation:fadeIn .3s ease
-}
-
-.modal-content{
-background:white;
-border-radius:1rem;
-padding:2rem;
-max-width:600px;
-width:100%;
-max-height:90vh;
-overflow-y:auto;
-animation:slideIn .3s ease
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-@keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-
-/* ===== UTILITY CLASSES ===== */
-.text-center{text-align:center}
-.flex{display:flex}
-.flex-wrap{flex-wrap:wrap}
-.items-center{align-items:center}
-.justify-between{justify-content:space-between}
-.justify-center{justify-content:center}
-.gap-1{gap:0.75rem}
-.w-full{width:100%}
-.hidden{display:none}
-.space-y>*+*{margin-top:1rem}
-.mb{margin-bottom:1rem}
-.mt{margin-top:1rem}
-
-/* ===== LOADING SCREEN ===== */
-.loading-screen{
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-background:linear-gradient(135deg,#fff7ed 0%,#fce7f3 100%)
-}
-
-.loading-icon{
-font-size:4rem;
-margin-bottom:1.5rem;
-animation:pulse 2s ease-in-out infinite
-}
-
-/* ===== PROGRESS BAR ===== */
-.progress-bar{
-background:var(--gray-200);
-height:30px;
-border-radius:999px;
-overflow:hidden;
-position:relative
-}
-
-.progress-fill{
-height:100%;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-weight:700;
-transition:width .3s ease
-}
-
-/* ===== QR CONTAINER ===== */
-.qr-container{
-background:white;
-padding:2rem;
-border-radius:1rem;
-display:inline-block;
-box-shadow:0 8px 24px rgba(0,0,0,.15)
-}
-
-/* ========================================
-   PROGRESSIVE ENHANCEMENT FOR LARGER SCREENS
-   ======================================== */
-
-/* ===== SMALL TABLETS & LARGER (600px+) ===== */
-@media (min-width:600px){
-h1{font-size:2.5rem}
-h2{font-size:2rem}
-.container{padding:0 1.5rem}
-.grid-3{grid-template-columns:repeat(2,1fr)}
-.grid-4{grid-template-columns:repeat(2,1fr)}
-button,.btn{font-size:1.125rem}
-}
-
-/* ===== TABLETS & SMALL LAPTOPS (768px+) ===== */
-@media (min-width:768px){
-h1{font-size:3rem}
-h2{font-size:2.5rem}
-nav h1{font-size:1.75rem}
-.grid-2{grid-template-columns:repeat(2,1fr)}
-.grid-3{grid-template-columns:repeat(2,1fr)}
-.grid-4{grid-template-columns:repeat(3,1fr)}
-.display-screen{padding:2rem}
-.display-screen h1{font-size:3.5rem}
-.display-screen h2{font-size:2.5rem}
-.display-screen .queue-number{font-size:8rem}
-.card{padding:2rem}
-}
-
-/* ===== DESKTOPS (1024px+) ===== */
-@media (min-width:1024px){
-.container{padding:0 2rem}
-.grid-3{grid-template-columns:repeat(3,1fr)}
-.grid-4{grid-template-columns:repeat(4,1fr)}
-.display-screen{padding:3rem}
-.display-screen h1{font-size:4rem}
-.display-screen .queue-number{font-size:10rem}
-}
-
-/* ===== LARGE DESKTOPS & TVs (1440px+) ===== */
-@media (min-width:1440px){
-body{font-size:18px}
-h1{font-size:4rem}
-h2{font-size:3rem}
-.display-screen h1{font-size:5rem}
-.display-screen h2{font-size:3.5rem}
-.display-screen .queue-number{font-size:12rem}
-button,.btn{min-height:54px;font-size:1.25rem}
-.display-qr-fixed{max-width:320px}
-}
-
-/* ===== ULTRA-WIDE & 4K (1920px+) ===== */
-@media (min-width:1920px){
-body{font-size:20px}
-.container{max-width:1800px}
-.display-screen{padding:4rem}
-.display-screen .queue-number{font-size:15rem}
-button,.btn{min-height:60px;padding:1rem 2rem}
-.display-qr-fixed{max-width:380px}
-}
-
-/* ===== 4K & 8K DISPLAYS (2560px+) ===== */
-@media (min-width:2560px){
-body{font-size:24px}
-.container{max-width:2000px}
-h1{font-size:6rem}
-h2{font-size:4.5rem}
-.display-screen h1{font-size:6rem}
-.display-screen .queue-number{font-size:20rem}
-.card{padding:3rem}
-button,.btn{min-height:70px;font-size:1.5rem}
-.display-qr-fixed{max-width:450px}
-}
-
-/* ===== MOBILE-SPECIFIC OVERRIDES ===== */
-@media (max-width:599px){
-nav .nav-buttons{width:100%;justify-content:center}
-.display-qr-fixed{
-bottom:1rem!important;
-right:1rem!important;
-left:1rem!important;
-top:auto!important;
-max-width:calc(100% - 2rem)!important
-}
-.display-qr-fixed .qr-card{padding:1rem!important}
-.display-qr-fixed #display-qr{width:150px!important;height:150px!important;margin:0 auto}
-.display-screen .container{padding-bottom:200px}
-}
-
-/* ===== PRINT STYLES ===== */
-@media print{
-body *{visibility:hidden}
-.print-qr,.print-qr *{visibility:visible}
-.print-qr{position:absolute;left:0;top:0;width:100%}
-}
-
-/* ===== ACCESSIBILITY ===== */
-@media (prefers-reduced-motion:reduce){
-*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-}
+*{margin:0;padding:0;box-sizing:border-box}:root{--primary:#f97316;--primary-dark:#ea580c;--secondary:#ec4899;--success:#22c55e;--warning:#eab308;--danger:#dc2626;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827;--white:#fff}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:var(--gray-900);background:var(--gray-50);font-size:16px;-webkit-font-smoothing:antialiased}h1{font-size:clamp(1.5rem,5vw,3.5rem);font-weight:700;line-height:1.2}h2{font-size:clamp(1.25rem,4vw,2.5rem);font-weight:700;line-height:1.3}h3{font-size:clamp(1.1rem,3vw,2rem);font-weight:600;line-height:1.4}.container{width:100%;max-width:1400px;margin:0 auto;padding:0 clamp(1rem,3vw,2rem)}nav{background:var(--white);box-shadow:0 2px 10px rgba(0,0,0,.1);padding:clamp(.75rem,2vw,1.5rem);position:sticky;top:0;z-index:100}nav .nav-content{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}nav h1{color:var(--primary);cursor:pointer;font-size:clamp(1.25rem,3vw,2rem)}nav .nav-buttons{display:flex;gap:clamp(.5rem,1.5vw,1rem);flex-wrap:wrap}button,.btn{padding:clamp(.5rem,1.5vw,1rem) clamp(1rem,3vw,2rem);min-height:44px;border:none;border-radius:clamp(.5rem,1vw,1rem);font-size:clamp(.875rem,1.5vw,1.125rem);font-weight:600;cursor:pointer;transition:all .3s ease;text-decoration:none;display:inline-block;text-align:center}button:hover,.btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}.btn-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:var(--white)}.btn-secondary{background:var(--gray-600);color:var(--white)}.btn-success{background:var(--success);color:var(--white)}.btn-danger{background:var(--danger);color:var(--white)}.btn-warning{background:var(--warning);color:var(--white)}.card{background:var(--white);border-radius:clamp(1rem,2vw,2rem);padding:clamp(1.5rem,3vw,3rem);box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:clamp(1rem,2vw,2rem)}.grid{display:grid;gap:clamp(1rem,2vw,2rem);margin-bottom:clamp(1rem,2vw,2rem)}.grid-2{grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr))}.grid-3{grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}.grid-4{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}input,select,textarea{width:100%;padding:clamp(.75rem,2vw,1.25rem);min-height:44px;border:2px solid var(--gray-200);border-radius:clamp(.5rem,1vw,1rem);font-size:max(16px,clamp(.875rem,1.5vw,1.125rem));margin-bottom:clamp(.75rem,1.5vw,1.5rem);transition:border .3s ease}input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}.badge{display:inline-block;padding:clamp(.25rem,.5vw,.5rem) clamp(.5rem,1vw,1rem);border-radius:999px;font-size:clamp(.75rem,1vw,.875rem);font-weight:700}.badge-primary{background:var(--primary);color:var(--white)}.badge-warning{background:var(--warning);color:var(--white)}.badge-danger{background:var(--danger);color:var(--white)}.badge-secondary{background:var(--gray-600);color:var(--white)}.bg-gradient{background:linear-gradient(135deg,#fff7ed 0%,#fce7f3 100%)}.bg-gradient-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:var(--white)}.display-screen{background:linear-gradient(135deg,#1f2937 0%,#111827 100%);color:var(--white);min-height:100vh;padding:clamp(1rem,3vw,4rem)}.display-screen h1{font-size:clamp(2rem,6vw,6rem);margin-bottom:clamp(1rem,3vw,3rem)}.display-screen h2{font-size:clamp(1.5rem,4vw,4rem)}.display-screen .queue-number{font-size:clamp(3rem,10vw,12rem);font-weight:900}.alert{padding:clamp(1rem,2vw,1.5rem);border-radius:clamp(.5rem,1vw,1rem);margin-bottom:clamp(1rem,2vw,1.5rem);border:2px solid}.alert-warning{background:#fef9c3;border-color:var(--warning);color:#854d0e}.alert-danger{background:#fee2e2;border-color:var(--danger);color:#991b1b}.alert-success{background:#dcfce7;border-color:var(--success);color:#166534}.alert-info{background:#dbeafe;border-color:#2563eb;color:#1e40af}.display-qr-fixed{position:fixed;z-index:1000;cursor:move;transition:opacity .3s ease}.display-qr-fixed.dragging{opacity:.8;cursor:grabbing}.display-qr-fixed.hidden{display:none}.qr-controls{position:fixed;top:1rem;left:1rem;background:rgba(0,0,0,.9);color:white;padding:1rem;border-radius:1rem;z-index:2000;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:220px}.qr-controls.minimized{padding:.5rem;min-width:auto}.qr-controls.minimized .qr-controls-content{display:none}.qr-controls h3{font-size:1rem;margin-bottom:.75rem;color:var(--primary)}.qr-control-btn{background:var(--primary);color:white;border:none;padding:.5rem 1rem;border-radius:.5rem;cursor:pointer;font-size:.875rem;font-weight:600;margin:.25rem;transition:all .2s ease;display:inline-block}.qr-control-btn:hover{background:var(--primary-dark);transform:scale(1.05)}.qr-control-btn.active{background:var(--success)}.qr-control-btn.small{padding:.35rem .75rem;font-size:.75rem}.qr-size-control{margin:.75rem 0}.qr-size-control label{display:block;font-size:.875rem;margin-bottom:.5rem;color:rgba(255,255,255,.9)}.qr-size-slider{width:100%;margin:.5rem 0}.qr-toggle-btn{background:rgba(249,115,22,.9);color:white;border:none;padding:.75rem;border-radius:50%;cursor:pointer;font-size:1.25rem;width:50px;height:50px;display:flex;align-items:center;justify-content:center;transition:all .3s ease}.qr-toggle-btn:hover{background:rgba(249,115,22,1);transform:scale(1.1)}.control-group{margin-bottom:.75rem}.control-group:last-child{margin-bottom:0}.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;animation:fadeIn .3s ease}.modal-content{background:white;border-radius:1rem;padding:2rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;animation:slideIn .3s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes slideIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}.text-center{text-align:center}.flex{display:flex}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:clamp(.5rem,1vw,1rem)}.w-full{width:100%}.hidden{display:none}.space-y>*+*{margin-top:clamp(.75rem,1.5vw,1.5rem)}.mb{margin-bottom:clamp(1rem,2vw,2rem)}.mt{margin-top:clamp(1rem,2vw,2rem)}.loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(135deg,#fff7ed 0%,#fce7f3 100%)}.loading-icon{font-size:clamp(3rem,8vw,6rem);margin-bottom:clamp(1rem,2vw,2rem);animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}.progress-bar{background:var(--gray-200);height:30px;border-radius:999px;overflow:hidden;position:relative}.progress-fill{height:100%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;transition:width .3s ease}.qr-container{background:white;padding:2rem;border-radius:1rem;display:inline-block;box-shadow:0 8px 24px rgba(0,0,0,.15)}@media (max-width:767px){nav .nav-buttons{width:100%;justify-content:center}.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.display-screen h1{font-size:clamp(1.5rem,6vw,2.5rem)}.display-screen h2{font-size:clamp(1.25rem,5vw,2rem)}.display-screen .queue-number{font-size:clamp(2.5rem,12vw,5rem)}.display-screen .container{padding-bottom:200px}.display-qr-fixed{bottom:1rem;right:1rem;left:1rem;max-width:100%}.display-qr-fixed .qr-card{padding:1rem!important}.display-qr-fixed #display-qr{width:150px!important;height:150px!important;margin:0 auto}.display-qr-fixed .qr-text{font-size:.875rem!important}}@media (min-width:768px) and (max-width:1024px){.grid-3,.grid-4{grid-template-columns:repeat(2,1fr)}.display-screen .queue-number{font-size:clamp(4rem,10vw,8rem)}.display-qr-fixed{top:1rem;right:1rem;max-width:280px}.display-qr-fixed .qr-card{padding:1.5rem!important}.display-qr-fixed #display-qr{width:180px!important;height:180px!important}}@media (min-width:1025px){.grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(4,1fr)}}@media (min-width:1281px) and (max-width:1919px){.display-qr-fixed{top:1.5rem;right:1.5rem;max-width:320px}.display-qr-fixed .qr-card{padding:1.75rem!important}}@media (min-width:1920px){body{font-size:20px}.display-screen .queue-number{font-size:15rem}button,.btn{min-height:60px}.display-qr-fixed{top:2rem;right:2rem;max-width:380px}.display-qr-fixed .qr-card{padding:2rem!important}}@media (min-width:2560px){body{font-size:24px}.container{max-width:2000px}.display-screen .queue-number{font-size:20rem}button,.btn{min-height:70px}.display-qr-fixed{top:3rem;right:3rem;max-width:450px}.display-qr-fixed .qr-card{padding:2.5rem!important}}@media print{body *{visibility:hidden}.print-qr,.print-qr *{visibility:visible}.print-qr{position:absolute;left:0;top:0;width:100%}}@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -532,3 +25,123 @@ const generateQRCode=(eid,rid)=>{const el=document.getElementById(eid);if(!el)re
 
 const FirebaseAdmin={async signIn(e,p){try{const u=await auth.signInWithEmailAndPassword(e,p);return{success:true,user:u.user}}catch(err){return{success:false,error:err.message}}},async signOut(){try{await auth.signOut();return{success:true}}catch(err){return{success:false,error:err.message}}},getCurrentUser(){return auth.currentUser},onAuthStateChanged(cb){return auth.onAuthStateChanged(cb)}};
 window.FirebaseAdmin=FirebaseAdmin;
+
+const FirebaseDB={async addRestaurant(rid,data){try{const cm=new Date().toISOString().slice(0,7),td=new Date().toISOString().slice(0,10);await db.collection('restaurants').doc(rid).set({...data,queue:[],createdAt:firebase.firestore.FieldValue.serverTimestamp(),plan:'free',planStatus:'active',analytics:{currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}},monthlyHistory:[],queueArchive:{},lastCleanupDate:td});return{success:true,id:rid}}catch(err){return{success:false,error:err.message}}},async getRestaurant(rid){try{const doc=await db.collection('restaurants').doc(rid).get();return doc.exists?{success:true,data:doc.data()}:{success:false,error:'Not found'}}catch(err){return{success:false,error:err.message}}},async getAllRestaurants(){try{const snap=await db.collection('restaurants').get(),rests={};snap.forEach(d=>rests[d.id]=d.data());return{success:true,data:rests}}catch(err){return{success:false,error:err.message}}},async addToQueue(rid,cust){try{const rref=db.collection('restaurants').doc(rid),doc=await rref.get();if(!doc.exists)return{success:false,error:'Restaurant not found'};const rest=doc.data(),cm=new Date().toISOString().slice(0,7),td=new Date().toISOString().slice(0,10);let anl=rest.analytics||{currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}};if(anl.currentMonth!==cm){const mh=rest.monthlyHistory||[];mh.push({month:anl.currentMonth,totalCustomers:anl.customersThisMonth,dailyStats:anl.dailyStats,archivedAt:new Date().toISOString()});anl={currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}};await rref.update({monthlyHistory:mh,analytics:anl})}if(rest.plan==='free'&&anl.customersThisMonth>=500)return{success:false,error:'LIMIT_REACHED',message:'Monthly limit reached. Upgrade to Premium.',customersUsed:anl.customersThisMonth,limit:500};const qn=`A-${Math.floor(Math.random()*900)+100}`,qi={...cust,queueNumber:qn,status:'waiting',joinedAt:new Date().toISOString()};anl.customersThisMonth+=1;anl.dailyStats[td]=(anl.dailyStats[td]||0)+1;await rref.update({queue:firebase.firestore.FieldValue.arrayUnion(qi),analytics:anl});return{success:true,queueNumber:qn,customersThisMonth:anl.customersThisMonth,limit:rest.plan==='free'?500:'unlimited'}}catch(err){return{success:false,error:err.message}}},async allocateTable(rid,qn,tbl){try{const res=await this.getRestaurant(rid);if(!res.success)return res;const uq=res.data.queue.map(q=>q.queueNumber===qn?{...q,status:'allocated',tableNo:tbl,allocatedAt:new Date().toISOString()}:q);await db.collection('restaurants').doc(rid).update({queue:uq});return{success:true}}catch(err){return{success:false,error:err.message}}},async getAnalytics(rid){try{const doc=await db.collection('restaurants').doc(rid).get();if(!doc.exists)return{success:false,error:'Not found'};const r=doc.data();return{success:true,analytics:r.analytics||{},monthlyHistory:r.monthlyHistory||[]}}catch(err){return{success:false,error:err.message}}},async dailyCleanup(rid,isManual=false){try{const td=new Date().toISOString().slice(0,10);return await db.runTransaction(async trans=>{const rref=db.collection('restaurants').doc(rid),doc=await trans.get(rref);if(!doc.exists)return{success:false,error:'Not found'};const r=doc.data();if(r.lastCleanupDate===td)return{success:false,error:'Already cleaned today'};if(r.plan==='free'&&!isManual)return{success:false,error:'FREE plan requires manual cleanup'};const qa=r.queueArchive||{};qa[td]={date:td,totalCustomers:r.queue.length,served:r.queue.filter(q=>q.status==='allocated').length,waiting:r.queue.filter(q=>q.status==='waiting').length,archivedAt:new Date().toISOString(),cleanupType:isManual?'manual':'auto'};trans.update(rref,{queue:[],lastCleanupDate:td,lastCleanup:firebase.firestore.FieldValue.serverTimestamp(),queueArchive:qa});return{success:true}})}catch(err){return{success:false,error:err.message}}},async savePaymentProof(rid,pd){try{await db.collection('restaurants').doc(rid).update({paymentProof:{...pd,uploadedAt:firebase.firestore.FieldValue.serverTimestamp()},planStatus:'pending'});return{success:true}}catch(err){return{success:false,error:err.message}}},async approvePremium(rid,ad){try{const exp=new Date();exp.setDate(exp.getDate()+30);const upd={plan:'premium',planStatus:'active',planExpiryDate:exp.getTime()};if(ad){upd['paymentProof.approvedAt']=firebase.firestore.FieldValue.serverTimestamp();upd['paymentProof.approvedBy']=ad.approvedBy||'platform_admin';upd['paymentProof.approvalReason']=ad.approvalReason||'Approved'}await db.collection('restaurants').doc(rid).update(upd);return{success:true}}catch(err){return{success:false,error:err.message}}},async rejectPremium(rid,rsn,ad){try{const upd={planStatus:'rejected','paymentProof.rejectedAt':firebase.firestore.FieldValue.serverTimestamp(),'paymentProof.rejectionReason':rsn};if(ad){upd['paymentProof.rejectedBy']=ad.rejectedBy||'platform_admin';upd['paymentProof.rejectedTimestamp']=ad.rejectedTimestamp}await db.collection('restaurants').doc(rid).update(upd);return{success:true}}catch(err){return{success:false,error:err.message}}}};
+window.FirebaseDB=FirebaseDB;
+
+const checkInternet=()=>{if(!navigator.onLine){alert('⚠️ No Internet Connection\n\nPlease connect to the internet to continue.');return false}return true};
+
+const DB={restaurants:JSON.parse(localStorage.getItem('restaurants')||'{}'),save(){localStorage.setItem('restaurants',JSON.stringify(this.restaurants))},addRestaurant(id,d){const cm=new Date().toISOString().slice(0,7),td=new Date().toISOString().slice(0,10);this.restaurants[id]={...d,queue:[],plan:'free',planStatus:'active',analytics:{currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}},monthlyHistory:[],lastCleanupDate:td};this.save();return id},addToQueue(rid,c){const r=this.restaurants[rid];if(!r)return null;const cm=new Date().toISOString().slice(0,7),td=new Date().toISOString().slice(0,10);if(!r.analytics)r.analytics={currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}};if(r.analytics.currentMonth!==cm){if(!r.monthlyHistory)r.monthlyHistory=[];r.monthlyHistory.push({month:r.analytics.currentMonth,totalCustomers:r.analytics.customersThisMonth});r.analytics={currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}}}if(r.plan==='free'&&r.analytics.customersThisMonth>=500)return null;const qn=`A-${Math.floor(Math.random()*900)+100}`;r.queue.push({...c,queueNumber:qn,status:'waiting',joinedAt:new Date().toISOString()});r.analytics.customersThisMonth+=1;r.analytics.dailyStats[td]=(r.analytics.dailyStats[td]||0)+1;this.save();return qn},allocateTable(rid,qn,tno){const r=this.restaurants[rid];if(!r)return false;const qi=r.queue.find(q=>q.queueNumber===qn);if(qi){qi.status='allocated';qi.tableNo=tno;qi.allocatedAt=new Date().toISOString();this.save();return true}return false},savePaymentProof(rid,pd){const r=this.restaurants[rid];if(r){r.paymentProof={...pd,uploadedAt:Date.now()};r.planStatus='pending';this.save();return true}return false},approvePremium(rid){const r=this.restaurants[rid];if(r){r.plan='premium';r.planStatus='active';const exp=new Date();exp.setDate(exp.getDate()+30);r.planExpiryDate=exp.getTime();this.save();return true}return false},rejectPremium(rid,rsn){const r=this.restaurants[rid];if(r){r.planStatus='rejected';if(r.paymentProof){r.paymentProof.rejectedAt=Date.now();r.paymentProof.rejectionReason=rsn}this.save();return true}return false}};
+window.DB=DB;
+
+const getLoggedInRest=()=>{for(let id of Object.keys(DB.restaurants))if(sessionStorage.getItem(`loggedIn_${id}`))return{id,data:DB.restaurants[id]};return null};
+const navigateHome=()=>{const lg=getLoggedInRest();lg?navigate(`/r/${lg.id}/admin`):navigate('/')};
+const render=h=>document.getElementById('app').innerHTML=h;
+const navigate=p=>window.location.hash=p;
+
+let platformAdminListener=null,adminUnsubscribe=null,displayUnsubscribe=null;
+
+function handleRoute(){const h=window.location.hash.slice(1)||'/',p=h.split('/').filter(Boolean);if(h!=='/admin'&&platformAdminListener){platformAdminListener();platformAdminListener=null}if(h==='/'||h==='')showHome();else if(h==='/pricing')showPricing();else if(h==='/terms')showLegal('Terms of Service',`<h3>1. Acceptance</h3><p>By using QueueApp, you agree to these Terms.</p><h3>2. Service</h3><p>QueueApp provides queue management, QR entry, displays, and analytics.</p><h3>3. Plans</h3><p><strong>Free:</strong> 500 customers/month, basic features.<br><strong>Premium (₹1,999/month):</strong> Unlimited customers, analytics.</p><h3>4. Payment</h3><p>Monthly billing. Non-refundable. Cancel anytime.</p><h3>5. Contact</h3><p>support@queueapp.com</p>`);else if(h==='/privacy')showLegal('Privacy Policy',`<h3>1. Data Collection</h3><p>Restaurant and customer info for service delivery.</p><h3>2. Data Use</h3><p>Service provision, analytics, improvements.</p><h3>3. Storage</h3><p>Firebase cloud storage with localStorage backup.</p><h3>4. Rights</h3><p>Access, correct, delete data anytime.</p><h3>5. Contact</h3><p>privacy@queueapp.com</p>`);else if(h==='/signup')showSignup();else if(h==='/login')showLogin();else if(h==='/admin')checkFirebaseAdminAuth()?showPlatformAdmin():showAdminPasswordPrompt();else if(p[0]==='payment'&&p[1]&&p[2]==='upload')showUploadScreenshot(p[1]);else if(p[0]==='payment'&&p[1])showPaymentPage(p[1]);else if(p[0]==='r'&&p[2]==='join')showJoinQueue(p[1]);else if(p[0]==='r'&&p[2]==='display')showDisplay(p[1]);else if(p[0]==='r'&&p[2]==='status'&&p[3])showQueueStatus(p[1],p[3]);else if(p[0]==='r'&&p[2]==='admin')sessionStorage.getItem(`loggedIn_${p[1]}`)?showRestaurantAdmin(p[1]):showRestaurantLogin(p[1]);else render(`<div class="container text-center" style="padding-top:4rem"><h1>404 - Not Found</h1><button onclick="navigate('/')" class="btn btn-primary mt">Go Home</button></div>`)}
+window.onhashchange=handleRoute;
+
+function showLegal(t,c){render(`<div style="min-height:100vh;background:var(--gray-50)"><nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1><button onclick="navigateHome()" class="btn btn-secondary">← Back</button></div></nav><div class="container" style="padding:3rem 0;max-width:900px"><h1 class="mb">${t}</h1><p style="color:var(--gray-600);margin-bottom:2rem">Last Updated: December 2024</p><div class="card"><div class="space-y">${c}</div></div><div class="text-center mt"><button onclick="navigateHome()" class="btn btn-primary">Back</button></div></div></div>`)}
+
+function showHome(){render(`<div class="bg-gradient" style="min-height:100vh"><nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1><div class="nav-buttons"><button onclick="navigate('/pricing')" class="btn btn-secondary">Pricing</button><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div></div></nav><main class="container text-center" style="padding:clamp(2rem,5vw,8rem) 0"><h1 style="margin-bottom:1rem">Smart Queue Management</h1><p style="font-size:clamp(1.125rem,2vw,1.5rem);color:var(--gray-600);margin-bottom:2rem">No more crowded entrances. Happy customers.</p><div class="grid grid-3 mb"><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📱</div><h3>Digital Queue</h3><p style="color:var(--gray-600)">QR code entry</p></div><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📺</div><h3>Live Display</h3><p style="color:var(--gray-600)">Real-time updates</p></div><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📊</div><h3>Analytics</h3><p style="color:var(--gray-600)">Track customer flow</p></div></div><button onclick="navigate('/signup')" class="btn btn-primary" style="font-size:1.5rem;padding:1.5rem 3rem">Start Free Forever</button><p style="margin-top:1rem;color:var(--gray-600)">500 customers/month free • No credit card</p></main><footer style="background:white;border-top:2px solid var(--gray-200);padding:2rem 0;margin-top:4rem"><div class="container text-center"><div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem"><button onclick="navigate('/terms')" style="background:none;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline">Terms</button><button onclick="navigate('/privacy')" style="background:none;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline">Privacy</button><a href="mailto:support@queueapp.com" style="color:var(--gray-600);text-decoration:underline">Support</a></div><p style="color:var(--gray-500);font-size:.875rem">© 2024 QueueApp</p></div></footer></div>`)}
+
+function showPricing(){const lg=getLoggedInRest(),r=lg?.data,rid=lg?.id,cp=r?.plan||'free',ps=r?.planStatus||'active';const upSrc=sessionStorage.getItem('upgrade_source')||'';const srcBanner=upSrc==='cleanup_button'?`<div class="alert alert-warning mb" style="text-align:center"><p style="font-weight:700;font-size:1.25rem;margin-bottom:.5rem">🛑 Stop Manual Resets Forever!</p><p style="margin:0">Switch to automatic cleanup at midnight • Never click "Reset Queue" again</p></div>`:upSrc.includes('cleanup')?`<div class="alert alert-info mb" style="text-align:center"><p style="font-weight:700;font-size:1.25rem;margin-bottom:.5rem">⚡ Automate Your Queue</p><p style="margin:0">Premium users enjoy automatic cleanup • Zero daily effort required</p></div>`:'';const nb=lg?`<div class="flex gap-1 flex-wrap items-center"><span style="font-weight:600">${r.name}</span><span class="badge ${cp==='premium'?'badge-primary':ps==='pending'?'badge-warning':'badge-secondary'}">${ps==='pending'?'PENDING':cp.toUpperCase()}</span><button onclick="navigate('/r/${rid}/admin')" class="btn btn-secondary">Dashboard</button><button onclick="logout('${rid}')" class="btn btn-danger">Logout</button></div>`:`<div class="nav-buttons"><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div>`,cta=lg&&cp==='premium'&&ps==='active'?`<button class="btn btn-success w-full" disabled style="opacity:.7">✓ Current Plan</button>`:lg&&ps==='pending'?`<button class="btn btn-warning w-full" disabled style="opacity:.7">⏳ Pending</button>`:lg&&cp==='free'?`<button onclick="handleUpgrade('${rid}')" class="btn w-full" style="background:white;color:var(--primary)">Upgrade Now</button>`:`<button onclick="navigate('/signup')" class="btn w-full" style="background:white;color:var(--primary)">Get Started</button>`;render(`<div class="bg-gradient" style="min-height:100vh"><nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1>${nb}</div></nav><div class="container" style="padding:2rem 0">${srcBanner}<div class="text-center mb"><h1>Simple Pricing</h1><p style="font-size:1.25rem;color:var(--gray-600)">Start free. Upgrade anytime.</p></div><div class="grid grid-2" style="max-width:1200px;margin:0 auto"><div class="card"><div class="text-center"><p style="color:var(--success);font-weight:700;font-size:.875rem;margin-bottom:1rem">FREE FOREVER</p><h3>Free</h3><div style="font-size:4rem;font-weight:900;margin:1rem 0">₹0<span style="font-size:1.5rem;color:var(--gray-600)">/mo</span></div><p style="color:var(--gray-600);font-size:.875rem;margin-bottom:2rem">500 customers/month</p></div><div class="space-y"><p>✓ Digital queue</p><p>✓ QR code entry</p><p>✓ Live display</p><p>✓ Basic analytics</p>${upSrc?'<p style="color:var(--warning);font-weight:700">⚠️ Manual cleanup required daily</p>':''}</div></div><div class="card bg-gradient-primary" style="transform:scale(1.05)"><div class="text-center"><p style="font-size:.875rem;margin-bottom:.5rem;opacity:.9">MOST POPULAR</p><h3>Premium</h3><div style="margin:1rem 0"><div style="font-size:2rem;font-weight:700;text-decoration:line-through;opacity:.6">₹2,999</div><div style="font-size:4rem;font-weight:900">₹1,999<span style="font-size:1.5rem;opacity:.8">/mo</span></div></div><div style="background:rgba(255,255,255,.2);display:inline-block;padding:.5rem 1rem;border-radius:999px;margin-bottom:1rem"><span style="font-size:.875rem;font-weight:700">🎉 SAVE ₹1,000!</span></div><p style="opacity:.9;margin-bottom:2rem">Unlimited customers</p></div><div class="space-y"><p>✓ Everything in Free</p><p>✓ Unlimited customers</p>${upSrc?'<p style="font-weight:700">⚡ AUTO CLEANUP AT MIDNIGHT</p>':''}<p>✓ Advanced analytics</p><p>✓ Priority support</p></div><div class="mt">${cta}</div></div></div></div></div>`);if(upSrc)setTimeout(()=>sessionStorage.removeItem('upgrade_source'),1000)}
+
+function showPaymentPage(rid){const r=DB.restaurants[rid];if(!r){render(`<div class="container text-center" style="padding-top:4rem"><h1 style="color:var(--danger)">Not found</h1></div>`);return}render(`<div style="min-height:100vh;background:linear-gradient(135deg,#faf5ff 0%,#eff6ff 100%);padding:2rem"><div class="card" style="max-width:800px;margin:0 auto"><div style="text-align:center;margin-bottom:1rem"><div style="display:inline-block;background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%);color:white;padding:.75rem 2rem;border-radius:999px;font-size:1rem;font-weight:700;animation:pulse 2s infinite;box-shadow:0 4px 12px rgba(220,38,38,.3)">🎉 FIRST TIME OFFER - 33% OFF!</div></div><h2>Upgrade to Premium</h2><p style="color:var(--gray-600)">${r.name}</p><div class="card bg-gradient-primary text-center mb"><p>Total Amount</p><div style="position:relative;display:inline-block"><div style="font-size:3rem;font-weight:900;text-decoration:line-through;opacity:.5">₹2,999</div><div style="font-size:6rem;font-weight:900;color:white;text-shadow:0 4px 12px rgba(0,0,0,.2)">₹1,999</div></div><p style="opacity:.9">per month • 30 days</p><div style="background:rgba(255,255,255,.2);display:inline-block;padding:.5rem 1rem;border-radius:999px;margin-top:.5rem"><span style="font-weight:700">💰 Save ₹1,000/month!</span></div></div><div class="card text-center" style="background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%);border:3px solid var(--primary)"><div style="display:inline-block;background:var(--primary);color:white;padding:.5rem 1.5rem;border-radius:999px;font-size:.875rem;font-weight:700;margin-bottom:1rem">SECURED PAYMENT</div><p style="font-weight:600;font-size:1.25rem;color:var(--gray-700);margin-bottom:.5rem">Pay to</p><p style="font-size:2rem;font-weight:900;color:var(--primary);margin-bottom:1rem">QueueApp</p><div style="background:white;display:inline-block;padding:1rem;border-radius:1rem;margin-bottom:.5rem"><div style="font-size:1.5rem;font-weight:700;color:var(--gray-900)">Amount: <span style="color:var(--success)">₹1,999</span></div></div></div><div class="card text-center" style="background:var(--gray-50)"><p style="font-weight:600;margin-bottom:1rem">Scan QR Code to Pay</p><div id="payment-qr" style="display:inline-block;padding:1rem;background:white;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div><p style="font-size:.875rem;color:var(--gray-600);margin-top:1rem">Or pay directly with your UPI app</p><div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem"><a href="upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${rid}" class="btn" style="background:#5f259f;color:white;text-decoration:none;display:flex;align-items:center;gap:.5rem"><span style="font-size:1.5rem">📱</span> PhonePe</a><a href="tez://upi/pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${rid}" class="btn" style="background:#1a73e8;color:white;text-decoration:none;display:flex;align-items:center;gap:.5rem"><span style="font-size:1.5rem">💳</span> GPay</a><a href="paytmmp://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${rid}" class="btn" style="background:#00baf2;color:white;text-decoration:none;display:flex;align-items:center;gap:.5rem"><span style="font-size:1.5rem">💰</span> Paytm</a></div><p style="font-size:.75rem;color:var(--gray-500);margin-top:1rem">Note: App buttons work on mobile only. Desktop users, please scan QR.</p></div><div class="alert alert-success" style="text-align:center"><p style="font-weight:700;margin-bottom:.5rem">⏰ Limited Time Offer!</p><p style="font-size:.875rem;margin:0">This special price is available for first-time Premium upgrades only</p></div><button onclick="navigate('/payment/${rid}/upload')" class="btn btn-success w-full">I've Paid ₹1,999 → Upload Screenshot</button></div></div>`);setTimeout(()=>{const us=`upi://pay?pa=sriramvasudev@okhdfcbank&pn=QueueApp&am=1999&cu=INR&tn=QueueApp-Premium-Offer-${rid}`;new QRCode(document.getElementById('payment-qr'),{text:us,width:200,height:200})},100)}
+
+function showUploadScreenshot(rid){render(`<div style="min-height:100vh;background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);padding:2rem"><div class="card" style="max-width:800px;margin:0 auto"><h2 class="text-center">Upload Payment Proof</h2><div class="space-y"><input type="text" id="transactionId" placeholder="Transaction ID / UTR"><div class="card text-center" style="border:2px dashed var(--gray-200);cursor:pointer" onclick="document.getElementById('screenshotFile').click()"><input type="file" id="screenshotFile" accept="image/*" onchange="previewScreenshot()" class="hidden"><button type="button" class="btn btn-primary" style="pointer-events:none">📷 Choose Screenshot</button></div><div id="screenshotPreview" class="hidden mt"><img id="previewImage" class="w-full" style="border:2px solid var(--gray-200);border-radius:1rem"/></div><button onclick="submitPaymentProof('${rid}')" class="btn btn-success w-full">Submit</button></div></div></div>`)}
+
+window.previewScreenshot=()=>{const f=document.getElementById('screenshotFile').files[0];if(f){const r=new FileReader();r.onload=e=>{document.getElementById('screenshotPreview').classList.remove('hidden');document.getElementById('previewImage').src=e.target.result};r.readAsDataURL(f)}};
+
+async function submitPaymentProof(rid){const tid=document.getElementById('transactionId').value.trim(),fi=document.getElementById('screenshotFile');if(!tid||!fi.files[0]){alert('⚠️ Fill all fields');return}const r=new FileReader();r.onload=async e=>{const itid='TXN-'+Date.now()+'-'+Math.random().toString(36).substr(2,9).toUpperCase(),rest=DB.restaurants[rid],ad={internalTransactionId:itid,utrNumber:tid,screenshot:e.target.result,amount:1999,currency:'INR',paymentMethod:'UPI',customerDetails:{restaurantId:rid,restaurantName:rest?.name||'N/A',ownerName:rest?.owner||'N/A',email:rest?.email||'N/A',phone:rest?.phone||'N/A',city:rest?.city||'N/A'},uploadedAt:new Date().toISOString(),uploadedTimestamp:Date.now(),status:'pending',auditTrail:[{action:'payment_proof_uploaded',timestamp:new Date().toISOString(),by:'restaurant_owner',details:'Payment proof submitted for verification'}]};await FirebaseDB.savePaymentProof(rid,ad);DB.savePaymentProof(rid,ad);alert('✅ Submitted! Verification takes 2-24 hours.\n\nTransaction ID: '+itid);navigate(`/r/${rid}/admin`)};r.readAsDataURL(fi.files[0])}
+
+const handleUpgrade=rid=>navigate(`/payment/${rid}`);
+
+function showLogin(){render(`<div style="min-height:100vh;background:linear-gradient(135deg,#3b82f6 0%,#9333ea 100%);display:flex;align-items:center;justify-content:center;padding:2rem"><div class="card" style="max-width:500px;width:100%"><h2 class="text-center mb">Restaurant Login</h2><div class="space-y"><input type="text" id="loginRestaurantId" placeholder="Restaurant ID"><input type="tel" id="loginPhone" placeholder="Phone" maxlength="10"><button onclick="handleLogin(event)" class="btn btn-primary w-full">Login</button><p class="text-center" style="font-size:.875rem">No account? <button onclick="navigate('/signup')" style="background:none;border:none;color:var(--primary);font-weight:600;text-decoration:underline;cursor:pointer">Sign Up</button></p></div></div></div>`)}
+
+async function handleLogin(e){if(!checkInternet())return;const rid=document.getElementById('loginRestaurantId').value.trim(),ph=document.getElementById('loginPhone').value.trim();if(!rid||!ph){alert('⚠️ Fill all fields');return}const btn=e.target;btn.textContent='Logging in...';btn.disabled=true;try{const res=await FirebaseDB.getRestaurant(rid);if(!res.success){alert('❌ Restaurant ID not found');btn.textContent='Login';btn.disabled=false;return}if(res.data.phone.trim()!==ph.trim()){alert('❌ Invalid phone number');btn.textContent='Login';btn.disabled=false;return}DB.restaurants[rid]=res.data;DB.save();sessionStorage.setItem(`loggedIn_${rid}`,'true');setTimeout(()=>navigate(`/r/${rid}/admin`),100)}catch(err){alert(`❌ Login failed: ${err.message}\n\nPlease check your internet connection and try again.`);btn.textContent='Login';btn.disabled=false}}
+
+function showRestaurantLogin(rid){render(`<div style="min-height:100vh;background:linear-gradient(135deg,#3b82f6 0%,#9333ea 100%);display:flex;align-items:center;justify-content:center;padding:2rem"><div class="card" style="max-width:500px;width:100%"><h2 class="text-center mb">Login Required</h2><input type="tel" id="restaurantLoginPhone" placeholder="Phone" maxlength="10"><button onclick="handleRestaurantLogin('${rid}')" class="btn btn-primary w-full mt">Login</button></div></div>`)}
+
+async function handleRestaurantLogin(rid){if(!checkInternet())return;const ph=document.getElementById('restaurantLoginPhone').value.trim();if(!ph){alert('⚠️ Enter phone number');return}try{const res=await FirebaseDB.getRestaurant(rid);if(!res.success){alert('❌ Restaurant not found');return}if(res.data.phone.trim()!==ph.trim()){alert('❌ Invalid phone number');return}DB.restaurants[rid]=res.data;DB.save();sessionStorage.setItem(`loggedIn_${rid}`,'true');handleRoute()}catch(err){alert(`❌ Error: ${err.message}\n\nPlease check your internet connection.`)}}
+
+function showSignup(){render(`<div style="min-height:100vh;background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);display:flex;align-items:center;justify-content:center;padding:2rem"><div class="card" style="max-width:700px;width:100%"><h2 class="text-center mb">Register Restaurant</h2><div class="space-y"><input type="text" id="restaurantName" placeholder="Restaurant Name"><input type="text" id="ownerName" placeholder="Owner Name"><input type="email" id="email" placeholder="Email"><input type="tel" id="phone" placeholder="Phone (10 digits)" maxlength="10"><input type="text" id="city" placeholder="Location (e.g., Mumbai - Andheri)"><div class="flex gap-1"><input type="checkbox" id="agreeTerms"><label for="agreeTerms" style="font-size:.875rem">I agree to Terms & Privacy</label></div><button onclick="handleSignup(event)" class="btn btn-primary w-full">Register</button><p class="text-center" style="font-size:.875rem">Have account? <button onclick="navigate('/login')" style="background:none;border:none;color:var(--primary);font-weight:600;text-decoration:underline;cursor:pointer">Login</button></p></div></div></div>`)}
+
+async function handleSignup(e){if(!checkInternet())return;const nm=document.getElementById('restaurantName').value.trim(),own=document.getElementById('ownerName').value.trim(),em=document.getElementById('email').value.trim(),ph=document.getElementById('phone').value.trim(),ct=document.getElementById('city').value.trim(),agr=document.getElementById('agreeTerms').checked;if(!nm||!own||!em||!ph||!ct){alert('⚠️ Fill all fields');return}if(!agr){alert('⚠️ Agree to terms');return}const btn=e.target;btn.textContent='Registering...';btn.disabled=true;try{const rid=nm.substring(0,3).toUpperCase().replace(/[^A-Z]/g,'X')+Math.floor(Math.random()*10000),res=await FirebaseDB.addRestaurant(rid,{name:nm,owner:own,email:em,phone:ph,city:ct});if(res.success){DB.addRestaurant(rid,{name:nm,owner:own,email:em,phone:ph,city:ct});sessionStorage.setItem(`loggedIn_${rid}`,'true');alert(`✅ Success! ID: ${rid}\n\nFREE plan: 500/month\n\nSave your ID!`);navigate(`/r/${rid}/admin`)}else{alert(`❌ Failed: ${res.error}`);btn.textContent='Register';btn.disabled=false}}catch(err){alert(`❌ Error: ${err.message}`);btn.textContent='Register';btn.disabled=false}}
+
+async function showJoinQueue(rid){let r=DB.restaurants[rid];if(!r){const res=await FirebaseDB.getRestaurant(rid);if(res.success){r=res.data;DB.restaurants[rid]=r;DB.save()}else{render(`<div class="container text-center" style="padding-top:4rem"><h1 style="color:var(--danger)">Restaurant Not Found</h1><button onclick="navigate('/')" class="btn btn-primary mt">Go Home</button></div>`);return}}render(`<div style="min-height:100vh;background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);display:flex;align-items:center;justify-content:center;padding:2rem"><div class="card" style="max-width:500px;width:100%"><h2 class="text-center mb">Join Queue</h2><p class="text-center mb" style="color:var(--gray-600)">${r.name}</p><div class="space-y"><input type="text" id="customerName" placeholder="Your Name"><input type="tel" id="customerPhone" placeholder="Mobile" maxlength="10"><div><label style="display:block;font-weight:600;margin-bottom:.5rem">Guests</label><div class="grid grid-4">${[1,2,3,4,5,6,7,8].map(n=>`<button onclick="selectGuests(${n})" id="guest-${n}" class="btn ${n===2?'btn-primary':'btn-secondary'}">${n}</button>`).join('')}</div></div><button onclick="handleJoinQueue('${rid}')" class="btn btn-primary w-full">Join Queue</button></div></div></div>`);window.selectedGuests=2}
+
+window.selectGuests=n=>{window.selectedGuests=n;document.querySelectorAll('[id^="guest-"]').forEach(b=>b.className='btn btn-secondary');document.getElementById(`guest-${n}`).className='btn btn-primary'};
+
+async function handleJoinQueue(rid){const nm=document.getElementById('customerName').value.trim(),ph=document.getElementById('customerPhone').value.trim(),gu=window.selectedGuests||2;if(!nm||!ph){alert('⚠️ Fill all fields');return}const btn=event.target;btn.textContent='Joining...';btn.disabled=true;try{const res=await FirebaseDB.addToQueue(rid,{name:nm,phone:ph,guests:gu});if(res.success){const r=DB.restaurants[rid];if(r){const td=new Date().toISOString().slice(0,10),cm=new Date().toISOString().slice(0,7);if(!r.analytics)r.analytics={currentMonth:cm,customersThisMonth:0,lastResetDate:td,dailyStats:{}};r.queue.push({name:nm,phone:ph,guests:gu,queueNumber:res.queueNumber,status:'waiting',joinedAt:new Date().toISOString()});r.analytics.customersThisMonth+=1;r.analytics.dailyStats[td]=(r.analytics.dailyStats[td]||0)+1;DB.save()}showLoadingSuccess(rid,res.queueNumber,res.customersThisMonth,res.limit)}else if(res.error==='LIMIT_REACHED'){showUpgradeModal(rid,res);btn.textContent='Join Queue';btn.disabled=false}else{throw new Error(res.error)}}catch(err){alert(`❌ Error: ${err.message}`);btn.textContent='Join Queue';btn.disabled=false}}
+
+function showLoadingSuccess(rid,qn,cm,lim){render(`<div style="min-height:100vh;background:linear-gradient(135deg,var(--success) 0%,#059669 100%);display:flex;align-items:center;justify-content:center;color:white;padding:2rem"><div class="text-center"><div style="font-size:8rem;margin-bottom:2rem;animation:pulse 1.5s infinite">✅</div><h1 style="margin-bottom:2rem;font-size:3rem">You're In!</h1><div class="card" style="background:white;color:var(--gray-900);max-width:500px;margin:0 auto 2rem"><div style="font-size:6rem;font-weight:900;color:var(--success);margin-bottom:1rem">${qn}</div><p style="font-size:1.5rem;font-weight:600">Your Queue Number</p>${lim!=='unlimited'?`<p style="font-size:.875rem;color:var(--gray-600);margin-top:1rem">Usage: ${cm}/${lim} this month</p>`:''}</div><div style="background:rgba(255,255,255,.2);padding:1.5rem;border-radius:1rem;max-width:500px;margin:0 auto"><p style="font-size:1.25rem;margin-bottom:1rem">📺 Watch the display for your number</p><p style="font-size:1rem;opacity:.9">Loading your status in <span id="countdown" style="font-weight:900">3</span> seconds...</p></div></div></div>`);let sec=3;const ci=setInterval(()=>{sec--;const el=document.getElementById('countdown');if(el)el.textContent=sec;if(sec<=0){clearInterval(ci);navigate(`/r/${rid}/status/${qn}`)}},1000)}
+
+function showUpgradeModal(rid,res){render(`<div style="min-height:100vh;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:2rem"><div class="card" style="max-width:600px;border:3px solid var(--warning)"><div class="text-center"><div style="font-size:5rem">🚫</div><h2 style="color:var(--warning);margin:1rem 0">Monthly Limit Reached</h2><p style="font-size:1.25rem;margin-bottom:1rem">Free plan limit of <strong>500 customers/month</strong> reached.</p><div class="card" style="background:#fef9c3;margin:2rem 0"><div style="font-size:3rem;font-weight:900;color:var(--warning)">${res.customersUsed} / ${res.limit}</div><p>Customers this month</p></div><p style="margin-bottom:2rem;color:var(--gray-600)">Restaurant needs Premium for unlimited customers.</p><div class="flex gap-1" style="justify-content:center"><button onclick="navigate('/r/${rid}/join')" class="btn btn-secondary">← Back</button><button onclick="navigate('/pricing')" class="btn btn-primary">Learn More</button></div></div></div></div>`)}
+
+async function showQueueStatus(rid,qn){render(`<div style="min-height:100vh;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;padding:2rem"><div class="text-center"><div style="font-size:4rem;margin-bottom:1rem;animation:pulse 2s infinite">⏳</div><h2>Loading your queue status...</h2></div></div>`);await new Promise(res=>setTimeout(res,500));let r=DB.restaurants[rid],mq=r?.queue.find(q=>q.queueNumber===qn);if(!mq){const res=await FirebaseDB.getRestaurant(rid);if(res.success){r=res.data;DB.restaurants[rid]=r;DB.save();mq=r.queue.find(q=>q.queueNumber===qn)}else{render(`<div class="container text-center" style="padding-top:4rem"><h1>Restaurant Not Found</h1><button onclick="navigate('/')" class="btn btn-primary mt">Go Home</button></div>`);return}}if(!mq){render(`<div class="container text-center" style="padding-top:4rem"><h1>Queue Number Not Found</h1><p style="color:var(--gray-600);margin:2rem 0">Queue #${qn} not found. It may have been served or the queue was reset.</p><button onclick="navigate('/r/${rid}/join')" class="btn btn-primary mt">Join Queue Again</button><button onclick="navigate('/r/${rid}/display')" class="btn btn-secondary mt">View Display</button></div>`);return}if(mq.status==='allocated')render(`<div style="min-height:100vh;background:var(--success);display:flex;align-items:center;justify-content:center;color:white;padding:2rem"><div class="text-center"><h1 style="margin-bottom:2rem">🎉 Table Ready!</h1><div class="card" style="background:white;color:var(--gray-900)"><div style="font-size:12rem;font-weight:900;color:var(--success)">${mq.tableNo}</div><p style="font-size:2rem;margin-bottom:1rem">Queue: ${qn}</p><div style="padding:1rem;background:var(--gray-50);border-radius:1rem;margin-top:1rem"><p style="font-size:1.5rem;font-weight:600;color:var(--gray-700)">${mq.name}</p><p style="font-size:1rem;color:var(--gray-600)">${mq.guests} guest${mq.guests!==1?'s':''}</p></div></div></div></div>`);else{const wt=r.queue.filter(q=>q.status==='waiting'),pos=wt.findIndex(q=>q.queueNumber===qn)+1;render(`<div style="min-height:100vh;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;padding:2rem"><div class="text-center"><h1 style="margin-bottom:2rem">Still in Queue</h1><div class="card" style="background:white;color:var(--gray-900)"><div style="font-size:12rem;font-weight:900;color:var(--primary)">${qn}</div><p style="font-size:2rem;margin-bottom:1rem">Position: #${pos}</p><div style="padding:1rem;background:var(--gray-50);border-radius:1rem;margin-top:1rem"><p style="font-size:1.5rem;font-weight:600;color:var(--gray-700)">${mq.name}</p><p style="font-size:1rem;color:var(--gray-600)">${mq.guests} guest${mq.guests!==1?'s':''}</p></div></div><button onclick="navigate('/r/${rid}/display')" class="btn btn-primary mt" style="background:white;color:var(--primary)">View Display</button></div></div>`)}}
+
+async function showDisplay(rid){if(displayUnsubscribe)displayUnsubscribe();displayUnsubscribe=db.collection('restaurants').doc(rid).onSnapshot(doc=>{if(!doc.exists){render(`<div class="container text-center" style="padding-top:4rem"><h1 style="color:var(--danger)">Not found</h1></div>`);return}const r=doc.data();DB.restaurants[rid]=r;DB.save();const wt=r.queue.filter(q=>q.status==='waiting'),al=r.queue.filter(q=>q.status==='allocated'),jc=al.slice(-3);render(`<div class="display-screen" style="position:relative"><div class="qr-controls" id="qrControls"><button class="qr-toggle-btn" onclick="toggleQRControls()" style="position:absolute;top:.5rem;right:.5rem">⚙️</button><div class="qr-controls-content"><h3>🎛️ QR Settings</h3><div class="control-group"><label style="font-size:.875rem;display:block;margin-bottom:.5rem">Position:</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><button class="qr-control-btn small" onclick="setQRPosition('top-left')">↖ Top Left</button><button class="qr-control-btn small" onclick="setQRPosition('top-right')">↗ Top Right</button><button class="qr-control-btn small" onclick="setQRPosition('bottom-left')">↙ Bottom Left</button><button class="qr-control-btn small" onclick="setQRPosition('bottom-right')">↘ Bottom Right</button></div></div><div class="control-group qr-size-control"><label>Size: <span id="qrSizeLabel">250</span>px</label><input type="range" class="qr-size-slider" id="qrSizeSlider" min="150" max="450" value="250" step="10" oninput="updateQRSize(this.value)"></div><div class="control-group" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><button class="qr-control-btn" onclick="toggleQRVisibility()">👁️ Hide QR</button><button class="qr-control-btn" onclick="resetQRSettings()">🔄 Reset</button></div><div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.2);font-size:.75rem;color:rgba(255,255,255,.7);text-align:center">💡 Drag QR to move freely</div></div></div><div class="display-qr-fixed" id="displayQR" onmousedown="startDragQR(event)" ontouchstart="startDragQR(event)"><div class="qr-card" style="background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%);padding:2rem;border-radius:2rem;box-shadow:0 8px 32px rgba(0,0,0,.3);border:5px solid var(--primary)"><div style="text-align:center;margin-bottom:1rem"><div class="qr-text" style="font-size:clamp(1.5rem,2.5vw,2.5rem);font-weight:900;color:var(--primary);margin-bottom:.5rem;animation:pulse-badge 1.5s infinite">👉 SCAN HERE 👈</div><div class="qr-text" style="font-size:clamp(1rem,1.5vw,1.5rem);font-weight:700;color:var(--gray-900);margin-bottom:.5rem">Welcome! 🎉</div><div class="qr-text" style="font-size:clamp(.875rem,1.1vw,1.1rem);color:var(--gray-700);line-height:1.4">Join our queue instantly with your phone</div></div><div style="background:white;padding:1.5rem;border-radius:1.5rem;box-shadow:0 4px 12px rgba(0,0,0,.1);position:relative;display:flex;justify-content:center"><div id="display-qr" style="background:white;display:inline-block"></div></div><div style="text-align:center;margin-top:1rem"><div class="qr-text" style="font-size:clamp(1rem,1.3vw,1.3rem);color:var(--primary);font-weight:700">📱 Open Camera & Scan</div><div class="qr-text" style="font-size:clamp(.75rem,1vw,1rem);color:var(--gray-600);margin-top:.3rem">No app needed!</div></div></div></div><div class="container"><div class="text-center mb" style="padding-bottom:2rem;border-bottom:4px solid var(--primary)"><h1 style="color:var(--primary)">${r.name}</h1><p style="font-size:2rem;color:rgba(255,255,255,.7)">Queue Management</p><div style="font-size:3rem;color:var(--primary);font-weight:700;margin-top:.5rem">${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</div><div style="font-size:1.25rem;color:#10b981;margin-top:.5rem">🔥 Live</div></div>${jc.length>0?`<div class="card mb" style="background:linear-gradient(135deg,rgba(22,163,74,.9),rgba(21,128,61,.9));border:4px solid var(--success);padding:4rem"><h2 class="text-center" style="font-size:5rem;margin-bottom:2rem"><span style="font-size:8rem;animation:pulse 2s infinite">🔔</span>NOW SERVING</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem">${jc.map(a=>`<div class="card text-center" style="background:white;padding:4rem;border:4px solid white"><div style="font-size:12rem;font-weight:900;color:var(--success);line-height:1">${a.queueNumber}</div><div style="font-size:6rem;font-weight:800;color:var(--gray-900)">Table ${a.tableNo}</div><div style="font-size:3rem;color:var(--gray-600)">${a.guests} ${a.guests===1?'guest':'guests'}</div></div>`).join('')}</div></div>`:'<div class="card text-center mb" style="background:rgba(55,65,81,.5);padding:4rem"><p style="font-size:4rem;color:rgba(255,255,255,.6)">⏳ Waiting...</p></div>'}<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:2rem"><div class="card" style="background:rgba(249,115,22,.2);border:3px solid var(--primary);padding:3rem"><h2 class="text-center" style="color:var(--primary);margin-bottom:2rem;font-size:4rem">⏳ Waiting (${wt.length})</h2><div style="max-height:60vh;overflow-y:auto"><div class="space-y">${wt.length>0?wt.slice(0,15).map((w,i)=>`<div class="card" style="background:${i<3?'rgba(249,115,22,.9)':'rgba(55,65,81,.8)'};padding:2rem;border:${i<3?'3px solid var(--primary)':'2px solid rgba(156,163,175,.3)'}"><div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap"><div style="flex:1"><div style="font-size:6rem;font-weight:900;color:${i<3?'#fff':'var(--primary)'}">${w.queueNumber}</div>${i<3?'<div style="font-size:1.5rem;color:#fef9c3;font-weight:700">🔜 NEXT</div>':''}<div style="font-size:1.8rem;font-weight:600;color:${i<3?'#fff':'rgba(255,255,255,.9)'};margin-top:.5rem">${w.name}</div><div style="font-size:1.3rem;color:${i<3?'rgba(255,255,255,.8)':'rgba(255,255,255,.6)'};font-family:monospace">${w.phone}</div><div style="font-size:1.5rem;color:${i<3?'rgba(255,255,255,.9)':'rgba(255,255,255,.7)'};margin-top:.3rem">${w.guests} guest${w.guests!==1?'s':''}</div></div><div style="text-align:right"><div style="font-size:5rem;font-weight:900;color:${i<3?'#fff':'rgba(255,255,255,.7)'}">#${i+1}</div></div></div></div>`).join(''):'<p class="text-center" style="color:rgba(255,255,255,.6);font-size:2rem;padding:2rem">No customers</p>'}</div></div></div><div class="card" style="background:rgba(168,85,247,.2);border:3px solid #9333ea;padding:3rem"><h2 class="text-center" style="color:#c084fc;margin-bottom:2rem;font-size:3rem">📊 Stats</h2><div class="grid grid-2" style="gap:2rem"><div class="card text-center" style="background:rgba(255,255,255,.1);padding:2rem"><div style="font-size:7rem;font-weight:900;color:var(--primary)">${wt.length}</div><div style="font-size:1.5rem;color:white;margin-top:.5rem">Waiting</div></div><div class="card text-center" style="background:rgba(255,255,255,.1);padding:2rem"><div style="font-size:7rem;font-weight:900;color:var(--success)">${al.length}</div><div style="font-size:1.5rem;color:white;margin-top:.5rem">Seated</div></div></div></div></div><div class="text-center mt" style="padding-top:2rem;border-top:2px solid rgba(255,255,255,.2)"><p style="font-size:2rem;color:rgba(255,255,255,.5)">⚡ QueueApp</p></div></div></div>`);setTimeout(()=>{generateQRCode('display-qr',rid);loadQRSettings(rid)},100)})}
+
+let isDraggingQR=false,qrDragOffset={x:0,y:0};
+const toggleQRControls=()=>{const c=document.getElementById('qrControls');if(c)c.classList.toggle('minimized')};
+const setQRPosition=pos=>{const el=document.getElementById('displayQR');if(!el)return;el.style.top='';el.style.bottom='';el.style.left='';el.style.right='';const off='2rem';switch(pos){case 'top-left':el.style.top=off;el.style.left=off;break;case 'top-right':el.style.top=off;el.style.right=off;break;case 'bottom-left':el.style.bottom=off;el.style.left=off;break;case 'bottom-right':el.style.bottom=off;el.style.right=off}saveQRSettings()};
+const updateQRSize=sz=>{document.getElementById('qrSizeLabel').textContent=sz;const el=document.getElementById('displayQR');if(el){const sc=sz/250;el.style.transform=`scale(${sc})`;el.style.transformOrigin='top left'}saveQRSettings()};
+const toggleQRVisibility=()=>{const el=document.getElementById('displayQR'),btn=event.target;if(el){el.classList.toggle('hidden');btn.textContent=el.classList.contains('hidden')?'👁️ Show QR':'👁️ Hide QR';saveQRSettings()}};
+const resetQRSettings=()=>{const rid=window.location.hash.split('/')[2];if(confirm('Reset QR position and size to default?')){localStorage.removeItem(`qr_settings_${rid}`);location.reload()}};
+const startDragQR=e=>{if(e.target.closest('.qr-toggle-btn'))return;isDraggingQR=true;const el=document.getElementById('displayQR');el.classList.add('dragging');const rc=el.getBoundingClientRect();if(e.type==='mousedown'){qrDragOffset.x=e.clientX-rc.left;qrDragOffset.y=e.clientY-rc.top;document.addEventListener('mousemove',dragQR);document.addEventListener('mouseup',stopDragQR)}else if(e.type==='touchstart'){const t=e.touches[0];qrDragOffset.x=t.clientX-rc.left;qrDragOffset.y=t.clientY-rc.top;document.addEventListener('touchmove',dragQR);document.addEventListener('touchend',stopDragQR)}e.preventDefault()};
+const dragQR=e=>{if(!isDraggingQR)return;const el=document.getElementById('displayQR');let cx,cy;if(e.type==='mousemove'){cx=e.clientX;cy=e.clientY}else if(e.type==='touchmove'){const t=e.touches[0];cx=t.clientX;cy=t.clientY}let nl=cx-qrDragOffset.x,nt=cy-qrDragOffset.y;const ml=window.innerWidth-el.offsetWidth,mt=window.innerHeight-el.offsetHeight;nl=Math.max(0,Math.min(nl,ml));nt=Math.max(0,Math.min(nt,mt));el.style.top=nt+'px';el.style.left=nl+'px';el.style.right='auto';el.style.bottom='auto';e.preventDefault()};
+const stopDragQR=e=>{if(!isDraggingQR)return;isDraggingQR=false;const el=document.getElementById('displayQR');el.classList.remove('dragging');document.removeEventListener('mousemove',dragQR);document.removeEventListener('mouseup',stopDragQR);document.removeEventListener('touchmove',dragQR);document.removeEventListener('touchend',stopDragQR);saveQRSettings()};
+const saveQRSettings=()=>{const rid=window.location.hash.split('/')[2],el=document.getElementById('displayQR'),sl=document.getElementById('qrSizeSlider');if(!el)return;const set={top:el.style.top,left:el.style.left,right:el.style.right,bottom:el.style.bottom,size:sl?sl.value:250,hidden:el.classList.contains('hidden'),transform:el.style.transform};localStorage.setItem(`qr_settings_${rid}`,JSON.stringify(set))};
+const loadQRSettings=rid=>{const sv=localStorage.getItem(`qr_settings_${rid}`);if(!sv){setQRPosition('top-right');return}try{const set=JSON.parse(sv),el=document.getElementById('displayQR'),sl=document.getElementById('qrSizeSlider'),lb=document.getElementById('qrSizeLabel');if(el){if(set.top)el.style.top=set.top;if(set.left)el.style.left=set.left;if(set.right)el.style.right=set.right;if(set.bottom)el.style.bottom=set.bottom;if(set.transform)el.style.transform=set.transform;if(set.hidden){el.classList.add('hidden');const hb=document.querySelector('.qr-control-btn[onclick*="toggleQRVisibility"]');if(hb)hb.textContent='👁️ Show QR'}}if(sl&&set.size){sl.value=set.size;if(lb)lb.textContent=set.size}}catch(err){setQRPosition('top-right')}};
+
+function showCleanupChoiceModal(rid,qc){const md=document.createElement('div');md.className='modal-overlay';md.id='cleanupModal';md.innerHTML=`<div class="modal-content"><h2 style="text-align:center;margin-bottom:1.5rem">Reset Today's Queue?</h2><p style="text-align:center;color:var(--gray-600);margin-bottom:2rem">Current queue has <strong>${qc} customer${qc!==1?'s':''}</strong></p><div class="grid grid-2" style="gap:1rem"><div class="card" style="border:2px solid var(--gray-200);cursor:pointer;transition:all .3s ease" onclick="performCleanup('${rid}',${qc},closeCleanupModal)"><div style="text-align:center;padding:1rem"><div style="font-size:2rem;margin-bottom:.5rem">🔄</div><h3 style="font-size:1.1rem;margin-bottom:.5rem">Manual Reset</h3><p style="font-size:.875rem;color:var(--gray-600);margin:0">Free • Reset now</p></div></div><div class="card" style="background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:white;border:2px solid var(--primary);cursor:pointer;transition:all .3s ease" onclick="upgradeFromCleanup('${rid}')"><div style="text-align:center;padding:1rem"><div style="font-size:2rem;margin-bottom:.5rem">⚡</div><h3 style="font-size:1.1rem;margin-bottom:.5rem">Automatic Reset</h3><p style="font-size:.875rem;opacity:.9;margin:0">Premium • Midnight auto-reset</p></div></div></div><div style="margin-top:1.5rem;padding-top:1.5rem;border-top:2px solid var(--gray-200)"><p style="font-size:.875rem;color:var(--gray-600);margin-bottom:.75rem"><strong>Premium Benefits:</strong></p><ul style="font-size:.875rem;color:var(--gray-600);margin-left:1.5rem"><li>Automatic cleanup at midnight</li><li>Unlimited customers/month</li><li>Advanced analytics</li></ul></div><button onclick="closeCleanupModal()" class="btn btn-secondary w-full mt">Cancel</button></div>`;document.body.appendChild(md)}
+function performCleanup(rid,qc,closeFn){const btn=event.target.closest('.card');const orig=btn.innerHTML;btn.innerHTML='<div style="text-align:center;padding:1rem"><div style="font-size:2rem">⏳</div><p>Resetting queue...</p></div>';FirebaseDB.dailyCleanup(rid,true).then(res=>{if(res.success){const cnt=parseInt(localStorage.getItem(`cleanup_count_${rid}`)||'0')+1;localStorage.setItem(`cleanup_count_${rid}`,cnt.toString());if(closeFn)closeFn();showCleanupSuccessModal(rid,qc,false,cnt)}else{alert(res.error==='Already cleaned today'?'✅ Queue already reset today!':'❌ Error: '+res.error);btn.innerHTML=orig}}).catch(err=>{alert('❌ Error: '+err.message);btn.innerHTML=orig})}
+function showCleanupSuccessModal(rid,qc,wasClean,cnt){const md=document.createElement('div');md.className='modal-overlay';md.id='successModal';if(cnt>=3&&cnt%3===0){showProgressiveUpgradeModal(rid,qc,cnt);return}md.innerHTML=`<div class="modal-content"><div style="text-align:center;margin-bottom:2rem"><div style="font-size:5rem;animation:pulse 1.5s infinite">✅</div><h2 style="color:var(--success);margin:1rem 0">${wasClean?'Queue Already Fresh!':'Queue Reset Complete!'}</h2><p style="color:var(--gray-600)">${wasClean?'Your queue was already reset today':'Successfully archived and cleared today\'s queue'}</p></div>${!wasClean?`<div class="card" style="background:var(--gray-50);margin-bottom:1.5rem"><div class="grid grid-2" style="gap:1rem"><div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:var(--primary)">${qc}</div><p style="font-size:.875rem;color:var(--gray-600)">Archived</p></div><div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:var(--success)">0</div><p style="font-size:.875rem;color:var(--gray-600)">Current Queue</p></div></div></div>`:''}<div class="card" style="background:linear-gradient(135deg,#fef9c3 0%,#fef3c7 100%);border:2px solid var(--warning);text-align:center;cursor:pointer" onclick="upgradeFromSuccess('${rid}')"><div style="font-size:1.5rem;margin-bottom:.5rem">⚡</div><p style="font-weight:700;margin-bottom:.5rem">Tired of daily resets?</p><p style="font-size:.875rem;color:var(--gray-700);margin-bottom:1rem">Premium users get automatic cleanup at midnight</p><button class="btn btn-primary w-full" style="pointer-events:none">⚡ Make It Automatic - Upgrade Now</button></div><button onclick="closeSuccessModal()" class="btn btn-secondary w-full mt">Continue to Dashboard</button></div>`;document.body.appendChild(md)}
+function showProgressiveUpgradeModal(rid,qc,cnt){const ord=getOrdinalSuffix(cnt);const md=document.createElement('div');md.className='modal-overlay';md.id='successModal';md.innerHTML=`<div class="modal-content"><div style="text-align:center;margin-bottom:2rem"><div style="font-size:5rem;animation:pulse 1.5s infinite">🎯</div><h2 style="color:var(--primary);margin:1rem 0">${cnt}${ord} Manual Reset & Counting!</h2><p style="color:var(--gray-600);font-size:1.1rem;font-weight:600">Premium users never click this button</p></div><div class="card" style="background:var(--gray-50);margin-bottom:1.5rem"><div class="grid grid-2" style="gap:1rem"><div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:var(--warning)">${cnt}</div><p style="font-size:.875rem;color:var(--gray-600)">Manual Resets</p></div><div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:var(--success)">0</div><p style="font-size:.875rem;color:var(--gray-600)">Effort Required</p></div></div></div><div class="card" style="background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:white;text-align:center"><div style="font-size:1.5rem;margin-bottom:1rem">⚡</div><h3 style="margin-bottom:1rem">Stop Clicking. Start Automating.</h3><ul style="text-align:left;margin:1rem auto;max-width:300px;font-size:.875rem"><li>✅ Automatic cleanup at midnight</li><li>✅ Unlimited customers/month</li><li>✅ Advanced analytics</li><li>✅ Priority support</li></ul><button onclick="upgradeFromProgressive('${rid}')" class="btn w-full mt" style="background:white;color:var(--primary);font-size:1.1rem;padding:1rem 2rem">⚡ Upgrade to Premium Now</button></div><button onclick="closeSuccessModal()" class="btn btn-secondary w-full mt">Maybe Later</button></div>`;document.body.appendChild(md)}
+const getOrdinalSuffix=n=>{const s=["th","st","nd","rd"],v=n%100;return(s[(v-20)%10]||s[v]||s[0])};
+const closeCleanupModal=()=>{const m=document.getElementById('cleanupModal');if(m)m.remove()};
+const closeSuccessModal=()=>{const m=document.getElementById('successModal');if(m)m.remove();location.reload()};
+const upgradeFromCleanup=rid=>{sessionStorage.setItem('upgrade_source','cleanup_button');navigate('/pricing')};
+const upgradeFromSuccess=rid=>{sessionStorage.setItem('upgrade_source','cleanup_success');navigate('/pricing')};
+const upgradeFromProgressive=rid=>{sessionStorage.setItem('upgrade_source','progressive_nudge');navigate('/pricing')};
+
+async function showRestaurantAdmin(rid){if(adminUnsubscribe)adminUnsubscribe();adminUnsubscribe=db.collection('restaurants').doc(rid).onSnapshot(async doc=>{if(!doc.exists){render(`<div class="container text-center" style="padding-top:4rem"><h1 style="color:var(--danger)">Not found</h1></div>`);return}const r=doc.data();DB.restaurants[rid]=r;DB.save();const wt=r.queue.filter(q=>q.status==='waiting'),al=r.queue.filter(q=>q.status==='allocated'),anres=await FirebaseDB.getAnalytics(rid),anl=anres.success?anres.analytics:{},ctm=anl.customersThisMonth||0,lim=r.plan==='free'?500:'unlimited',pct=r.plan==='free'?Math.round((ctm/500)*100):0,cp=r.plan||'free',ps=r.planStatus||'active',pbdg=`<span class="badge ${cp==='premium'&&ps==='active'?'badge-primary':ps==='pending'?'badge-warning':ps==='rejected'?'badge badge-danger':'badge-secondary'}">${ps==='pending'?'PENDING':ps==='rejected'?'REJECTED':cp.toUpperCase()}</span>`,td=new Date().toISOString().slice(0,10),tdf=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),needsCleanup=r.lastCleanupDate!==td,queueCount=r.queue.length;let cleanupAlert='';if(cp==='free'){if(needsCleanup){cleanupAlert=`<div class="alert alert-warning mb"><div style="display:flex;align-items:center;gap:1rem"><div style="font-size:2rem">⚠️</div><div style="flex:1"><p style="font-weight:700;margin-bottom:.5rem">Daily Cleanup Required</p><p style="font-size:.875rem;margin:0">Queue needs to be reset for today • Takes 2 seconds</p></div><button onclick="showCleanupChoiceModal('${rid}',${queueCount})" class="btn btn-primary">Reset Queue Now</button></div></div>`}else{cleanupAlert=`<div class="alert alert-success mb"><div style="display:flex;align-items:center;gap:1rem"><div style="font-size:2rem">✅</div><div style="flex:1"><p style="font-weight:700;margin-bottom:.25rem">Queue is Fresh!</p><p style="font-size:.875rem;margin:0">Already reset today • Next reset required tomorrow</p></div></div></div>`}}else if(cp==='premium'&&ps==='active'){cleanupAlert=`<div class="alert alert-info mb"><div style="display:flex;align-items:center;gap:1rem"><div style="font-size:2rem">⚡</div><div style="flex:1"><p style="font-weight:700;margin-bottom:.25rem">Automatic Cleanup Active</p><p style="font-size:.875rem;margin:0">Queue automatically resets at midnight • Zero effort required</p></div></div></div>`}render(`<div style="min-height:100vh;background:var(--gray-100);padding:2rem"><div class="container"><div class="card mb flex justify-between items-center flex-wrap gap-1"><div><h1 onclick="navigateHome()" style="cursor:pointer">QueueApp</h1><p style="color:var(--gray-600)">${r.name} ${pbdg}</p><p style="color:#10b981;font-size:.875rem">🔥 Live</p></div><div class="flex gap-1"><button onclick="navigate('/pricing')" class="btn" style="background:#2563eb;color:white">${cp==='free'&&ps!=='pending'?'Upgrade':'Plan'}</button><button onclick="logout('${rid}')" class="btn btn-danger">Logout</button></div></div>${ps==='pending'?`<div class="alert alert-warning mb"><div style="display:flex;align-items:center;gap:1rem"><div style="font-size:2rem">⏳</div><div style="flex:1"><p style="font-weight:700;margin-bottom:.25rem">Premium Upgrade Pending Review</p><p style="font-size:.875rem;margin:0">Your payment is being verified. This usually takes 2-24 hours.</p></div></div></div>`:''}${ps==='rejected'&&r.paymentProof?.rejectionReason?`<div class="alert alert-danger mb"><div style="display:flex;align-items:center;gap:1rem"><div style="font-size:2rem">❌</div><div style="flex:1"><p style="font-weight:700;margin-bottom:.5rem">Premium Upgrade Rejected</p><p style="font-size:.875rem;margin-bottom:.5rem"><strong>Reason:</strong> ${r.paymentProof.rejectionReason}</p><p style="font-size:.875rem;margin:0">Please contact support@queueapp.com or try upgrading again.</p></div></div><div style="margin-top:1rem"><button onclick="navigate('/pricing')" class="btn btn-primary">Try Again</button><a href="mailto:support@queueapp.com?subject=Payment Rejection - ${rid}&body=My payment was rejected. Transaction ID: ${r.paymentProof?.transactionId||'N/A'}" class="btn btn-secondary" style="margin-left:.5rem">Contact Support</a></div></div>`:''}${cp==='premium'&&ps==='active'&&r.planExpiryDate&&(r.planExpiryDate-Date.now())>0?`<div class="alert alert-success mb"><div style="display:flex;align-items:center;gap:1rem"><div style="font-size:2rem">✅</div><div style="flex:1"><p style="font-weight:700;margin-bottom:.25rem">Premium Plan Active</p><p style="font-size:.875rem;margin:0">Enjoy unlimited customers! Plan expires on ${new Date(r.planExpiryDate).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p></div></div></div>`:''}${cleanupAlert}<div class="alert alert-info mb"><div class="flex justify-between items-center flex-wrap gap-1"><div><div style="font-size:1.25rem;font-weight:700;margin-bottom:.5rem">📅 Your Queue QR Code</div><p style="margin:0">${tdf}</p><p style="margin:0;font-size:.875rem;color:#1e40af">🔄 Queue resets at midnight daily</p></div><div style="position:relative"><div class="qr-container"><div id="daily-qr"></div></div></div></div><div class="flex gap-1 mt" style="flex-wrap:wrap"><button onclick="printQRCode()" class="btn btn-secondary">🖨️ Print QR</button><button onclick="downloadQRCode('${rid}')" class="btn btn-secondary">💾 Download QR</button><button onclick="copyQRLink('${rid}')" class="btn" style="background:#2563eb;color:white">🔗 Copy Link</button></div><div class="mt"><p style="font-size:.875rem;color:#1e40af;font-weight:600">💡 How to use:</p><ol style="font-size:.875rem;color:#1e40af;margin-left:1.5rem"><li>Print/display this QR at your entrance</li><li>Customers scan to join queue instantly</li><li>Queue resets daily at midnight automatically</li></ol></div></div>${r.plan==='free'?`<div class="card mb" style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)"><h2 style="margin-bottom:1rem">📊 Monthly Usage</h2><div class="grid grid-3"><div class="card text-center" style="background:white"><div style="font-size:3rem;font-weight:900;color:${pct>80?'var(--danger)':'var(--primary)'}">${ctm}</div><p style="color:var(--gray-600)">This Month</p></div><div class="card text-center" style="background:white"><div style="font-size:3rem;font-weight:900;color:var(--gray-600)">${lim}</div><p style="color:var(--gray-600)">Limit</p></div><div class="card text-center" style="background:white"><div style="font-size:3rem;font-weight:900;color:${pct>80?'var(--danger)':'var(--success)'}">${500-ctm}</div><p style="color:var(--gray-600)">Remaining</p></div></div><div class="progress-bar mt"><div class="progress-fill" style="background:${pct>80?'var(--danger)':'var(--success)'};width:${pct}%">${pct}%</div></div>${pct>80?'<div class="alert alert-warning mt">⚠️ Approaching limit! <button onclick="navigate(\'/pricing\')" class="btn btn-primary" style="margin-left:1rem">Upgrade</button></div>':''}</div>`:''}<div class="grid grid-2 mb"><div class="card" style="background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)"><div style="font-size:3rem;font-weight:900;color:var(--primary)">${wt.length}</div><p style="color:var(--gray-600)">Waiting</p></div><div class="card" style="background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)"><div style="font-size:3rem;font-weight:900;color:var(--success)">${al.length}</div><p style="color:var(--gray-600)">Seated</p></div></div><div class="card mb"><h2 style="margin-bottom:1rem">Waiting Queue</h2><div class="space-y">${wt.length>0?wt.map(w=>`<div class="card flex justify-between items-center flex-wrap gap-1" style="background:var(--gray-50)"><div><div style="font-size:1.5rem;font-weight:700">${w.queueNumber}</div><p style="color:var(--gray-600)">${w.name} • ${w.phone} • ${w.guests} guests</p></div><div class="flex gap-1 items-center"><input type="number" id="table-${w.queueNumber}" placeholder="Table #" style="width:100px" min="1"><button onclick="allocateTable('${rid}','${w.queueNumber}')" class="btn btn-success">Seat</button></div></div>`).join(''):'<p class="text-center" style="color:var(--gray-600);padding:2rem">No customers</p>'}</div></div><div class="flex gap-1 flex-wrap"><button onclick="navigate('/r/${rid}/display')" class="btn" style="background:#2563eb;color:white">📺 Display</button><button onclick="navigate('/r/${rid}/join')" class="btn" style="background:#9333ea;color:white">📱 Customer Entry</button>${cp==='free'||needsCleanup?`<button onclick="showCleanupChoiceModal('${rid}',${queueCount})" class="btn btn-warning">🔄 Manual Reset</button>`:''}</div></div></div>`);setTimeout(()=>generateQRCode('daily-qr',rid),100)})}
+
+window.copyQRLink=rid=>{const u=getTodayQRCode(rid);navigator.clipboard.writeText(u).then(()=>alert('✅ Link copied to clipboard!')).catch(()=>prompt('Copy this link:',u))};
+window.printQRCode=()=>window.print();
+window.downloadQRCode=rid=>{const c=document.querySelector('#daily-qr canvas');if(!c)return;const l=document.createElement('a');l.download=`QueueApp-QR-${new Date().toISOString().slice(0,10)}.png`;l.href=c.toDataURL();l.click()};
+
+async function allocateTable(rid,qn){const tno=document.getElementById(`table-${qn}`).value;if(!tno||tno<1){alert('⚠️ Enter valid table');return}try{const res=await FirebaseDB.allocateTable(rid,qn,tno);if(res.success){DB.allocateTable(rid,qn,tno);alert(`✅ Table ${tno} allocated!`)}else throw new Error(res.error)}catch(err){alert(`❌ Error: ${err.message}`)}}
+
+const logout=rid=>{sessionStorage.removeItem(`loggedIn_${rid}`);alert('✅ Logged out');navigate('/')};
+
+function showAdminPasswordPrompt(){render(`<div style="min-height:100vh;background:linear-gradient(135deg,#111827 0%,#1f2937 100%);display:flex;align-items:center;justify-content:center;padding:2rem"><div class="card" style="max-width:500px;width:100%"><h2 class="text-center mb">🔐 Admin Login</h2><div class="space-y"><input type="email" id="adminEmail" placeholder="Email" autocomplete="email"><input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password"><button onclick="firebaseAdminLogin(event)" class="btn w-full" style="background:var(--gray-900);color:white">Sign In</button><div id="adminLoginError" class="hidden alert alert-warning"></div></div></div></div>`)}
+
+async function firebaseAdminLogin(e){const em=document.getElementById('adminEmail').value.trim(),pw=document.getElementById('adminPassword').value.trim(),ed=document.getElementById('adminLoginError');if(!em||!pw){ed.textContent='⚠️ Enter email and password';ed.classList.remove('hidden');return}const btn=e.target;btn.textContent='Signing in...';btn.disabled=true;try{const res=await FirebaseAdmin.signIn(em,pw);if(res.success){sessionStorage.setItem('adminAuth','yes');sessionStorage.setItem('adminEmail',res.user.email);window.location.hash='/admin';setTimeout(handleRoute,100)}else{ed.textContent=`❌ ${res.error}`;ed.classList.remove('hidden');btn.textContent='Sign In';btn.disabled=false}}catch(err){ed.textContent=`❌ ${err.message}`;ed.classList.remove('hidden');btn.textContent='Sign In';btn.disabled=false}}
+
+const checkFirebaseAdminAuth=()=>FirebaseAdmin.getCurrentUser()&&sessionStorage.getItem('adminAuth')==='yes';
+
+async function showPlatformAdmin(){render(`<div style="min-height:100vh;background:var(--gray-100);display:flex;align-items:center;justify-content:center"><div class="text-center"><div style="font-size:4rem;margin-bottom:1rem;animation:pulse 2s infinite">📊</div><h2>Loading Platform Data...</h2><p style="color:var(--gray-600);margin-top:.5rem">Setting up real-time sync...</p></div></div>`);if(platformAdminListener){platformAdminListener();platformAdminListener=null}platformAdminListener=db.collection('restaurants').onSnapshot(snap=>{snap.docs.forEach(d=>DB.restaurants[d.id]=d.data());DB.save();renderPlatformAdminDashboard()},err=>alert('⚠️ Real-time sync error. Please refresh the page.'))}
+
+function renderPlatformAdminDashboard(){const rests=Object.entries(DB.restaurants),pend=rests.filter(([_,r])=>r.planStatus==='pending'),tcust=rests.reduce((s,[_,r])=>s+(r.queue?.length||0),0),trev=rests.filter(([_,r])=>r.plan==='premium'&&r.planStatus==='active').length*1999;render(`<div style="min-height:100vh;background:var(--gray-100);padding:2rem"><div class="container"><div class="card mb flex justify-between items-center flex-wrap"><div><h1>🏢 Platform Admin</h1><p style="color:var(--gray-600)">Manage all restaurants</p><p style="color:#10b981;font-size:.875rem"><span style="display:inline-block;width:8px;height:8px;background:#10b981;border-radius:50%;animation:pulse 2s infinite;margin-right:.5rem"></span>Live Sync Active • Auto-updates</p></div><button onclick="adminLogout()" class="btn btn-danger">Logout</button></div><div class="grid grid-4 mb"><div class="card" style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)"><div style="font-size:3rem;font-weight:900;color:#2563eb">${rests.length}</div><p>Restaurants</p></div><div class="card" style="background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)"><div style="font-size:3rem;font-weight:900;color:var(--success)">${tcust}</div><p>Customers</p></div><div class="card" style="background:linear-gradient(135deg,#faf5ff 0%,#f3e8ff 100%)"><div style="font-size:3rem;font-weight:900;color:#9333ea">₹${trev.toLocaleString()}</div><p>Revenue</p></div><div class="card" style="background:linear-gradient(135deg,#fefce8 0%,#fef9c3 100%)"><div style="font-size:3rem;font-weight:900;color:var(--warning)">${pend.length}</div><p>Pending</p></div></div><div class="alert alert-info mb" style="text-align:center"><p style="font-size:.875rem;margin:0"><strong>Last Updated:</strong> ${new Date().toLocaleTimeString()} • Data syncs automatically in real-time</p></div>${pend.length>0?`<div class="card mb" style="border:2px solid var(--warning)"><h2 style="color:var(--warning);margin-bottom:1rem">⏳ Pending Payments (${pend.length})</h2><div class="space-y">${pend.map(([id,r])=>`<div class="card" style="background:#fef9c3"><div class="flex justify-between items-start flex-wrap gap-1"><div style="flex:1"><h3>${r.name}</h3><p style="font-size:.875rem">ID: ${id} • ${r.owner}</p>${r.paymentProof?.internalTransactionId?`<p style="font-size:.875rem;font-weight:600;color:#2563eb">TXN: ${r.paymentProof.internalTransactionId}</p>`:''}<p style="font-size:.875rem">UTR: ${r.paymentProof?.utrNumber||r.paymentProof?.transactionId||'N/A'} • Amount: ₹${r.paymentProof?.amount||1999}</p><p style="font-size:.75rem;color:var(--gray-600)">Submitted: ${r.paymentProof?.uploadedAt?new Date(r.paymentProof.uploadedAt).toLocaleString():'N/A'}</p></div><div class="flex gap-1 flex-wrap"><button onclick="viewScreenshot('${id}')" class="btn" style="background:#2563eb;color:white">View</button><button onclick="approvePayment('${id}')" class="btn btn-success">✓ Approve</button><button onclick="rejectPayment('${id}')" class="btn btn-danger">✗ Reject</button></div></div></div>`).join('')}</div></div>`:''}<div class="card"><h2 style="margin-bottom:1rem">All Restaurants</h2><div class="space-y">${rests.length>0?rests.map(([id,r])=>`<div class="card" style="background:var(--gray-50)"><div class="flex justify-between items-center flex-wrap gap-1"><div><h3>${r.name} ${r.plan==='premium'&&r.planStatus==='active'?'<span class="badge badge-primary">PREMIUM</span>':r.planStatus==='pending'?'<span class="badge badge-warning">PENDING</span>':'<span class="badge badge-secondary">FREE</span>'}</h3><p style="font-size:.875rem">ID: ${id} • ${r.city} • ${r.queue?.length||0} customers</p></div><div class="flex gap-1"><button onclick="navigate('/r/${id}/admin')" class="btn btn-secondary">Admin</button><button onclick="navigate('/r/${id}/display')" class="btn" style="background:#2563eb;color:white">Display</button></div></div></div>`).join(''):'<div class="card text-center" style="background:var(--gray-50);padding:4rem"><div style="font-size:4rem;margin-bottom:1rem">🏪</div><h3 style="color:var(--gray-600)">No Restaurants Yet</h3><p style="color:var(--gray-500);margin-top:.5rem">Restaurants will appear here once they sign up</p></div>'}</div></div></div></div>`)}
+
+window.viewScreenshot=rid=>{const r=DB.restaurants[rid];r?.paymentProof?.screenshot?window.open(r.paymentProof.screenshot,'_blank'):alert('No screenshot')};
+
+function approvePayment(rid){const r=DB.restaurants[rid],pi=r?.paymentProof,cm=`✓ Approve Premium for ${r?.name}?\n\nTransaction ID: ${pi?.internalTransactionId||'N/A'}\nUTR: ${pi?.utrNumber||pi?.transactionId||'N/A'}\nAmount: ₹${pi?.amount||1999}\n\nThis will activate unlimited customers for 30 days.`;if(confirm(cm)){const ad={approvedAt:new Date().toISOString(),approvedTimestamp:Date.now(),approvedBy:sessionStorage.getItem('adminEmail')||'platform_admin',approvalReason:'Payment verified and approved'};if(!r.paymentProof.auditTrail)r.paymentProof.auditTrail=[];r.paymentProof.auditTrail.push({action:'payment_approved',timestamp:new Date().toISOString(),by:ad.approvedBy,details:'Premium plan activated for 30 days'});Object.assign(r.paymentProof,ad);DB.save();FirebaseDB.approvePremium(rid,ad);DB.approvePremium(rid);alert('✅ Premium activated! Restaurant owner can now use unlimited customers.');handleRoute()}}
+
+function rejectPayment(rid){const rsn=prompt('❌ Rejection Reason:\n\nPlease provide a reason for rejecting this payment (e.g., "Amount mismatch", "Invalid screenshot", "Payment not received")');if(!rsn||rsn.trim()===''){alert('⚠️ Rejection reason is required');return}if(confirm(`Reject payment with reason: "${rsn}"?`)){const r=DB.restaurants[rid],rd={rejectedAt:new Date().toISOString(),rejectedTimestamp:Date.now(),rejectedBy:sessionStorage.getItem('adminEmail')||'platform_admin',rejectionReason:rsn.trim()};if(r.paymentProof&&!r.paymentProof.auditTrail)r.paymentProof.auditTrail=[];if(r.paymentProof)r.paymentProof.auditTrail.push({action:'payment_rejected',timestamp:new Date().toISOString(),by:rd.rejectedBy,details:'Reason: '+rsn.trim()});FirebaseDB.rejectPremium(rid,rsn.trim(),rd);DB.rejectPremium(rid,rsn.trim());alert('❌ Payment rejected. Restaurant owner will see the reason.');handleRoute()}}
+
+async function adminLogout(){if(platformAdminListener){platformAdminListener();platformAdminListener=null}await FirebaseAdmin.signOut();sessionStorage.removeItem('adminAuth');sessionStorage.removeItem('adminEmail');alert('✅ Logged out');navigate('/')}
+
+window.navigate=navigate;window.navigateHome=navigateHome;window.selectGuests=window.selectGuests;window.handleSignup=handleSignup;window.handleLogin=handleLogin;window.handleRestaurantLogin=handleRestaurantLogin;window.handleJoinQueue=handleJoinQueue;window.allocateTable=allocateTable;window.logout=logout;window.firebaseAdminLogin=firebaseAdminLogin;window.adminLogout=adminLogout;window.handleUpgrade=handleUpgrade;window.submitPaymentProof=submitPaymentProof;window.viewScreenshot=window.viewScreenshot;window.approvePayment=approvePayment;window.rejectPayment=rejectPayment;window.printQRCode=window.printQRCode;window.downloadQRCode=window.downloadQRCode;window.copyQRLink=window.copyQRLink;window.generateQRCode=generateQRCode;window.showLoadingSuccess=showLoadingSuccess;window.checkInternet=checkInternet;window.toggleQRControls=toggleQRControls;window.setQRPosition=setQRPosition;window.updateQRSize=updateQRSize;window.toggleQRVisibility=toggleQRVisibility;window.resetQRSettings=resetQRSettings;window.startDragQR=startDragQR;window.dragQR=dragQR;window.stopDragQR=stopDragQR;window.saveQRSettings=saveQRSettings;window.loadQRSettings=loadQRSettings;window.showCleanupChoiceModal=showCleanupChoiceModal;window.performCleanup=performCleanup;window.showCleanupSuccessModal=showCleanupSuccessModal;window.showProgressiveUpgradeModal=showProgressiveUpgradeModal;window.getOrdinalSuffix=getOrdinalSuffix;window.closeCleanupModal=closeCleanupModal;window.closeSuccessModal=closeSuccessModal;window.upgradeFromCleanup=upgradeFromCleanup;window.upgradeFromSuccess=upgradeFromSuccess;window.upgradeFromProgressive=upgradeFromProgressive;
+
+FirebaseAdmin.onAuthStateChanged(u=>{if(u){if(sessionStorage.getItem('adminAuth')!=='yes'){sessionStorage.setItem('adminAuth','yes');sessionStorage.setItem('adminEmail',u.email)}}else{if(sessionStorage.getItem('adminAuth')==='yes'){sessionStorage.removeItem('adminAuth');sessionStorage.removeItem('adminEmail')}}});
+
+setTimeout(()=>handleRoute(),500);
+</script>
+</body>
+</html>
