@@ -168,6 +168,47 @@ body *{visibility:hidden}
 *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 *:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+
+/* COMPREHENSIVE INPUT TYPE FIXES - Non-breaking additions */
+input[type="checkbox"],
+input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    -webkit-appearance: checkbox !important;
+    appearance: checkbox !important;
+    margin-bottom: 0 !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: var(--primary);
+}
+
+input[type="radio"] {
+    -webkit-appearance: radio !important;
+    appearance: radio !important;
+}
+
+input[type="file"] {
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0.5rem !important;
+    min-height: auto !important;
+    cursor: pointer;
+}
+
+input[type="range"] {
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    height: 8px;
+    cursor: pointer;
+}
+
+/* Better checkbox alignment in flex containers */
+.flex input[type="checkbox"] {
+    margin-top: 0.25rem;
+}
 </style>
 </head>
 <body>
