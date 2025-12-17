@@ -206,8 +206,15 @@ input[type="range"] {
 <body>
 <div id="app"><div class="loading-screen"><div class="loading-icon">⏳</div><h1>Loading QueueApp...</h1></div></div>
 <script>
+// Initialize Firebase with error handling
+try {
 const firebaseConfig={apiKey:"AIzaSyBQRfA1_qgG9x4w4aiDqAzAPghMEc5zE6Q",authDomain:"queueapp-97728.firebaseapp.com",projectId:"queueapp-97728",storageBucket:"queueapp-97728.firebasestorage.app",messagingSenderId:"41156558140",appId:"1:41156558140:web:f3277e7018176d0870f239",measurementId:"G-QSP7ZXNSFT"};
-firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore();
+console.log('✅ Firebase initialized successfully');
+} catch(err) {
+console.error('❌ Firebase initialization error:', err);
+}
 
 const getTodayQRCode=rid=>`${window.location.origin}${window.location.pathname}#/r/${rid}/join`;
 const generateQRCode=(eid,rid)=>{const el=document.getElementById(eid);if(!el)return;el.innerHTML='';const sw=window.innerWidth;let sz=sw<768?120:sw<1024?160:sw<1920?220:sw<2560?280:350;new QRCode(el,{text:getTodayQRCode(rid),width:sz,height:sz,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.H})};
@@ -227,6 +234,15 @@ const getLoggedInRest=()=>{for(let id of Object.keys(DB.restaurants))if(sessionS
 const navigateHome=()=>{const lg=getLoggedInRest();lg?navigate(`/r/${lg.id}/admin`):navigate('/')};
 const render=h=>document.getElementById('app').innerHTML=h;
 const navigate=p=>window.location.hash=p;
+
+const showErrorScreen=message=>{
+  render(`<div class="loading-screen">
+    <div style="font-size:clamp(3rem,8vw,5rem);margin-bottom:1rem;color:var(--danger)">⚠️</div>
+    <h1 style="color:var(--danger)">Error Loading App</h1>
+    <p style="color:var(--gray-600);margin:1rem 0">${message}</p>
+    <button onclick="location.reload()" class="btn btn-primary mt">Refresh Page</button>
+  </div>`);
+};
 
 const toggleMobileMenu=()=>{const menu=document.querySelector('.nav-buttons.mobile-menu');if(menu)menu.classList.toggle('active')};
 window.toggleMobileMenu=toggleMobileMenu;
@@ -331,11 +347,43 @@ function rejectPayment(rid){const rsn=prompt('❌ Rejection Reason:\n\nPlease pr
 
 async function adminLogout(){if(platformAdminListener){platformAdminListener();platformAdminListener=null}await FirebaseAdmin.signOut();sessionStorage.removeItem('adminAuth');sessionStorage.removeItem('adminEmail');alert('✅ Logged out');navigate('/')}
 
-window.navigate=navigate;window.navigateHome=navigateHome;window.selectGuests=window.selectGuests;window.handleSignup=handleSignup;window.handleLogin=handleLogin;window.handleRestaurantLogin=handleRestaurantLogin;window.handleJoinQueue=handleJoinQueue;window.allocateTable=allocateTable;window.quickAllocate=quickAllocate;window.logout=logout;window.firebaseAdminLogin=firebaseAdminLogin;window.adminLogout=adminLogout;window.handleUpgrade=handleUpgrade;window.submitPaymentProof=submitPaymentProof;window.viewScreenshot=window.viewScreenshot;window.approvePayment=approvePayment;window.rejectPayment=rejectPayment;window.printQRCode=window.printQRCode;window.downloadQRCode=window.downloadQRCode;window.copyQRLink=window.copyQRLink;window.generateQRCode=generateQRCode;window.showLoadingSuccess=showLoadingSuccess;window.checkInternet=checkInternet;window.toggleQRControls=toggleQRControls;window.setQRPosition=setQRPosition;window.updateQRSize=updateQRSize;window.toggleQRVisibility=toggleQRVisibility;window.resetQRSettings=resetQRSettings;window.startDragQR=startDragQR;window.dragQR=dragQR;window.stopDragQR=stopDragQR;window.saveQRSettings=saveQRSettings;window.loadQRSettings=loadQRSettings;window.showCleanupChoiceModal=showCleanupChoiceModal;window.performCleanup=performCleanup;window.showCleanupSuccessModal=showCleanupSuccessModal;window.showProgressiveUpgradeModal=showProgressiveUpgradeModal;window.getOrdinalSuffix=getOrdinalSuffix;window.closeCleanupModal=closeCleanupModal;window.closeSuccessModal=closeSuccessModal;window.upgradeFromCleanup=upgradeFromCleanup;window.upgradeFromSuccess=upgradeFromSuccess;window.upgradeFromProgressive=upgradeFromProgressive;
+window.navigate=navigate;window.navigateHome=navigateHome;window.selectGuests=window.selectGuests;window.handleSignup=handleSignup;window.handleLogin=handleLogin;window.handleRestaurantLogin=handleRestaurantLogin;window.handleJoinQueue=handleJoinQueue;window.allocateTable=allocateTable;window.quickAllocate=quickAllocate;window.logout=logout;window.firebaseAdminLogin=firebaseAdminLogin;window.adminLogout=adminLogout;window.handleUpgrade=handleUpgrade;window.submitPaymentProof=submitPaymentProof;window.viewScreenshot=window.viewScreenshot;window.approvePayment=approvePayment;window.rejectPayment=rejectPayment;window.printQRCode=window.printQRCode;window.downloadQRCode=window.downloadQRCode;window.copyQRLink=window.copyQRLink;window.generateQRCode=generateQRCode;window.showLoadingSuccess=showLoadingSuccess;window.checkInternet=checkInternet;window.toggleQRControls=toggleQRControls;window.setQRPosition=setQRPosition;window.updateQRSize=updateQRSize;window.toggleQRVisibility=toggleQRVisibility;window.resetQRSettings=resetQRSettings;window.startDragQR=startDragQR;window.dragQR=dragQR;window.stopDragQR=stopDragQR;window.saveQRSettings=saveQRSettings;window.loadQRSettings=loadQRSettings;window.showCleanupChoiceModal=showCleanupChoiceModal;window.performCleanup=performCleanup;window.showCleanupSuccessModal=showCleanupSuccessModal;window.showProgressiveUpgradeModal=showProgressiveUpgradeModal;window.getOrdinalSuffix=getOrdinalSuffix;window.closeCleanupModal=closeCleanupModal;window.closeSuccessModal=closeSuccessModal;window.upgradeFromCleanup=upgradeFromCleanup;window.upgradeFromSuccess=upgradeFromSuccess;window.upgradeFromProgressive=upgradeFromProgressive;window.showErrorScreen=showErrorScreen;
 
 FirebaseAdmin.onAuthStateChanged(u=>{if(u){if(sessionStorage.getItem('adminAuth')!=='yes'){sessionStorage.setItem('adminAuth','yes');sessionStorage.setItem('adminEmail',u.email)}}else{if(sessionStorage.getItem('adminAuth')==='yes'){sessionStorage.removeItem('adminAuth');sessionStorage.removeItem('adminEmail')}}});
 
-setTimeout(()=>handleRoute(),500);
+// Wait for all scripts to load, then start
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+function initApp() {
+  console.log('🚀 Starting QueueApp...');
+  
+  // Check if Firebase and QRCode are loaded
+  if (typeof firebase === 'undefined') {
+    console.error('❌ Firebase not loaded');
+    showErrorScreen('Firebase failed to load. Please refresh the page.');
+    return;
+  }
+  
+  if (typeof QRCode === 'undefined') {
+    console.warn('⚠️ QRCode library not loaded, some features may not work');
+  }
+  
+  // Start routing
+  handleRoute();
+  
+  // Fallback: If still loading after 3 seconds, force show home
+  setTimeout(() => {
+    const appContent = document.getElementById('app').innerHTML;
+    if (appContent.includes('Loading QueueApp')) {
+      console.warn('⚠️ Loading took too long, forcing home page');
+      showHome();
+    }
+  }, 3000);
+}
 </script>
 </body>
 </html>
