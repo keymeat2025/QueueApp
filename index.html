@@ -218,7 +218,12 @@ input[type="range"] {
 const firebaseConfig={apiKey:"AIzaSyBQRfA1_qgG9x4w4aiDqAzAPghMEc5zE6Q",authDomain:"queueapp-97728.firebaseapp.com",projectId:"queueapp-97728",storageBucket:"queueapp-97728.firebasestorage.app",messagingSenderId:"41156558140",appId:"1:41156558140:web:f3277e7018176d0870f239",measurementId:"G-QSP7ZXNSFT"};
 firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.firestore();
 
-const getTodayQRCode=rid=>`${window.location.origin}${window.location.pathname}#/r/${rid}/join`;
+//const getTodayQRCode=rid=>`${window.location.origin}${window.location.pathname}#/r/${rid}/join`;
+const getTodayQRCode = rid => {
+    // Use just the origin with trailing slash for hash routing
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/#/r/${rid}/join`;
+};
 const generateQRCode=(eid,rid)=>{const el=document.getElementById(eid);if(!el)return;el.innerHTML='';const sw=window.innerWidth;let sz=sw<768?120:sw<1024?160:sw<1920?220:sw<2560?280:350;new QRCode(el,{text:getTodayQRCode(rid),width:sz,height:sz,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.H})};
 
 const FirebaseAdmin={async signIn(e,p){try{const u=await auth.signInWithEmailAndPassword(e,p);return{success:true,user:u.user}}catch(err){return{success:false,error:err.message}}},async signOut(){try{await auth.signOut();return{success:true}}catch(err){return{success:false,error:err.message}}},getCurrentUser(){return auth.currentUser},onAuthStateChanged(cb){return auth.onAuthStateChanged(cb)}};
