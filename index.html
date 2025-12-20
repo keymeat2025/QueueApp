@@ -159,22 +159,54 @@ button,.btn{min-height:70px;padding:1.25rem 3rem}
 .display-qr-fixed #display-qr{width:350px!important;height:350px!important}
 }
 @media print{
-/* Hide everything by default */
+/* Preserve colors and backgrounds in print */
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+
+/* Default: hide everything */
 body *{visibility:hidden}
 
-/* Show QR code when printing from admin dashboard */
+/* POSTER PRINTING - Show full styled template */
+.poster-modal-overlay,
+.poster-modal-overlay *{visibility:visible!important}
+
+.poster-modal-content,
+.poster-modal-content *{visibility:visible!important}
+
+.poster-template4,
+.poster-template4 *,
+.poster-template4::before,
+.poster-template4::after{visibility:visible!important}
+
+/* Show all pseudo-elements */
+.poster-scan-me::before,
+.poster-scan-me::after{visibility:visible!important}
+
+/* Position poster to fill page */
+.poster-modal-overlay{background:white!important;position:fixed!important;padding:0!important;top:0!important;left:0!important;right:0!important;bottom:0!important}
+.poster-modal-content{max-width:none!important;width:210mm!important;height:297mm!important;padding:0!important;margin:0 auto!important;border-radius:0!important;overflow:visible!important;box-shadow:none!important}
+.poster-template4{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-around!important;width:210mm!important;height:297mm!important;min-height:297mm!important;margin:0!important;padding:3rem 2rem!important;page-break-after:always!important;box-sizing:border-box!important;position:relative!important}
+
+/* Ensure poster elements display correctly */
+.poster-template4 .poster-restaurant-name{display:block!important}
+.poster-template4 .poster-welcome-text{display:block!important}
+.poster-template4 .poster-main-message{display:block!important}
+.poster-template4 .poster-main-text{display:block!important}
+.poster-template4 .poster-qr-container{display:flex!important;justify-content:center!important}
+.poster-template4 .poster-scan-me{display:block!important}
+.poster-template4 .poster-powered-by{display:block!important}
+
+/* Preserve decorative emojis */
+.poster-template4::before,
+.poster-template4::after{opacity:.1!important}
+
+/* Hide action buttons when printing poster */
+.poster-actions{display:none!important;visibility:hidden!important}
+
+/* QR CODE PRINTING (from admin dashboard) */
 .qr-container,.qr-container *{visibility:visible!important}
-.qr-container{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:auto!important;padding:2rem!important}
+.qr-container{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;padding:2rem!important}
 
-/* Show poster when printing */
-.poster-template4,.poster-template4 *{visibility:visible!important;display:flex!important}
-.poster-modal-content{visibility:visible!important}
-.poster-template4{position:absolute;left:0;top:0;width:210mm;height:297mm;page-break-after:always;margin:0;padding:3rem 2rem;transform:none!important}
-
-/* Hide poster action buttons when printing */
-.poster-no-print,.poster-actions{display:none!important;visibility:hidden!important}
-
-/* Ensure QR codes inside poster are visible */
+/* Show QR codes inside elements */
 #poster-qr,#poster-qr *,#daily-qr,#daily-qr *{visibility:visible!important}
 }
 @media (prefers-reduced-motion:reduce){
@@ -186,8 +218,8 @@ body *{visibility:hidden}
 .poster-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;animation:fadeIn .3s ease}
 .poster-modal-content{background:white;border-radius:1rem;padding:2rem;max-width:900px;width:100%;max-height:95vh;overflow-y:auto}
 .poster-template4{background:linear-gradient(180deg,#fef3c7 0%,#fef3c7 50%,white 50%,white 100%);display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:3rem 2rem;position:relative;min-height:600px}
-.poster-template4::after{content:'🍽️';position:absolute;font-size:4rem;opacity:.1;top:2rem;right:2rem;z-index:1}
-.poster-template4::before{content:'🍽️';position:absolute;font-size:4rem;opacity:.1;bottom:2rem;left:2rem;z-index:1}
+.poster-template4::after{content:'🍽️';position:absolute;font-size:4rem;opacity:.1;top:2rem;right:2rem;z-index:1;pointer-events:none}
+.poster-template4::before{content:'🍽️';position:absolute;font-size:4rem;opacity:.1;bottom:2rem;left:2rem;z-index:1;pointer-events:none}
 .poster-template4 .poster-restaurant-name{font-size:clamp(1.5rem,4vw,2.5rem);color:#f59e0b;font-weight:900;text-align:center;text-shadow:2px 2px 4px rgba(0,0,0,.1);z-index:2}
 .poster-template4 .poster-welcome-text{font-size:clamp(1rem,2vw,1.5rem);color:#666;text-align:center;margin:1rem 0;z-index:2}
 .poster-template4 .poster-main-message{background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:white;border-radius:2rem;padding:clamp(1.5rem,3vw,2rem) clamp(2rem,4vw,3rem);margin:1rem 0;box-shadow:0 8px 30px rgba(251,191,36,.4);z-index:2}
