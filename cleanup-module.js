@@ -1,3 +1,4 @@
+
 // QueueApp Cleanup Module - Tiered Strategy (Free: Manual, Premium: Auto)
 // Version: 1.0
 // Include this file in your main HTML: <script src="cleanup-module.js"></script>
