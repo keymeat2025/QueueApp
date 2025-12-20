@@ -15,6 +15,7 @@ let analyticsFilterState = {
 // MAIN ANALYTICS PAGE
 // ============================================================================
 
+
 async function showAnalytics(rid) {
     // Get restaurant data
     let r = DB.restaurants[rid];
@@ -38,8 +39,8 @@ async function showAnalytics(rid) {
         searchQuery: ''
     };
 
-    // Get all queue data (current + archived if available)
-    const allQueue = r.queue || [];
+    // Get all queue data (current + archived)
+    const allQueue = getCompleteQueueData(r);
     
     renderAnalyticsPage(rid, r, allQueue);
 }
@@ -47,6 +48,35 @@ async function showAnalytics(rid) {
 // ============================================================================
 // RENDER ANALYTICS PAGE
 // ============================================================================
+// ============================================================================
+// GET COMPLETE QUEUE DATA (CURRENT + ARCHIVED)
+// ============================================================================
+
+function getCompleteQueueData(restaurant) {
+    let allCustomers = [];
+    
+    // 1. Add current queue (today's live data)
+    if (restaurant.queue && restaurant.queue.length > 0) {
+        allCustomers = [...restaurant.queue];
+    }
+    
+    // 2. Add archived queue data (past days with full customer details)
+    if (restaurant.queueArchive) {
+        Object.keys(restaurant.queueArchive).forEach(date => {
+            const archive = restaurant.queueArchive[date];
+            
+            // New format: archive has 'customers' array with full details
+            if (archive.customers && Array.isArray(archive.customers)) {
+                allCustomers = allCustomers.concat(archive.customers);
+            }
+            // Old format: archive only has summary (backward compatibility)
+            // Skip it - no customer details available
+        });
+    }
+    
+    return allCustomers;
+}
+
 
 function renderAnalyticsPage(rid, r, allQueue) {
     // Apply filters
