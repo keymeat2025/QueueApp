@@ -54,7 +54,6 @@ async function showAnalytics(rid) {
 // GET COMPLETE QUEUE DATA (CURRENT + ARCHIVED)
 // ============================================================================
 
-
 function getCompleteQueueData(restaurant) {
   let allCustomers = [];
   
@@ -63,7 +62,7 @@ function getCompleteQueueData(restaurant) {
     allCustomers = [...restaurant.queue];
   }
   
-  // 2. All archived dates (FIXED for timezone)
+  // 2. All archived dates
   if (restaurant.queueArchive) {
     Object.keys(restaurant.queueArchive).forEach(date => {
       const archive = restaurant.queueArchive[date];
@@ -71,15 +70,10 @@ function getCompleteQueueData(restaurant) {
       // New format with customers array
       if (archive.customers && Array.isArray(archive.customers)) {
         archive.customers.forEach(c => {
-          // Use archive date instead of joinedAt date to avoid timezone issues
-          const timePart = c.joinedAt ? c.joinedAt.split('T')[1] : '00:00:00.000Z';
-          
           allCustomers.push({
             ...c,
             _fromArchive: true,
-            _archiveDate: date,
-            _originalJoinedAt: c.joinedAt,
-            joinedAt: date + 'T' + timePart  // Use archive date with original time
+            _archiveDate: date
           });
         });
       }
@@ -209,6 +203,7 @@ function renderAnalyticsPage(rid, r, allQueue) {
                         </tr>
                     </thead>
                     <tbody>
+                
                         ${filteredQueue.length > 0 ? filteredQueue.slice(0, 50).map(c => {
                             const joinTime = new Date(c.joinedAt);
                             const seatTime = c.allocatedAt ? new Date(c.allocatedAt) : null;
@@ -432,17 +427,24 @@ function calculateStats(queue) {
     // Total guests
     const totalGuests = queue.reduce((sum, c) => sum + (c.guests || 0), 0);
 
-    // Average wait time (only for seated customers)
+    // Average wait time (only for seated customers) - WITH VALIDATION
     const seatedCustomers = queue.filter(c => c.allocatedAt);
     let avgWaitTime = 'N/A';
     if (seatedCustomers.length > 0) {
-        const totalWaitMinutes = seatedCustomers.reduce((sum, c) => {
+        const validWaitTimes = [];
+        seatedCustomers.forEach(c => {
             const joinTime = new Date(c.joinedAt);
             const seatTime = new Date(c.allocatedAt);
             const waitMinutes = Math.round((seatTime - joinTime) / 60000);
-            return sum + waitMinutes;
-        }, 0);
-        avgWaitTime = Math.round(totalWaitMinutes / seatedCustomers.length) + 'm';
+            // Only include valid wait times (positive and < 5 hours)
+            if (waitMinutes >= 0 && waitMinutes < 300) {
+                validWaitTimes.push(waitMinutes);
+            }
+        });
+        if (validWaitTimes.length > 0) {
+            const totalWaitMinutes = validWaitTimes.reduce((sum, wt) => sum + wt, 0);
+            avgWaitTime = Math.round(totalWaitMinutes / validWaitTimes.length) + 'm';
+        }
     }
 
     // Peak hours
