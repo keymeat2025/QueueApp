@@ -53,29 +53,39 @@ async function showAnalytics(rid) {
 // GET COMPLETE QUEUE DATA (CURRENT + ARCHIVED)
 // ============================================================================
 
+
 function getCompleteQueueData(restaurant) {
-    let allCustomers = [];
-    
-    // 1. Add current queue (today's live data)
-    if (restaurant.queue && restaurant.queue.length > 0) {
-        allCustomers = [...restaurant.queue];
-    }
-    
-    // 2. Add archived queue data (past days with full customer details)
-    if (restaurant.queueArchive) {
-        Object.keys(restaurant.queueArchive).forEach(date => {
-            const archive = restaurant.queueArchive[date];
-            
-            // New format: archive has 'customers' array with full details
-            if (archive.customers && Array.isArray(archive.customers)) {
-                allCustomers = allCustomers.concat(archive.customers);
-            }
-            // Old format: archive only has summary (backward compatibility)
-            // Skip it - no customer details available
+  let allCustomers = [];
+  
+  // 1. Today's live queue
+  if (restaurant.queue && restaurant.queue.length > 0) {
+    allCustomers = [...restaurant.queue];
+  }
+  
+  // 2. All archived dates (FIXED for timezone)
+  if (restaurant.queueArchive) {
+    Object.keys(restaurant.queueArchive).forEach(date => {
+      const archive = restaurant.queueArchive[date];
+      
+      // New format with customers array
+      if (archive.customers && Array.isArray(archive.customers)) {
+        archive.customers.forEach(c => {
+          // Use archive date instead of joinedAt date to avoid timezone issues
+          const timePart = c.joinedAt ? c.joinedAt.split('T')[1] : '00:00:00.000Z';
+          
+          allCustomers.push({
+            ...c,
+            _fromArchive: true,
+            _archiveDate: date,
+            _originalJoinedAt: c.joinedAt,
+            joinedAt: date + 'T' + timePart  // Use archive date with original time
+          });
         });
-    }
-    
-    return allCustomers;
+      }
+    });
+  }
+  
+  return allCustomers;
 }
 
 
