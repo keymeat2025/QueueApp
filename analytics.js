@@ -556,8 +556,9 @@ function exportAnalyticsCSV(rid) {
         return;
     }
 
-    const queue = r.queue || [];
-    const filteredQueue = applyFilters(queue, analyticsFilterState);
+    // ✅ FIX: Use getCompleteQueueData instead of r.queue
+    const allQueue = getCompleteQueueData(r);
+    const filteredQueue = applyFilters(allQueue, analyticsFilterState);
 
     if (filteredQueue.length === 0) {
         alert('⚠️ No data to export with current filters');
@@ -571,7 +572,16 @@ function exportAnalyticsCSV(rid) {
     filteredQueue.forEach(c => {
         const joinTime = new Date(c.joinedAt);
         const seatTime = c.allocatedAt ? new Date(c.allocatedAt) : null;
-        const waitMinutes = seatTime ? Math.round((seatTime - joinTime) / 60000) : '';
+        
+        // Calculate wait time with validation
+        let waitMinutes = '';
+        if (seatTime) {
+            const wt = Math.round((seatTime - joinTime) / 60000);
+            // Only include valid wait times
+            if (wt >= 0 && wt < 300) {
+                waitMinutes = wt;
+            }
+        }
 
         csv += `"${c.queueNumber}",`;
         csv += `"${c.name}",`;
