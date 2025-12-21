@@ -386,10 +386,11 @@ function updateAnalyticsFilters(rid) {
     analyticsFilterState.dateTo = dateTo || null;
     analyticsFilterState.searchQuery = searchQuery;
 
-    // Re-render
+    // Re-render with complete data
     const r = DB.restaurants[rid];
     if (r) {
-        renderAnalyticsPage(rid, r, r.queue || []);
+        const allQueue = getCompleteQueueData(r);  // ✅ NEW - FIXED
+        renderAnalyticsPage(rid, r, allQueue);
     }
 }
 
@@ -401,10 +402,11 @@ function toggleAnalyticsTimeSlot(slot, rid) {
         analyticsFilterState.timeSlots.push(slot);
     }
 
-    // Re-render
+    // Re-render with complete data
     const r = DB.restaurants[rid];
     if (r) {
-        renderAnalyticsPage(rid, r, r.queue || []);
+        const allQueue = getCompleteQueueData(r);  // ✅ NEW - FIXED
+        renderAnalyticsPage(rid, r, allQueue);
     }
 }
 
