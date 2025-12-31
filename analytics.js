@@ -15,7 +15,6 @@ let analyticsFilterState = {
 // MAIN ANALYTICS PAGE
 // ============================================================================
 
-
 async function showAnalytics(rid) {
     // Get restaurant data
     let r = DB.restaurants[rid];
@@ -39,79 +38,82 @@ async function showAnalytics(rid) {
         searchQuery: ''
     };
 
-    // Get all queue data (current + archived)
-    const allQueue = getCompleteQueueData(r);
+    // Get all queue data (current + archived) - FIXED: Pass both params and await
+    const allQueue = await getCompleteQueueData(r, rid);
     
     renderAnalyticsPage(rid, r, allQueue);
 }
 
 // ============================================================================
-// RENDER ANALYTICS PAGE
-// ============================================================================
-// ============================================================================
 // GET COMPLETE QUEUE DATA (CURRENT + ARCHIVED)
 // ============================================================================
-// Update getCompleteQueueData function in analytics.js
 
 async function getCompleteQueueData(restaurant, rid) {
-  let allCustomers = [];
-  
-  // 1. Current queue
-  if (restaurant.queue && restaurant.queue.length > 0) {
-    allCustomers = [...restaurant.queue];
-  }
-  
-  // 2. OLD FORMAT: queueArchive in restaurant doc
-  if (restaurant.queueArchive && Object.keys(restaurant.queueArchive).length > 0) {
-    Object.keys(restaurant.queueArchive).forEach(date => {
-      const archive = restaurant.queueArchive[date];
-      if (archive.customers && Array.isArray(archive.customers)) {
-        archive.customers.forEach(c => {
-          allCustomers.push({
-            ...c,
-            _fromArchive: true,
-            _archiveDate: date,
-            _archiveSource: 'old'
-          });
-        });
-      }
-    });
-  }
-  
-  // 3. NEW FORMAT: Archives collection (with auto-split support)
-  try {
-    const archivesSnapshot = await db.collection('archives')
-      .where('restaurantId', '==', rid)
-      .get();
-    
-    if (!archivesSnapshot.empty) {
-      for (const doc of archivesSnapshot.docs) {
-        const archive = doc.data();
-        
-        // ✅ NEW: Handle multi-part archives
-        if (archive.customers && Array.isArray(archive.customers)) {
-          archive.customers.forEach(c => {
-            allCustomers.push({
-              ...c,
-              _fromArchive: true,
-              _archiveDate: archive.date,
-              _archiveSource: 'new',
-              _archivePart: archive.partNumber || 1
-            });
-          });
-        }
-        
-        // ✅ NEW: If there are more parts, they're already in the snapshot
-        // No need to fetch separately - they all match the restaurantId filter
-      }
+    // Validate parameters
+    if (!restaurant || !rid) {
+        console.error('Invalid parameters:', { restaurant, rid });
+        return []; // Return empty array instead of undefined
     }
-  } catch (error) {
-    console.error('Error loading archives:', error);
-  }
-  
-  return allCustomers;
+
+    let allCustomers = [];
+    
+    // 1. Current queue
+    if (restaurant.queue && restaurant.queue.length > 0) {
+        allCustomers = [...restaurant.queue];
+    }
+    
+    // 2. OLD FORMAT: queueArchive in restaurant doc
+    if (restaurant.queueArchive && Object.keys(restaurant.queueArchive).length > 0) {
+        Object.keys(restaurant.queueArchive).forEach(date => {
+            const archive = restaurant.queueArchive[date];
+            if (archive.customers && Array.isArray(archive.customers)) {
+                archive.customers.forEach(c => {
+                    allCustomers.push({
+                        ...c,
+                        _fromArchive: true,
+                        _archiveDate: date,
+                        _archiveSource: 'old'
+                    });
+                });
+            }
+        });
+    }
+    
+    // 3. NEW FORMAT: Archives collection (with auto-split support)
+    try {
+        const archivesSnapshot = await db.collection('archives')
+            .where('restaurantId', '==', rid)
+            .get();
+        
+        if (!archivesSnapshot.empty) {
+            for (const doc of archivesSnapshot.docs) {
+                const archive = doc.data();
+                
+                // Handle multi-part archives
+                if (archive.customers && Array.isArray(archive.customers)) {
+                    archive.customers.forEach(c => {
+                        allCustomers.push({
+                            ...c,
+                            _fromArchive: true,
+                            _archiveDate: archive.date,
+                            _archiveSource: 'new',
+                            _archivePart: archive.partNumber || 1
+                        });
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading archives:', error);
+        // Don't throw - just log and continue with what we have
+    }
+    
+    return allCustomers; // Always return an array
 }
 
+// ============================================================================
+// RENDER ANALYTICS PAGE
+// ============================================================================
 
 function renderAnalyticsPage(rid, r, allQueue) {
     // Apply filters
@@ -151,7 +153,7 @@ function renderAnalyticsPage(rid, r, allQueue) {
         </div>
 
         <!-- Filter Section -->
-        <div class="filter-section">
+        <div class="card mb">
             <h3>🔍 Filter & Export Data</h3>
             <div class="grid grid-2 mb">
                 <div>
@@ -167,72 +169,71 @@ function renderAnalyticsPage(rid, r, allQueue) {
             <div class="mb">
                 <label style="display:block;font-weight:600;margin-bottom:.5rem">Quick Time Filters:</label>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                    <button class="time-slot ${isSlotActive('morning') ? 'active' : ''}" onclick="toggleAnalyticsTimeSlot('morning', '${rid}')">🌅 Morning (6-11 AM)</button>
-                    <button class="time-slot ${isSlotActive('lunch') ? 'active' : ''}" onclick="toggleAnalyticsTimeSlot('lunch', '${rid}')">🌞 Lunch (12-3 PM)</button>
-                    <button class="time-slot ${isSlotActive('evening') ? 'active' : ''}" onclick="toggleAnalyticsTimeSlot('evening', '${rid}')">🌆 Evening (4-6 PM)</button>
-                    <button class="time-slot ${isSlotActive('dinner') ? 'active' : ''}" onclick="toggleAnalyticsTimeSlot('dinner', '${rid}')">🌙 Dinner (6-11 PM)</button>
-                    <button class="time-slot ${isSlotActive('late') ? 'active' : ''}" onclick="toggleAnalyticsTimeSlot('late', '${rid}')">🌃 Late Night (11 PM+)</button>
+                    <button class="btn ${isSlotActive('morning') ? 'btn-primary' : 'btn-secondary'}" style="padding:.5rem 1rem;font-size:.875rem" onclick="toggleAnalyticsTimeSlot('morning', '${rid}')">🌅 Morning (6-11 AM)</button>
+                    <button class="btn ${isSlotActive('lunch') ? 'btn-primary' : 'btn-secondary'}" style="padding:.5rem 1rem;font-size:.875rem" onclick="toggleAnalyticsTimeSlot('lunch', '${rid}')">🌞 Lunch (12-3 PM)</button>
+                    <button class="btn ${isSlotActive('evening') ? 'btn-primary' : 'btn-secondary'}" style="padding:.5rem 1rem;font-size:.875rem" onclick="toggleAnalyticsTimeSlot('evening', '${rid}')">🌆 Evening (4-6 PM)</button>
+                    <button class="btn ${isSlotActive('dinner') ? 'btn-primary' : 'btn-secondary'}" style="padding:.5rem 1rem;font-size:.875rem" onclick="toggleAnalyticsTimeSlot('dinner', '${rid}')">🌙 Dinner (6-11 PM)</button>
+                    <button class="btn ${isSlotActive('late') ? 'btn-primary' : 'btn-secondary'}" style="padding:.5rem 1rem;font-size:.875rem" onclick="toggleAnalyticsTimeSlot('late', '${rid}')">🌃 Late Night (11 PM+)</button>
                 </div>
             </div>
 
             <div style="display:flex;gap:1rem;flex-wrap:wrap">
-                <button onclick="exportAnalyticsCSV('${rid}')" class="btn-success">📥 Download CSV</button>
-                <button onclick="alert('📄 PDF export coming soon!\\n\\nWill include:\\n• Full customer list\\n• Statistics summary\\n• Charts and graphs')" class="btn-warning">📄 Download PDF</button>
-                <button onclick="alert('📧 Email report coming soon!\\n\\nWill email you:\\n• Daily summary\\n• Customer details\\n• Analytics dashboard')" class="btn-secondary">📧 Email Report</button>
+                <button onclick="exportAnalyticsCSV('${rid}')" class="btn btn-success">📥 Download CSV</button>
+                <button onclick="alert('📄 PDF export coming soon!\\n\\nWill include:\\n• Full customer list\\n• Statistics summary\\n• Charts and graphs')" class="btn btn-warning">📄 Download PDF</button>
+                <button onclick="alert('📧 Email report coming soon!\\n\\nWill email you:\\n• Daily summary\\n• Customer details\\n• Analytics dashboard')" class="btn btn-secondary">📧 Email Report</button>
             </div>
         </div>
 
         <!-- Summary Statistics -->
-        <div class="card">
+        <div class="card mb">
             <h2>📊 Summary Statistics</h2>
             <div class="alert alert-info mb">
                 <strong>Showing data for:</strong> ${formatDateRange(analyticsFilterState)} | ${getActiveTimeSlotsText(analyticsFilterState)} | Total: ${filteredQueue.length} customers
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">${stats.totalCustomers}</div>
-                    <div class="stat-label">Total Customers</div>
+            <div class="grid grid-4 mb">
+                <div class="card text-center" style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)">
+                    <div style="font-size:clamp(2rem,6vw,3rem);font-weight:900;color:#2563eb">${stats.totalCustomers}</div>
+                    <div style="color:var(--gray-600);font-size:.875rem">Total Customers</div>
                 </div>
-                <div class="stat-card" style="background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)">
-                    <div class="stat-number" style="color:#ea580c">${stats.avgWaitTime}</div>
-                    <div class="stat-label">Avg Wait Time</div>
+                <div class="card text-center" style="background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)">
+                    <div style="font-size:clamp(2rem,6vw,3rem);font-weight:900;color:#ea580c">${stats.avgWaitTime}</div>
+                    <div style="color:var(--gray-600);font-size:.875rem">Avg Wait Time</div>
                 </div>
-                <div class="stat-card" style="background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)">
-                    <div class="stat-number" style="color:#16a34a">${stats.totalGuests}</div>
-                    <div class="stat-label">Total Guests</div>
+                <div class="card text-center" style="background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)">
+                    <div style="font-size:clamp(2rem,6vw,3rem);font-weight:900;color:#16a34a">${stats.totalGuests}</div>
+                    <div style="color:var(--gray-600);font-size:.875rem">Total Guests</div>
                 </div>
-                <div class="stat-card" style="background:linear-gradient(135deg,#fef9c3 0%,#fef3c7 100%)">
-                    <div class="stat-number" style="color:#ca8a04">${stats.peakHours}</div>
-                    <div class="stat-label">Peak Hours</div>
+                <div class="card text-center" style="background:linear-gradient(135deg,#fef9c3 0%,#fef3c7 100%)">
+                    <div style="font-size:clamp(2rem,6vw,3rem);font-weight:900;color:#ca8a04">${stats.peakHours}</div>
+                    <div style="color:var(--gray-600);font-size:.875rem">Peak Hours</div>
                 </div>
             </div>
         </div>
 
         <!-- Detailed Customer Data Table -->
-        <div class="card">
+        <div class="card mb">
             <div class="flex justify-between items-center mb">
                 <h2>👥 Customer Details</h2>
                 <input type="text" id="searchBox" placeholder="🔍 Search by name or phone..." style="max-width:300px;margin:0" value="${analyticsFilterState.searchQuery}" oninput="updateAnalyticsFilters('${rid}')">
             </div>
 
             <div style="overflow-x:auto">
-                <table>
+                <table style="width:100%;border-collapse:collapse">
                     <thead>
-                        <tr>
-                            <th>Queue #</th>
-                            <th>Customer Name</th>
-                            <th>Phone</th>
-                            <th>Guests</th>
-                            <th>Join Time</th>
-                            <th>Seat Time</th>
-                            <th>Wait Duration</th>
-                            <th>Table #</th>
-                            <th>Status</th>
+                        <tr style="background:var(--gray-100);text-align:left">
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Queue #</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Customer Name</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Phone</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Guests</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Join Time</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Seat Time</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Wait Duration</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Table #</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                
                         ${filteredQueue.length > 0 ? filteredQueue.slice(0, 50).map(c => {
                             const joinTime = new Date(c.joinedAt);
                             const seatTime = c.allocatedAt ? new Date(c.allocatedAt) : null;
@@ -240,16 +241,16 @@ function renderAnalyticsPage(rid, r, allQueue) {
                             const waitColor = waitMinutes ? (waitMinutes < 15 ? 'var(--success)' : waitMinutes < 25 ? 'var(--warning)' : 'var(--danger)') : '';
                             
                             return `
-                            <tr>
-                                <td><strong>${c.queueNumber}</strong></td>
-                                <td>${c.name}</td>
-                                <td>${c.phone}</td>
-                                <td>${c.guests}</td>
-                                <td>${joinTime.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</td>
-                                <td>${seatTime ? seatTime.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : '-'}</td>
-                                <td>${waitMinutes ? `<span style="color:${waitColor};font-weight:600">${waitMinutes}m</span>` : '-'}</td>
-                                <td>${c.tableNo || '-'}</td>
-                                <td><span class="badge badge-${c.status === 'allocated' ? 'success' : 'warning'}">${c.status === 'allocated' ? 'Seated' : 'Waiting'}</span></td>
+                            <tr style="border-bottom:1px solid var(--gray-200)">
+                                <td style="padding:.75rem"><strong>${c.queueNumber}</strong></td>
+                                <td style="padding:.75rem">${c.name}</td>
+                                <td style="padding:.75rem">${c.phone}</td>
+                                <td style="padding:.75rem">${c.guests}</td>
+                                <td style="padding:.75rem">${joinTime.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</td>
+                                <td style="padding:.75rem">${seatTime ? seatTime.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : '-'}</td>
+                                <td style="padding:.75rem">${waitMinutes !== null && waitMinutes >= 0 && waitMinutes < 300 ? `<span style="color:${waitColor};font-weight:600">${waitMinutes}m</span>` : '-'}</td>
+                                <td style="padding:.75rem">${c.tableNo || '-'}</td>
+                                <td style="padding:.75rem"><span class="badge badge-${c.status === 'allocated' ? 'success' : 'warning'}">${c.status === 'allocated' ? 'Seated' : 'Waiting'}</span></td>
                             </tr>
                             `;
                         }).join('') : '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--gray-600)">No customers found for selected filters</td></tr>'}
@@ -265,54 +266,55 @@ function renderAnalyticsPage(rid, r, allQueue) {
         </div>
 
         <!-- Analytics Charts -->
-        <div class="grid grid-2">
+        <div class="grid grid-2 mb">
             <div class="card">
                 <h3>📈 Hourly Customer Flow</h3>
-                <div class="chart-placeholder">
+                <div style="text-align:center;padding:2rem;background:var(--gray-50);border-radius:1rem">
                     <div style="font-size:3rem;margin-bottom:1rem">📊</div>
-                    <p style="color:var(--gray-600)">Peak: ${stats.peakHours} (${stats.peakCustomers} customers)</p>
-                    <p style="color:var(--gray-600);font-size:.875rem">Bar chart showing customer distribution by hour</p>
+                    <p style="color:var(--gray-700);font-weight:600">Peak: ${stats.peakHours}</p>
+                    <p style="color:var(--gray-600)">${stats.peakCustomers} customers</p>
+                    <p style="color:var(--gray-500);font-size:.875rem;margin-top:1rem">Bar chart showing customer distribution by hour</p>
                 </div>
             </div>
 
             <div class="card">
                 <h3>⏱️ Wait Time Analysis</h3>
-                <div class="chart-placeholder" style="background:linear-gradient(135deg,#fef9c3 0%,#fef3c7 100%)">
+                <div style="text-align:center;padding:2rem;background:linear-gradient(135deg,#fef9c3 0%,#fef3c7 100%);border-radius:1rem">
                     <div style="font-size:3rem;margin-bottom:1rem">⏱️</div>
-                    <p style="color:var(--gray-700)">Avg: ${stats.avgWaitTime}</p>
-                    <p style="color:var(--gray-600);font-size:.875rem">Line chart showing wait times throughout the day</p>
+                    <p style="color:var(--gray-700);font-weight:600">Average: ${stats.avgWaitTime}</p>
+                    <p style="color:var(--gray-600);font-size:.875rem;margin-top:1rem">Line chart showing wait times throughout the day</p>
                 </div>
             </div>
         </div>
 
         <!-- Repeat Customer Insights -->
         ${repeatCustomers.length > 0 ? `
-        <div class="card">
+        <div class="card mb">
             <h3>🔄 Repeat Customer Insights</h3>
-            <div class="alert alert-info">
+            <div class="alert alert-info mb">
                 <strong>💡 Tip:</strong> These customers visited multiple times. Consider sending them loyalty rewards!
             </div>
             <div style="overflow-x:auto">
-                <table>
+                <table style="width:100%;border-collapse:collapse">
                     <thead>
-                        <tr>
-                            <th>Customer Name</th>
-                            <th>Phone</th>
-                            <th>Total Visits</th>
-                            <th>Last Visit</th>
-                            <th>Avg Party Size</th>
-                            <th>Action</th>
+                        <tr style="background:var(--gray-100);text-align:left">
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Customer Name</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Phone</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Total Visits</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Last Visit</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Avg Party Size</th>
+                            <th style="padding:.75rem;border-bottom:2px solid var(--gray-200)">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${repeatCustomers.slice(0, 10).map(rc => `
-                        <tr>
-                            <td><strong>${rc.name}</strong></td>
-                            <td>${rc.phone}</td>
-                            <td><span class="badge badge-primary">${rc.visits} visits</span></td>
-                            <td>${new Date(rc.lastVisit).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
-                            <td>${rc.avgGuests} guests</td>
-                            <td><button class="btn-success" style="padding:.5rem 1rem;font-size:.875rem" onclick="alert('📱 Send Offer feature coming soon!\\n\\nWill send SMS/WhatsApp to:\\n${rc.name}\\n${rc.phone}')">📱 Send Offer</button></td>
+                        <tr style="border-bottom:1px solid var(--gray-200)">
+                            <td style="padding:.75rem"><strong>${rc.name}</strong></td>
+                            <td style="padding:.75rem">${rc.phone}</td>
+                            <td style="padding:.75rem"><span class="badge badge-primary">${rc.visits} visits</span></td>
+                            <td style="padding:.75rem">${new Date(rc.lastVisit).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
+                            <td style="padding:.75rem">${rc.avgGuests} guests</td>
+                            <td style="padding:.75rem"><button class="btn btn-success" style="padding:.5rem 1rem;font-size:.875rem" onclick="alert('📱 Send Offer feature coming soon!\\n\\nWill send SMS/WhatsApp to:\\n${rc.name}\\n${rc.phone}')">📱 Send Offer</button></td>
                         </tr>
                         `).join('')}
                     </tbody>
@@ -328,11 +330,11 @@ function renderAnalyticsPage(rid, r, allQueue) {
                 <h3 style="color:#9333ea">Ready to Export</h3>
                 <p style="color:var(--gray-700);margin-bottom:1.5rem">Download complete data with all timestamps and customer details</p>
                 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-                    <button onclick="exportAnalyticsCSV('${rid}')" class="btn-primary" style="font-size:1.1rem;padding:1rem 2rem">
+                    <button onclick="exportAnalyticsCSV('${rid}')" class="btn btn-primary" style="font-size:1.1rem;padding:1rem 2rem">
                         <span style="font-size:1.5rem">📥</span>
                         Download CSV (Excel)
                     </button>
-                    <button onclick="alert('📄 PDF Report coming soon!\\n\\nWill include:\\n• Customer list\\n• Statistics\\n• Charts')" class="btn-warning" style="font-size:1.1rem;padding:1rem 2rem">
+                    <button onclick="alert('📄 PDF Report coming soon!\\n\\nWill include:\\n• Customer list\\n• Statistics\\n• Charts')" class="btn btn-warning" style="font-size:1.1rem;padding:1rem 2rem">
                         <span style="font-size:1.5rem">📄</span>
                         Download PDF Report
                     </button>
@@ -402,7 +404,7 @@ function applyFilters(queue, filterState) {
     return filtered;
 }
 
-function updateAnalyticsFilters(rid) {
+async function updateAnalyticsFilters(rid) {
     const dateFrom = document.getElementById('dateFrom').value;
     const dateTo = document.getElementById('dateTo').value;
     const searchQuery = document.getElementById('searchBox').value;
@@ -414,12 +416,12 @@ function updateAnalyticsFilters(rid) {
     // Re-render with complete data
     const r = DB.restaurants[rid];
     if (r) {
-        const allQueue = getCompleteQueueData(r);  // ✅ NEW - FIXED
+        const allQueue = await getCompleteQueueData(r, rid);
         renderAnalyticsPage(rid, r, allQueue);
     }
 }
 
-function toggleAnalyticsTimeSlot(slot, rid) {
+async function toggleAnalyticsTimeSlot(slot, rid) {
     const index = analyticsFilterState.timeSlots.indexOf(slot);
     if (index > -1) {
         analyticsFilterState.timeSlots.splice(index, 1);
@@ -430,7 +432,7 @@ function toggleAnalyticsTimeSlot(slot, rid) {
     // Re-render with complete data
     const r = DB.restaurants[rid];
     if (r) {
-        const allQueue = getCompleteQueueData(r);  // ✅ NEW - FIXED
+        const allQueue = await getCompleteQueueData(r, rid);
         renderAnalyticsPage(rid, r, allQueue);
     }
 }
@@ -578,15 +580,15 @@ function getActiveTimeSlotsText(filterState) {
 // EXPORT FUNCTIONS
 // ============================================================================
 
-function exportAnalyticsCSV(rid) {
+async function exportAnalyticsCSV(rid) {
     const r = DB.restaurants[rid];
     if (!r) {
         alert('❌ Restaurant data not found');
         return;
     }
 
-    // ✅ FIX: Use getCompleteQueueData instead of r.queue
-    const allQueue = getCompleteQueueData(r);
+    // Get complete queue data (current + archived)
+    const allQueue = await getCompleteQueueData(r, rid);
     const filteredQueue = applyFilters(allQueue, analyticsFilterState);
 
     if (filteredQueue.length === 0) {
@@ -647,7 +649,10 @@ function exportAnalyticsCSV(rid) {
 // ============================================================================
 
 window.showAnalytics = showAnalytics;
+window.getCompleteQueueData = getCompleteQueueData;
 window.renderAnalyticsPage = renderAnalyticsPage;
 window.updateAnalyticsFilters = updateAnalyticsFilters;
 window.toggleAnalyticsTimeSlot = toggleAnalyticsTimeSlot;
 window.exportAnalyticsCSV = exportAnalyticsCSV;
+
+console.log('✅ QueueApp Analytics Module Loaded');
