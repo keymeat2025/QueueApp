@@ -51,31 +51,62 @@ async function showAnalytics(rid) {
 // ============================================================================
 // GET COMPLETE QUEUE DATA (CURRENT + ARCHIVED)
 // ============================================================================
+// Update getCompleteQueueData function in analytics.js
 
-function getCompleteQueueData(restaurant) {
+async function getCompleteQueueData(restaurant, rid) {
   let allCustomers = [];
   
-  // 1. Today's live queue
+  // 1. Current queue
   if (restaurant.queue && restaurant.queue.length > 0) {
     allCustomers = [...restaurant.queue];
   }
   
-  // 2. All archived dates
-  if (restaurant.queueArchive) {
+  // 2. OLD FORMAT: queueArchive in restaurant doc
+  if (restaurant.queueArchive && Object.keys(restaurant.queueArchive).length > 0) {
     Object.keys(restaurant.queueArchive).forEach(date => {
       const archive = restaurant.queueArchive[date];
-      
-      // New format with customers array
       if (archive.customers && Array.isArray(archive.customers)) {
         archive.customers.forEach(c => {
           allCustomers.push({
             ...c,
             _fromArchive: true,
-            _archiveDate: date
+            _archiveDate: date,
+            _archiveSource: 'old'
           });
         });
       }
     });
+  }
+  
+  // 3. NEW FORMAT: Archives collection (with auto-split support)
+  try {
+    const archivesSnapshot = await db.collection('archives')
+      .where('restaurantId', '==', rid)
+      .get();
+    
+    if (!archivesSnapshot.empty) {
+      for (const doc of archivesSnapshot.docs) {
+        const archive = doc.data();
+        
+        // ✅ NEW: Handle multi-part archives
+        if (archive.customers && Array.isArray(archive.customers)) {
+          archive.customers.forEach(c => {
+            allCustomers.push({
+              ...c,
+              _fromArchive: true,
+              _archiveDate: archive.date,
+              _archiveSource: 'new',
+              _archivePart: archive.partNumber || 1
+            });
+          });
+        }
+        
+        // ✅ NEW: If there are more parts, they're already in the snapshot
+        // No need to fetch separately - they all match the restaurantId filter
+      }
+    }
+  } catch (error) {
+    console.error('Error loading archives:', error);
   }
   
   return allCustomers;
