@@ -1,0 +1,42 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.banner {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.banner .left h1 {
+  margin: 0;
+}
+
+.banner .right button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: white;
+  color: #007bff;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.banner .right button:hover {
+  background-color: #e6e6e6;
+}
+
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+}

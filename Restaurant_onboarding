@@ -1,0 +1,412 @@
+import React, { useState } from 'react';
+import { Store, MapPin, Phone, Mail, CreditCard, CheckCircle, Users, Settings } from 'lucide-react';
+
+const RestaurantOnboarding = () => {
+  const [step, setStep] = useState(1); // 1: Basic Info, 2: Setup, 3: Complete
+  const [formData, setFormData] = useState({
+    restaurantName: '',
+    ownerName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    numberOfTables: 10,
+    avgDiningTime: 45,
+    plan: 'basic',
+    queuePrefix: ''
+  });
+  const [restaurantId, setRestaurantId] = useState('');
+
+  const plans = {
+    basic: {
+      name: 'Basic',
+      price: 3999,
+      features: ['Single location', 'Basic queue', 'SMS notifications', 'Up to 50 customers/day']
+    },
+    professional: {
+      name: 'Professional',
+      price: 11999,
+      features: ['Up to 3 locations', 'Analytics dashboard', 'WhatsApp notifications', 'Unlimited customers', 'Custom branding']
+    },
+    enterprise: {
+      name: 'Enterprise',
+      price: 29999,
+      features: ['Unlimited locations', 'API access', 'White-label', 'Priority support', 'Advanced analytics']
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const generateRestaurantId = () => {
+    const prefix = formData.restaurantName
+      .substring(0, 3)
+      .toUpperCase()
+      .replace(/[^A-Z]/g, '');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `${prefix}${random}`;
+  };
+
+  const handleSubmit = () => {
+    const id = generateRestaurantId();
+    setRestaurantId(id);
+    setStep(3);
+  };
+
+  if (step === 3) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-500 to-teal-600 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-4">
+              <CheckCircle className="w-12 h-12 text-emerald-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Welcome to QueueApp! 🎉
+            </h1>
+            <p className="text-gray-600">Your restaurant is ready to go</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Your Restaurant Details</h2>
+            
+            <div className="space-y-3 mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Restaurant Name:</span>
+                <span className="font-semibold text-gray-800">{formData.restaurantName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Restaurant ID:</span>
+                <span className="font-mono font-bold text-emerald-600 text-xl">{restaurantId}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Plan:</span>
+                <span className="font-semibold text-gray-800">{plans[formData.plan].name}</span>
+              </div>
+            </div>
+
+            <div className="border-t border-emerald-200 pt-4">
+              <h3 className="font-semibold text-gray-800 mb-3">Your URLs:</h3>
+              
+              <div className="space-y-2">
+                <div className="bg-white rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">Customer Queue Entry:</p>
+                  <p className="text-sm font-mono text-blue-600 break-all">
+                    https://queueapp.in/r/{restaurantId}/join
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">Display Screen:</p>
+                  <p className="text-sm font-mono text-blue-600 break-all">
+                    https://queueapp.in/r/{restaurantId}/display
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">Admin Dashboard:</p>
+                  <p className="text-sm font-mono text-blue-600 break-all">
+                    https://queueapp.in/r/{restaurantId}/admin
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <button className="bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+              <Settings className="w-5 h-5" />
+              Open Dashboard
+            </button>
+            <button className="bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+              Download QR Code
+            </button>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <h3 className="font-semibold text-amber-900 mb-2">Next Steps:</h3>
+            <ol className="text-sm text-amber-800 space-y-1 list-decimal list-inside">
+              <li>Print your QR code and place it at the entrance</li>
+              <li>Set up the display screen on your TV/monitor</li>
+              <li>Train your staff to use the admin panel</li>
+              <li>Test with a few customers</li>
+            </ol>
+          </div>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Check your email ({formData.email}) for detailed setup instructions
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 2) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Setup Your Queue System</h1>
+            <p className="text-gray-600">Configure your restaurant settings</p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Number of Tables
+                </label>
+                <input
+                  type="number"
+                  name="numberOfTables"
+                  value={formData.numberOfTables}
+                  onChange={handleChange}
+                  min="1"
+                  max="100"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-gray-800"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Avg Dining Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  name="avgDiningTime"
+                  value={formData.avgDiningTime}
+                  onChange={handleChange}
+                  min="15"
+                  max="180"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-gray-800"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Queue Number Prefix (Optional)
+              </label>
+              <input
+                type="text"
+                name="queuePrefix"
+                value={formData.queuePrefix}
+                onChange={handleChange}
+                placeholder="e.g., A-, GVR-, etc."
+                maxLength="5"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-gray-800"
+              />
+              <p className="text-xs text-gray-500 mt-1">Leave empty for default numbering</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Select Plan
+              </label>
+              <div className="grid grid-cols-3 gap-4">
+                {Object.entries(plans).map(([key, plan]) => (
+                  <button
+                    key={key}
+                    onClick={() => setFormData({ ...formData, plan: key })}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      formData.plan === key
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <h3 className="font-bold text-gray-800 mb-1">{plan.name}</h3>
+                      <p className="text-2xl font-bold text-blue-600 mb-3">
+                        ₹{plan.price}<span className="text-sm text-gray-500">/mo</span>
+                      </p>
+                      <ul className="text-xs text-gray-600 space-y-1 text-left">
+                        {plan.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-1">
+                            <span className="text-green-500 mt-0.5">✓</span>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setStep(1)}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+              >
+                Complete Setup
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-500 to-pink-600 p-6 flex items-center justify-center">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
+            <Store className="w-8 h-8 text-orange-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Register Your Restaurant
+          </h1>
+          <p className="text-gray-600">Join QueueApp and start managing queues efficiently</p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Restaurant Name *
+              </label>
+              <input
+                type="text"
+                name="restaurantName"
+                value={formData.restaurantName}
+                onChange={handleChange}
+                placeholder="e.g., Geetham Veg Restaurant"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Owner Name *
+              </label>
+              <input
+                type="text"
+                name="ownerName"
+                value={formData.ownerName}
+                onChange={handleChange}
+                placeholder="Your full name"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Email *
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="owner@restaurant.com"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Phone Number *
+              </label>
+              <div className="flex gap-2">
+                <div className="w-16 px-3 py-3 bg-gray-100 border-2 border-gray-300 rounded-xl text-center font-semibold text-gray-700">
+                  +91
+                </div>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="10-digit"
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Restaurant Address *
+            </label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="Street address"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                City *
+              </label>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="Bangalore"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                State *
+              </label>
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                placeholder="Karnataka"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Pincode *
+              </label>
+              <input
+                type="text"
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleChange}
+                placeholder="560001"
+                maxLength="6"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:outline-none text-gray-800"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={() => setStep(2)}
+            disabled={!formData.restaurantName || !formData.email || !formData.phone}
+            className="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Continue to Setup →
+          </button>
+
+          <p className="text-xs text-center text-gray-500">
+            By registering, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RestaurantOnboarding;

@@ -1,0 +1,23 @@
+<!-- Add input fields for pickup and dropoff locations -->
+<label for="pickup">Pickup Location:</label>
+<input type="text" id="pickup" name="pickup" placeholder="Enter start location" required>
+<!-- Add a button to open the location selection modal -->
+<button onclick="openLocationModal('pickup')">Select Location</button>
+
+<label for="dropoff">Dropoff Location:</label>
+<input type="text" id="dropoff" name="dropoff" placeholder="Enter dropoff location" required>
+<button onclick="openLocationModal('dropoff')">Select Location</button>
+
+<!-- Add a date and time picker -->
+<label for="datetime">Date & Time:</label>
+<input type="datetime-local" id="datetime" name="datetime" required>
+<!-- Modal for location selection -->
+<div id="locationModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2>Select Location</h2>
+    <button onclick="useCurrentLocation()">Use Current Location</button>
+    <div id="map"></div>
+    <button onclick="confirmLocation()">Confirm Location</button>
+  </div>
+</div>
