@@ -1,0 +1,41 @@
+name: Deploy QueueApp
+
+on:
+  push:
+    branches:
+      - main
+      - stage
+
+jobs:
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to Production
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          cname: queueapp.in
+          publish_branch: gh-pages
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/stage'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to Staging
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.STAGE_REPO_TOKEN }}
+          external_repository: keymeat2025/QueueApp-stage
+          publish_dir: ./
+          cname: demo.queueapp.in
+          publish_branch: gh-pages
