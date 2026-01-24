@@ -1,6 +1,115 @@
+
 // ============================================================================
-// QUEUEAPP - ANALYTICS MODULE
-// Customer Data & Analytics Page
+// QUEUEAPP - ANALYTICS MODULE (🔒 SECURED WITH PREMIUM ACCESS CONTROL)
+// Customer Data & Analytics Page - Premium Feature Only
+// ============================================================================
+
+// ============================================================================
+// 🔐 SECURITY LAYER - PREMIUM ACCESS VALIDATION
+// ============================================================================
+
+/**
+ * Security Guard - Validates premium access before allowing analytics functions
+ * Returns true if user has active premium subscription, false otherwise
+ */
+function validatePremiumAccess(rid, functionName = 'analytics') {
+    const r = DB.restaurants[rid];
+    
+    if (!r) {
+        console.error(`[SECURITY] Restaurant ${rid} not found - blocking ${functionName}`);
+        showPremiumAccessDenied(rid, 'Restaurant not found');
+        return false;
+    }
+    
+    if (r.plan !== 'premium') {
+        console.warn(`[SECURITY] Blocked ${functionName} - User has ${r.plan} plan (Premium required)`);
+        showPremiumAccessDenied(rid, `${functionName} requires Premium subscription`);
+        return false;
+    }
+    
+    if (r.planStatus !== 'active') {
+        console.warn(`[SECURITY] Blocked ${functionName} - Plan status: ${r.planStatus}`);
+        showPremiumAccessDenied(rid, `Premium plan is ${r.planStatus}`);
+        return false;
+    }
+    
+    // ===== 🔒 EXPIRY DATE VALIDATION =====
+    if (r.planExpiryDate) {
+        const now = Date.now();
+        const expiryDate = r.planExpiryDate;
+        
+        if (expiryDate < now) {
+            const daysExpired = Math.floor((now - expiryDate) / (1000 * 60 * 60 * 24));
+            console.warn(`[SECURITY] Blocked ${functionName} - Premium expired ${daysExpired} days ago`);
+            showPremiumAccessDenied(rid, `Premium subscription expired ${daysExpired} day${daysExpired > 1 ? 's' : ''} ago. Please renew to continue.`);
+            return false;
+        }
+        
+        // Log days remaining for monitoring
+        const daysRemaining = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+        console.log(`[SECURITY] ✅ Premium access granted for ${functionName} (${daysRemaining} days remaining)`);
+    } else {
+        console.log(`[SECURITY] ✅ Premium access granted for ${functionName} (No expiry date set)`);
+    }
+    
+    return true;
+}
+
+/**
+ * Show premium access denied modal and redirect to dashboard
+ */
+function showPremiumAccessDenied(rid, reason) {
+    console.error(`[SECURITY VIOLATION] Unauthorized analytics access attempt - ${reason}`);
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '99999';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:500px;text-align:center">
+            <div style="font-size:4rem;margin-bottom:1rem">🔒</div>
+            <h2 style="color:var(--danger);margin-bottom:1rem">Premium Feature</h2>
+            <p style="color:var(--gray-700);margin-bottom:2rem">
+                ${reason}<br><br>
+                Customer analytics requires an active Premium subscription.
+            </p>
+            <div style="background:linear-gradient(135deg,#fef9c3 0%,#fef3c7 100%);padding:1.5rem;border-radius:1rem;margin-bottom:2rem">
+                <h3 style="color:var(--primary);margin-bottom:1rem">📊 Premium Analytics Includes:</h3>
+                <ul style="text-align:left;margin:0 auto;max-width:300px;color:var(--gray-700)">
+                    <li>✅ Complete customer history</li>
+                    <li>✅ Advanced filtering & search</li>
+                    <li>✅ CSV export to Excel</li>
+                    <li>✅ Repeat customer insights</li>
+                    <li>✅ Wait time analysis</li>
+                </ul>
+            </div>
+            <div class="flex gap-1 justify-center">
+                <button onclick="navigate('/r/${rid}/admin')" class="btn btn-secondary">
+                    ← Dashboard
+                </button>
+                <button onclick="upgradeFromAnalyticsBlock('${rid}')" class="btn btn-primary">
+                    ⚡ Upgrade to Premium
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        navigate(`/r/${rid}/admin`);
+        modal.remove();
+    }, 5000);
+}
+
+/**
+ * Track analytics access attempt for conversion tracking
+ */
+function upgradeFromAnalyticsBlock(rid) {
+    sessionStorage.setItem('upgrade_source', 'analytics_access_blocked');
+    navigate('/pricing');
+}
+
+// ============================================================================
+// END SECURITY LAYER
 // ============================================================================
 
 // Global filter state
@@ -16,6 +125,13 @@ let analyticsFilterState = {
 // ============================================================================
 
 async function showAnalytics(rid) {
+    // ===== 🔒 SECURITY CHECK =====
+    if (!validatePremiumAccess(rid, 'showAnalytics')) {
+        console.error('[SECURITY] showAnalytics blocked - Premium access required');
+        return;
+    }
+    // ===== END SECURITY CHECK =====
+    
     // Get restaurant data
     let r = DB.restaurants[rid];
     if (!r) {
@@ -49,6 +165,13 @@ async function showAnalytics(rid) {
 // ============================================================================
 
 async function getCompleteQueueData(restaurant, rid) {
+    // ===== 🔒 SECURITY CHECK =====
+    if (!validatePremiumAccess(rid, 'getCompleteQueueData')) {
+        console.error('[SECURITY] getCompleteQueueData blocked');
+        return [];
+    }
+    // ===== END SECURITY CHECK =====
+    
     // Validate parameters
     if (!restaurant || !rid) {
         console.error('Invalid parameters:', { restaurant, rid });
@@ -116,6 +239,13 @@ async function getCompleteQueueData(restaurant, rid) {
 // ============================================================================
 
 function renderAnalyticsPage(rid, r, allQueue) {
+    // ===== 🔒 SECURITY CHECK =====
+    if (!validatePremiumAccess(rid, 'renderAnalyticsPage')) {
+        console.error('[SECURITY] renderAnalyticsPage blocked');
+        return;
+    }
+    // ===== END SECURITY CHECK =====
+    
     // Apply filters
     const filteredQueue = applyFilters(allQueue, analyticsFilterState);
     
@@ -405,6 +535,13 @@ function applyFilters(queue, filterState) {
 }
 
 async function updateAnalyticsFilters(rid) {
+    // ===== 🔒 SECURITY CHECK =====
+    if (!validatePremiumAccess(rid, 'updateAnalyticsFilters')) {
+        console.error('[SECURITY] Filter update blocked');
+        return;
+    }
+    // ===== END SECURITY CHECK =====
+    
     const dateFrom = document.getElementById('dateFrom').value;
     const dateTo = document.getElementById('dateTo').value;
     const searchQuery = document.getElementById('searchBox').value;
@@ -422,6 +559,13 @@ async function updateAnalyticsFilters(rid) {
 }
 
 async function toggleAnalyticsTimeSlot(slot, rid) {
+    // ===== 🔒 SECURITY CHECK =====
+    if (!validatePremiumAccess(rid, 'toggleAnalyticsTimeSlot')) {
+        console.error('[SECURITY] Time slot toggle blocked');
+        return;
+    }
+    // ===== END SECURITY CHECK =====
+    
     const index = analyticsFilterState.timeSlots.indexOf(slot);
     if (index > -1) {
         analyticsFilterState.timeSlots.splice(index, 1);
@@ -581,6 +725,14 @@ function getActiveTimeSlotsText(filterState) {
 // ============================================================================
 
 async function exportAnalyticsCSV(rid) {
+    // ===== 🔒 SECURITY CHECK =====
+    if (!validatePremiumAccess(rid, 'exportAnalyticsCSV')) {
+        console.error('[SECURITY] CSV export blocked - Premium required');
+        alert('🔒 CSV Export is a Premium Feature\n\nUpgrade to Premium to export your customer data to Excel.');
+        return;
+    }
+    // ===== END SECURITY CHECK =====
+    
     const r = DB.restaurants[rid];
     if (!r) {
         alert('❌ Restaurant data not found');
@@ -645,7 +797,7 @@ async function exportAnalyticsCSV(rid) {
 }
 
 // ============================================================================
-// EXPOSE FUNCTIONS TO GLOBAL SCOPE
+// EXPOSE FUNCTIONS TO GLOBAL SCOPE (WITH SECURITY WRAPPERS)
 // ============================================================================
 
 window.showAnalytics = showAnalytics;
@@ -655,4 +807,11 @@ window.updateAnalyticsFilters = updateAnalyticsFilters;
 window.toggleAnalyticsTimeSlot = toggleAnalyticsTimeSlot;
 window.exportAnalyticsCSV = exportAnalyticsCSV;
 
+// Expose security helpers for integration
+window.validatePremiumAccess = validatePremiumAccess;
+window.showPremiumAccessDenied = showPremiumAccessDenied;
+window.upgradeFromAnalyticsBlock = upgradeFromAnalyticsBlock;
+
 console.log('✅ QueueApp Analytics Module Loaded');
+console.log('🔒 Premium Access Control: ENABLED');
+console.log('🛡️ All 6 analytics functions protected by subscription validation');
