@@ -1,15 +1,14 @@
 /**
- * QueueApp - Archive & Cleanup Module
+ * QueueApp - Archive & Cleanup Module (UPDATED WITH EXPIRY LOGIC)
  * Handles daily queue cleanup, archival storage, and auto-split for large datasets
  * Date-based cutover: Dec 2025 uses old system, Jan 2026+ uses new collection-based system
+ * CHANGES: Added expiry validation for auto-cleanup eligibility
  */
 
 // ==================== FIREBASE ARCHIVE FUNCTIONS ====================
 
 /**
- * Daily cleanup with date-based system selection
- * OLD SYSTEM (before 2026-01): Stores in restaurant document's queueArchive field
- * NEW SYSTEM (2026-01+): Stores in separate archives/ collection with auto-split
+ * Daily cleanup with date-based system selection + expiry validation
  */
 window.FirebaseCleanup = {
   async dailyCleanup(rid, isManual = false) {
@@ -25,7 +24,16 @@ window.FirebaseCleanup = {
         
         const r = doc.data();
         if (r.lastCleanupDate === td) return { success: false, error: 'Already cleaned today' };
-        if (r.plan === 'free' && !isManual) return { success: false, error: 'FREE plan requires manual cleanup' };
+        
+        // ===== UPDATED: Check if Premium is ACTIVE (not expired) =====
+        const isPremiumActive = r.plan === 'premium' 
+          && r.planStatus === 'active'
+          && (!r.planExpiryDate || r.planExpiryDate > Date.now());
+        
+        if (!isPremiumActive && !isManual) {
+          return { success: false, error: 'Manual cleanup required (Free or expired Premium)' };
+        }
+        // ===== END UPDATE =====
         
         const queue = r.queue || [];
         const customers = queue.map(c => ({
@@ -141,7 +149,7 @@ window.FirebaseCleanup = {
 // ==================== LOCALSTORAGE ARCHIVE FUNCTIONS ====================
 
 /**
- * LocalStorage cleanup with same date-based logic
+ * LocalStorage cleanup with same date-based logic + expiry validation
  */
 window.LocalStorageCleanup = {
   dailyCleanup(rid, isManual = false) {
@@ -153,7 +161,16 @@ window.LocalStorageCleanup = {
     const USE_NEW_SYSTEM = month >= '2026-01';
     
     if (r.lastCleanupDate === td) return { success: false, error: 'Already cleaned today' };
-    if (r.plan === 'free' && !isManual) return { success: false, error: 'FREE plan requires manual cleanup' };
+    
+    // ===== UPDATED: Check if Premium is ACTIVE (not expired) =====
+    const isPremiumActive = r.plan === 'premium' 
+      && r.planStatus === 'active'
+      && (!r.planExpiryDate || r.planExpiryDate > Date.now());
+    
+    if (!isPremiumActive && !isManual) {
+      return { success: false, error: 'Manual cleanup required (Free or expired Premium)' };
+    }
+    // ===== END UPDATE =====
     
     const customers = r.queue.map(c => ({
       queueNumber: c.queueNumber,
@@ -470,3 +487,4 @@ window.upgradeFromProgressive = function(rid) {
 };
 
 console.log('✅ QueueApp Archival Module Loaded');
+console.log('✅ Expiry Validation: ENABLED');
