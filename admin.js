@@ -1,9 +1,9 @@
 // ============================================================================
-// QUEUEAPP - ADMIN.JS (CLEANED - MENU MANAGEMENT REMOVED)
+// QUEUEAPP - ADMIN.JS (CLEANED - SIMPLE DROPDOWN POSTER SYSTEM)
 // Restaurant & Platform Admin Module
 // Includes: Admin dashboards, payments, cleanup, QR poster, upgrade modals
-// NEW: Circular Progress Chart for Days Remaining
-// REMOVED: All Menu Management Features
+// NEW: Circular Progress Chart for Days Remaining + Simple Dropdown Poster
+// REMOVED: All Menu Management Features + Old Modal System
 // ============================================================================
 
 // ============================================================================
@@ -778,6 +778,7 @@ function renderPlatformAdminDashboard() {
                     <p style="font-size:.875rem">ID: ${id} • ${r.city} • ${r.queue?.length || 0} customers</p>
                   </div>
                   <div class="flex gap-1 flex-wrap">
+                    <button onclick="showQRPosterModal('${id}')" class="btn btn-success">📋 Poster</button>
                     <button onclick="navigate('/r/${id}/admin')" class="btn btn-secondary">Admin</button>
                     <button onclick="navigate('/r/${id}/display')" class="btn" style="background:#2563eb;color:white">Display</button>
                   </div>
@@ -893,7 +894,7 @@ async function adminLogout() {
 }
 
 // ============================================================================
-// QR POSTER MODAL
+// QR POSTER MODAL - SIMPLE DROPDOWN VERSION
 // ============================================================================
 
 function showQRPosterModal(rid) {
@@ -921,9 +922,18 @@ function showQRPosterModal(rid) {
         <div class="poster-powered-by">Powered by <strong>www.queueapp.in</strong></div>
       </div>
       
-      <div class="poster-actions">
-        <button onclick="downloadQRPoster('${rid}', '${restaurant.name}')" class="btn btn-success">💾 Download PNG</button>
-        <button onclick="closePosterModal()" class="btn btn-secondary">✕ Close</button>
+      <div class="poster-actions" style="display:flex;gap:1rem;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:2rem">
+        <div style="position:relative;display:inline-block;flex:1;max-width:400px;min-width:250px">
+          <select id="posterSize" class="btn btn-success" style="width:100%;appearance:none;padding-right:2.5rem;cursor:pointer;text-align:left;background:var(--success);color:white;border:none">
+            <option value="">💾 Select Size & Download</option>
+            <option value="standee">🏪 Standee 4×6" (Paytm style) ⭐</option>
+            <option value="a5">📱 A5 - Compact (5.8×8.3")</option>
+            <option value="a4">📄 A4 - Standard (8.3×11.7")</option>
+            <option value="a3">📋 A3 - Large (11.7×16.5")</option>
+          </select>
+          <div style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);pointer-events:none;font-size:1.2rem;color:white">▼</div>
+        </div>
+        <button onclick="closePosterModal()" class="btn btn-secondary" style="min-width:120px">✕ Close</button>
       </div>
     </div>
   `;
@@ -940,26 +950,112 @@ function showQRPosterModal(rid) {
       correctLevel: QRCode.CorrectLevel.H
     });
   }, 100);
+  
+  setTimeout(() => {
+    document.getElementById('posterSize').addEventListener('change', function() {
+      const size = this.value;
+      if (size) {
+        downloadQRPoster(rid, restaurant.name, size);
+        this.value = '';
+      }
+    });
+  }, 200);
 }
 
-function downloadQRPoster(rid, restaurantName) {
-  if (typeof html2canvas !== 'undefined') {
-    const element = document.getElementById('posterTemplate');
-    html2canvas(element, {
-      scale: 2,
-      backgroundColor: '#ffffff',
-      width: element.offsetWidth,
-      height: element.offsetHeight
-    }).then(canvas => {
-      const link = document.createElement('a');
-      const filename = `QueueApp-Poster-${restaurantName.replace(/[^a-z0-9]/gi, '-')}.png`;
-      link.download = filename;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  } else {
-    alert('💡 To download as PNG:\n\n1. Use Print button\n2. Select "Save as PDF"\n3. Or right-click the poster and "Save image as..."');
+function downloadQRPoster(rid, restaurantName, size = 'standee') {
+  const element = document.getElementById('posterTemplate');
+  
+  if (!element) {
+    alert('❌ Poster template not found. Please try again.');
+    return;
   }
+  
+  if (typeof html2canvas === 'undefined') {
+    console.error('html2canvas library not loaded');
+    alert('❌ Download library not loaded. Please refresh the page and try again.');
+    return;
+  }
+  
+  const sizeConfigs = {
+    'standee': { width: 1200, height: 1800, label: 'Standee-4x6', name: 'Table Standee' },
+    'a5': { width: 1748, height: 2480, label: 'A5', name: 'A5 Compact' },
+    'a4': { width: 2480, height: 3508, label: 'A4', name: 'A4 Standard' },
+    'a3': { width: 3508, height: 4961, label: 'A3', name: 'A3 Large' }
+  };
+  
+  const config = sizeConfigs[size] || sizeConfigs['standee'];
+  
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:10002';
+  loadingOverlay.innerHTML = `
+    <div style="text-align:center;background:white;padding:2rem 3rem;border-radius:1rem;max-width:350px">
+      <div style="font-size:3.5rem;margin-bottom:1rem">📸</div>
+      <h3 style="margin-bottom:.75rem;font-size:1.25rem">Generating Poster...</h3>
+      <p style="color:var(--gray-600);font-size:.875rem;margin:0">${config.name}</p>
+      <div style="width:100%;height:6px;background:var(--gray-200);border-radius:999px;overflow:hidden;margin-top:1.5rem">
+        <div style="width:60%;height:100%;background:var(--success);animation:pulse 1.5s infinite"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(loadingOverlay);
+  
+  const currentWidth = element.offsetWidth;
+  const currentHeight = element.offsetHeight;
+  const scale = Math.min(config.width / currentWidth, config.height / currentHeight);
+  
+  html2canvas(element, {
+    scale: scale,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#FFF9E6',
+    width: currentWidth,
+    height: currentHeight,
+    logging: false,
+    imageTimeout: 0,
+    onclone: (clonedDoc) => {
+      const clonedElement = clonedDoc.getElementById('posterTemplate');
+      if (clonedElement) clonedElement.style.transform = 'scale(1)';
+    }
+  }).then(canvas => {
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) throw new Error('Failed to create image blob');
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const sanitizedName = restaurantName.replace(/[^a-z0-9]/gi, '-');
+        const dateStr = new Date().toISOString().slice(0,10);
+        const filename = `QueueApp-${sanitizedName}-${config.label}-${dateStr}.png`;
+        
+        link.download = filename;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        loadingOverlay.remove();
+        
+        const successToast = document.createElement('div');
+        successToast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--success);color:white;padding:1rem 2rem;border-radius:.5rem;font-weight:700;z-index:10003;box-shadow:0 4px 12px rgba(0,0,0,.3);animation:slideDown 0.3s ease';
+        successToast.innerHTML = `✅ ${config.name} Downloaded!`;
+        document.body.appendChild(successToast);
+        
+        setTimeout(() => {
+          successToast.style.animation = 'slideUp 0.3s ease';
+          setTimeout(() => successToast.remove(), 300);
+        }, 2500);
+        
+      }, 'image/png', 1.0);
+    } catch (err) {
+      console.error('Download error:', err);
+      loadingOverlay.remove();
+      alert('❌ Download failed. Please try again.');
+    }
+  }).catch(err => {
+    console.error('html2canvas error:', err);
+    loadingOverlay.remove();
+    alert('❌ Failed to generate poster. Please try again or contact support.');
+  });
 }
 
 function closePosterModal() {
@@ -1238,6 +1334,8 @@ window.showQRPosterModal = showQRPosterModal;
 window.downloadQRPoster = downloadQRPoster;
 window.closePosterModal = closePosterModal;
 
-console.log('✅ QueueApp Admin Module Loaded (Cleaned)');
+console.log('✅ QueueApp Admin Module Loaded (Simple Dropdown Poster System)');
 console.log('📊 Premium Expiry PI Chart: ENABLED');
+console.log('📋 Simple Dropdown Poster Download: ENABLED');
 console.log('🍽️ Menu Management: REMOVED');
+console.log('❌ Old Modal System: REMOVED');

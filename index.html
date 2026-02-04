@@ -1,4 +1,4 @@
-<title>QueueApp - Production Environment jan 24 2026</title>
+<title>QueueApp - Smart Queue Management</title>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
 <title>QueueApp - Smart Queue Management</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -197,7 +198,6 @@ body *{visibility:hidden}
 .poster-template4 .poster-main-text{font-size:clamp(1.25rem,3vw,2rem);font-weight:900;text-align:center;line-height:1.3}
 .poster-template4 .poster-qr-container{background:white;padding:clamp(1.5rem,3vw,2rem);border-radius:1.5rem;box-shadow:0 8px 30px rgba(0,0,0,.15);border:5px solid #fbbf24;z-index:2;display:flex;justify-content:center}
 .poster-template4 .poster-scan-me{font-size:clamp(1rem,2vw,1.5rem);color:#f59e0b;font-weight:900;margin-top:1.5rem;text-align:center;z-index:2}
-.poster-template4 .poster-scan-me::before,.poster-template4 .poster-scan-me::after{content:'👇';margin:0 .5rem}
 .poster-template4 .poster-powered-by{font-size:clamp(.75rem,1.5vw,1rem);color:#666;text-align:center;z-index:2;margin-top:1rem}
 .poster-actions{display:flex;gap:1rem;justify-content:center;margin-top:2rem;flex-wrap:wrap}
 input[type="checkbox"],input[type="radio"]{width:20px !important;height:20px !important;min-height:20px !important;-webkit-appearance:checkbox !important;appearance:checkbox !important;margin-bottom:0 !important;cursor:pointer;flex-shrink:0;accent-color:var(--primary)}
@@ -205,6 +205,91 @@ input[type="radio"]{-webkit-appearance:radio !important;appearance:radio !import
 input[type="file"]{-webkit-appearance:none;appearance:none;padding:0.5rem !important;min-height:auto !important;cursor:pointer}
 input[type="range"]{-webkit-appearance:auto !important;appearance:auto !important;padding:0 !important;min-height:auto !important;height:8px;cursor:pointer}
 .flex input[type="checkbox"]{margin-top:0.25rem}
+/* Poster Modal Button Alignment */
+.poster-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.poster-actions > div {
+  position: relative;
+  display: inline-block;
+  flex: 1;
+  max-width: 400px;
+  min-width: 250px;
+}
+
+.poster-actions select {
+  width: 100%;
+  appearance: none;
+  padding-right: 2.5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.poster-actions .btn {
+  min-width: 120px;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .poster-actions {
+    flex-direction: column !important;
+  }
+  
+  .poster-actions > div,
+  .poster-actions > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: auto !important;
+  }
+}
+/* Poster Modal Button Alignment */
+.poster-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.poster-actions > div {
+  position: relative;
+  display: inline-block;
+  flex: 1;
+  max-width: 400px;
+  min-width: 250px;
+}
+
+.poster-actions select {
+  width: 100%;
+  appearance: none;
+  padding-right: 2.5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.poster-actions .btn {
+  min-width: 120px;
+}
+
+@media (max-width: 600px) {
+  .poster-actions {
+    flex-direction: column !important;
+  }
+  
+  .poster-actions > div,
+  .poster-actions > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: auto !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -228,7 +313,7 @@ function handleRoute(){const h=window.location.hash.slice(1)||'/',p=h.split('/')
 
 window.onhashchange=handleRoute;
 
-function showHome(){render(`<div class="bg-gradient" style="min-height:100vh"><nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1><button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button><div class="nav-buttons mobile-menu"><button onclick="navigate('/pricing')" class="btn btn-secondary">Pricing</button><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div><div class="nav-buttons"><button onclick="navigate('/pricing')" class="btn btn-secondary">Pricing</button><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div></div></nav><main class="container text-center" style="padding:clamp(2rem,5vw,8rem) 0"><h1 style="margin-bottom:1rem">Smart Queue Management</h1><p style="font-size:clamp(1.125rem,2vw,1.5rem);color:var(--gray-600);margin-bottom:2rem">No more crowded entrances. Happy customers.</p><div class="grid grid-3 mb"><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📱</div><h3>Digital Queue</h3><p style="color:var(--gray-600)">QR code entry</p></div><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📺</div><h3>Live Display</h3><p style="color:var(--gray-600)">Real-time updates</p></div><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📊</div><h3>Analytics</h3><p style="color:var(--gray-600)">Track customer flow</p></div></div><button onclick="navigate('/signup')" class="btn btn-primary" style="font-size:clamp(1.25rem,3vw,1.5rem);padding:clamp(1rem,3vw,1.5rem) clamp(2rem,5vw,3rem)">Start Free Forever</button><p style="margin-top:1rem;color:var(--gray-600);font-size:clamp(.875rem,2vw,1rem)">500 customers/month free • No credit card</p></main><footer style="background:white;border-top:2px solid var(--gray-200);padding:2rem 0;margin-top:4rem"><div class="container text-center"><div style="display:flex;justify-content:center;gap:clamp(1rem,3vw,2rem);flex-wrap:wrap;margin-bottom:1rem"><button onclick="navigate('/terms')" style="background:none;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline;padding:.5rem">Terms</button><button onclick="navigate('/privacy')" style="background:none;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline;padding:.5rem">Privacy</button><a href="mailto:queueapphelpdesk@gmail.com" style="color:var(--gray-600);text-decoration:underline">Support</a></div><p style="color:var(--gray-500);font-size:.875rem">© 2026 v1.1 QueueApp<br>Phone: +91 7200 36 9191<br>Email: queueapphelpdesk@gmail.com</p></div></footer></div>`)}
+function showHome(){render(`<div class="bg-gradient" style="min-height:100vh"><nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1><button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button><div class="nav-buttons mobile-menu"><button onclick="navigate('/pricing')" class="btn btn-secondary">Pricing</button><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div><div class="nav-buttons"><button onclick="navigate('/pricing')" class="btn btn-secondary">Pricing</button><button onclick="navigate('/login')" class="btn btn-secondary">Login</button><button onclick="navigate('/signup')" class="btn btn-primary">Sign Up</button></div></div></nav><main class="container text-center" style="padding:clamp(2rem,5vw,8rem) 0"><h1 style="margin-bottom:1rem">Smart Queue Management</h1><p style="font-size:clamp(1.125rem,2vw,1.5rem);color:var(--gray-600);margin-bottom:2rem">No more crowded entrances. Happy customers.</p><div class="grid grid-3 mb"><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📱</div><h3>Digital Queue</h3><p style="color:var(--gray-600)">QR code entry</p></div><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📺</div><h3>Live Display</h3><p style="color:var(--gray-600)">Real-time updates</p></div><div class="card text-center"><div style="font-size:4rem;margin-bottom:1rem">📊</div><h3>Analytics</h3><p style="color:var(--gray-600)">Track customer flow</p></div></div><button onclick="navigate('/signup')" class="btn btn-primary" style="font-size:clamp(1.25rem,3vw,1.5rem);padding:clamp(1rem,3vw,1.5rem) clamp(2rem,5vw,3rem)">Start Free Forever</button><p style="margin-top:1rem;color:var(--gray-600);font-size:clamp(.875rem,2vw,1rem)">500 customers/month free • No credit card</p></main><footer style="background:white;border-top:2px solid var(--gray-200);padding:2rem 0;margin-top:4rem"><div class="container text-center"><div style="display:flex;justify-content:center;gap:clamp(1rem,3vw,2rem);flex-wrap:wrap;margin-bottom:1rem"><button onclick="navigate('/terms')" style="background:none;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline;padding:.5rem">Terms</button><button onclick="navigate('/privacy')" style="background:none;border:none;color:var(--gray-600);cursor:pointer;text-decoration:underline;padding:.5rem">Privacy</button><a href="mailto:queueapphelpdesk@gmail.com" style="color:var(--gray-600);text-decoration:underline">Support</a></div><p style="color:var(--gray-500);font-size:.875rem">© 2026 v1.2 QueueApp<br>Phone: +91 7200 36 9191<br>Email: queueapphelpdesk@gmail.com</p></div></footer></div>`)}
 
 function showPricing(){const lg=getLoggedInRest(),r=lg?.data,rid=lg?.id,cp=r?.plan||'free',ps=r?.planStatus||'active';const upSrc=sessionStorage.getItem('upgrade_source')||'';const srcBanner=upSrc==='cleanup_button'?'<div class="alert alert-warning mb" style="text-align:center"><p style="font-weight:700;font-size:clamp(1rem,3vw,1.25rem);margin-bottom:.5rem">🛑 Stop Manual Resets Forever!</p><p style="margin:0;font-size:clamp(.875rem,2vw,1rem)">Switch to automatic cleanup at midnight • Never click "Reset Queue" again</p></div>':upSrc.includes('cleanup')?'<div class="alert alert-info mb" style="text-align:center"><p style="font-weight:700;font-size:clamp(1rem,3vw,1.25rem);margin-bottom:.5rem">⚡ Automate Your Queue</p><p style="margin:0;font-size:clamp(.875rem,2vw,1rem)">Premium users enjoy automatic cleanup • Zero daily effort required</p></div>':upSrc==='analytics_button'?'<div class="alert alert-info mb" style="text-align:center"><p style="font-weight:700;font-size:clamp(1rem,3vw,1.25rem);margin-bottom:.5rem">📊 Unlock Customer Insights</p><p style="margin:0;font-size:clamp(.875rem,2vw,1rem)">Get complete analytics • Track customer behavior • Export to Excel</p></div>':'';const nb=lg?`<div class="flex gap-1 flex-wrap items-center"><span style="font-weight:600">${r.name}</span><span class="badge ${cp==='premium'?'badge-primary':ps==='pending'?'badge-warning':'badge-secondary'}">${ps==='pending'?'PENDING':cp.toUpperCase()}</span><button onclick="navigate('/r/${rid}/admin')" class="btn btn-secondary hide-mobile">Dashboard</button><button onclick="logout('${rid}')" class="btn btn-danger">Logout</button></div>`:'<div class="nav-buttons mobile-menu"><button onclick="navigate(\'/login\')" class="btn btn-secondary">Login</button><button onclick="navigate(\'/signup\')" class="btn btn-primary">Sign Up</button></div><div class="nav-buttons"><button onclick="navigate(\'/login\')" class="btn btn-secondary">Login</button><button onclick="navigate(\'/signup\')" class="btn btn-primary">Sign Up</button></div>';const isPremiumActive=r&&cp==='premium'&&ps==='active'&&(!r.planExpiryDate||r.planExpiryDate>Date.now());const cta=isPremiumActive?'<button class="btn btn-success w-full" disabled style="opacity:.7">✓ Current Plan</button>':lg&&ps==='pending'?'<button class="btn btn-warning w-full" disabled style="opacity:.7">⏳ Pending</button>':lg&&(cp==='premium'||cp==='free')?`<button onclick="handleUpgrade('${rid}')" class="btn w-full" style="background:white;color:var(--primary)">${cp==='premium'?'🔄 Renew Premium':'Upgrade Now'}</button>`:'<button onclick="navigate(\'/signup\')" class="btn w-full" style="background:white;color:var(--primary)">Get Started</button>';render(`<div class="bg-gradient" style="min-height:100vh"><nav><div class="container nav-content"><h1 onclick="navigateHome()">QueueApp</h1><button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>${nb}</div></nav><div class="container" style="padding:2rem 0">${srcBanner}<div class="text-center mb"><h1>Simple Pricing</h1><p style="font-size:clamp(1rem,3vw,1.25rem);color:var(--gray-600)">Start free. Upgrade anytime.</p></div><div class="grid grid-2" style="max-width:1200px;margin:0 auto"><div class="card"><div class="text-center"><p style="color:var(--success);font-weight:700;font-size:.875rem;margin-bottom:1rem">FREE FOREVER</p><h3>Free</h3><div style="font-size:clamp(2.5rem,8vw,4rem);font-weight:900;margin:1rem 0">₹0<span style="font-size:clamp(1rem,3vw,1.5rem);color:var(--gray-600)">/month</span></div><p style="color:var(--gray-600);font-size:.875rem;margin-bottom:2rem">500 customers/month</p></div><div class="space-y"><p>✓ Digital queue</p><p>✓ QR code entry</p><p>✓ Live display</p><p>✓ Basic analytics</p>${upSrc?'<p style="color:var(--warning);font-weight:700">⚠️ Manual cleanup required daily</p>':''}</div></div><div class="card bg-gradient-primary" style="position:relative;overflow:hidden"><div class="text-center"><p style="font-size:.875rem;margin-bottom:.5rem;opacity:.9">MOST POPULAR</p><h3>Premium</h3><div style="margin:1rem 0"><div style="font-size:clamp(1.5rem,4vw,2rem);font-weight:700;text-decoration:line-through;opacity:.6">₹2,999</div><div style="font-size:clamp(2.5rem,8vw,4rem);font-weight:900">₹1,999<span style="font-size:clamp(1rem,3vw,1.5rem);opacity:.8">/3 months</span></div></div><div style="background:rgba(255,255,255,.2);display:inline-block;padding:.5rem 1rem;border-radius:999px;margin-bottom:1rem"><span style="font-size:.875rem;font-weight:700">🎉 SAVE ₹1,000!</span></div><p style="opacity:.9;margin-bottom:2rem">Unlimited customers</p></div><div class="space-y"><p>✓ Everything in Free</p><p>✓ Unlimited customers</p>${upSrc==='analytics_button'?'<p style="font-weight:700;background:rgba(255,255,255,.2);padding:.5rem;border-radius:.5rem;margin:.5rem 0">📊 FULL CUSTOMER ANALYTICS</p>':upSrc?'<p style="font-weight:700">⚡ AUTO CLEANUP AT MIDNIGHT</p>':''}<p>✓ Advanced analytics</p><p>✓ Priority support</p></div><div class="mt">${cta}</div></div></div></div></div>`);if(upSrc)setTimeout(()=>sessionStorage.removeItem('upgrade_source'),1000)}
 
