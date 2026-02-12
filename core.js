@@ -471,12 +471,29 @@ const FirebaseDB = {
   },
 
  
+  
   // Approve premium
   async approvePremium(rid, approvalData) {
     try {
       const activePlan = getActivePlan();
-      const startDate = Date.now();
-      const expiryDate = startDate + (activePlan.duration * 24 * 60 * 60 * 1000);
+      
+      // ✅ STACK-TIME CALCULATION: Check if renewing before expiry
+      const doc = await db.collection('restaurants').doc(rid).get();
+      const restaurantData = doc.exists ? doc.data() : null;
+      const now = Date.now();
+      const currentExpiry = restaurantData?.planExpiryDate;
+      
+      let startDate, expiryDate;
+      
+      if (currentExpiry && currentExpiry > now) {
+        // Renewing BEFORE expiry - Stack time (add 90 days to current expiry)
+        startDate = currentExpiry;
+        expiryDate = currentExpiry + (activePlan.duration * 24 * 60 * 60 * 1000);
+      } else {
+        // First time OR expired - Start immediately
+        startDate = now;
+        expiryDate = now + (activePlan.duration * 24 * 60 * 60 * 1000);
+      }
       
       const updateData = {
         plan: 'premium',
@@ -672,8 +689,22 @@ const DB = {
     const restaurant = this.restaurants[rid];
     if (restaurant) {
       const activePlan = getActivePlan();
-      const startDate = Date.now();
-      const expiryDate = startDate + (activePlan.duration * 24 * 60 * 60 * 1000);
+      
+      // ✅ STACK-TIME CALCULATION: Check if renewing before expiry
+      const now = Date.now();
+      const currentExpiry = restaurant.planExpiryDate;
+      
+      let startDate, expiryDate;
+      
+      if (currentExpiry && currentExpiry > now) {
+        // Renewing BEFORE expiry - Stack time (add 90 days to current expiry)
+        startDate = currentExpiry;
+        expiryDate = currentExpiry + (activePlan.duration * 24 * 60 * 60 * 1000);
+      } else {
+        // First time OR expired - Start immediately
+        startDate = now;
+        expiryDate = now + (activePlan.duration * 24 * 60 * 60 * 1000);
+      }
       
       restaurant.plan = 'premium';
       restaurant.planStatus = 'active';
