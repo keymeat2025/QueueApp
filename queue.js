@@ -38,31 +38,206 @@ async function showJoinQueue(rid) {
           <input type="text" id="customerName" placeholder="Your Name">
           <input type="tel" id="customerPhone" placeholder="Mobile" maxlength="10">
           <div>
-            <label style="display:block;font-weight:600;margin-bottom:.75rem">Guests</label>
-            <div class="grid grid-4">
-              ${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `
-                <button onclick="selectGuests(${n})" id="guest-${n}" class="btn ${n === 2 ? 'btn-primary' : 'btn-secondary'}">${n}</button>
-              `).join('')}
+            <label style="display:block;font-weight:600;margin-bottom:.75rem;text-align:center">Number of Guests</label>
+            
+            <!-- Wheel Picker Container -->
+            <div class="wheel-picker-container">
+              <div class="wheel-picker-overlay"></div>
+              <div class="wheel-picker-highlight"></div>
+              <div class="wheel-picker" id="guestPicker">
+                ${Array.from({length: 30}, (_, i) => i + 1).map(n => `
+                  <div class="wheel-item" data-value="${n}">${n}</div>
+                `).join('')}
+              </div>
+              <div class="wheel-selected-value" id="selectedGuestCount">2</div>
             </div>
           </div>
           <button onclick="handleJoinQueue('${rid}')" class="btn btn-primary w-full">Join Queue</button>
         </div>
       </div>
     </div>
+    
+    <style>
+      .wheel-picker-container {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+        background: var(--gray-50);
+        border-radius: 1rem;
+        margin: 1rem auto;
+        max-width: 300px;
+      }
+      
+      .wheel-picker {
+        height: 100%;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 80px 0;
+        cursor: grab;
+      }
+      
+      .wheel-picker::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .wheel-picker:active {
+        cursor: grabbing;
+      }
+      
+      .wheel-item {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        scroll-snap-align: center;
+        transition: all 0.3s ease;
+        color: var(--gray-400);
+        user-select: none;
+      }
+      
+      .wheel-item.active {
+        color: var(--primary);
+        font-size: 2rem;
+        font-weight: 900;
+        transform: scale(1.2);
+      }
+      
+      .wheel-picker-highlight {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        opacity: 0.15;
+        border-radius: 0.5rem;
+        pointer-events: none;
+        z-index: 1;
+      }
+      
+      .wheel-picker-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, 
+          var(--gray-50) 0%, 
+          transparent 25%, 
+          transparent 75%, 
+          var(--gray-50) 100%);
+        pointer-events: none;
+        z-index: 2;
+      }
+      
+      .wheel-selected-value {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        z-index: 3;
+        pointer-events: none;
+      }
+      
+      @media (max-width: 767px) {
+        .wheel-picker-container {
+          height: 180px;
+        }
+        
+        .wheel-item {
+          height: 36px;
+          font-size: 1.25rem;
+        }
+        
+        .wheel-item.active {
+          font-size: 1.75rem;
+        }
+      }
+    </style>
   `);
   
-  // Initialize selected guests
-  window.selectedGuests = 2;
+  // Initialize wheel picker
+  setTimeout(() => {
+    initWheelPicker();
+  }, 100);
 }
 
-// Select number of guests
-window.selectGuests = (n) => {
-  window.selectedGuests = n;
-  document.querySelectorAll('[id^="guest-"]').forEach(btn => {
-    btn.className = 'btn btn-secondary';
+// Initialize wheel picker functionality
+function initWheelPicker() {
+  const picker = document.getElementById('guestPicker');
+  const items = picker.querySelectorAll('.wheel-item');
+  const selectedDisplay = document.getElementById('selectedGuestCount');
+  
+  // Initialize selected guests to 2 (default)
+  window.selectedGuests = 2;
+  
+  // Function to update active item
+  function updateActiveItem() {
+    const pickerRect = picker.getBoundingClientRect();
+    const centerY = pickerRect.top + pickerRect.height / 2;
+    
+    let closestItem = null;
+    let closestDistance = Infinity;
+    
+    items.forEach(item => {
+      const itemRect = item.getBoundingClientRect();
+      const itemCenterY = itemRect.top + itemRect.height / 2;
+      const distance = Math.abs(centerY - itemCenterY);
+      
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestItem = item;
+      }
+      
+      // Remove active class from all items
+      item.classList.remove('active');
+    });
+    
+    // Add active class to closest item
+    if (closestItem) {
+      closestItem.classList.add('active');
+      const value = parseInt(closestItem.dataset.value);
+      window.selectedGuests = value;
+      selectedDisplay.textContent = `${value} Guest${value !== 1 ? 's' : ''}`;
+    }
+  }
+  
+  // Scroll to default position (2 guests)
+  const defaultIndex = 1; // Index for 2 guests (0-indexed)
+  picker.scrollTop = defaultIndex * 40; // 40px is the height of each item
+  
+  // Add scroll event listener
+  picker.addEventListener('scroll', updateActiveItem);
+  
+  // Add touch/mouse support for better feel
+  let isScrolling;
+  picker.addEventListener('scroll', () => {
+    clearTimeout(isScrolling);
+    isScrolling = setTimeout(() => {
+      // Snap to nearest item after scrolling stops
+      updateActiveItem();
+    }, 50);
   });
-  document.getElementById(`guest-${n}`).className = 'btn btn-primary';
-};
+  
+  // Initial update
+  setTimeout(() => {
+    updateActiveItem();
+  }, 50);
+}
+
+// Remove old selectGuests function (no longer needed with wheel picker)
+// window.selectGuests is now handled by the wheel picker
 
 // Handle join queue form submission
 async function handleJoinQueue(rid) {
@@ -375,5 +550,6 @@ window.handleJoinQueue = handleJoinQueue;
 window.showLoadingSuccess = showLoadingSuccess;
 window.showUpgradeModal = showUpgradeModal;
 window.showQueueStatus = showQueueStatus;
+window.initWheelPicker = initWheelPicker;
 
 console.log('✅ QueueApp Queue Module Loaded');
